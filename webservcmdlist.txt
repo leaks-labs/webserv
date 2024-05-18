@@ -1,0 +1,35 @@
+strerror : message d'erreur de errnum
+
+htons : convertie des valeurs de l'hôte vers le réseau
+htonl : idem
+ntohs : convertie des valeurs du reseau vers l'hote
+ntohl : idem
+
+select : ecoute plusieurs fds en fonction de leurs events
+poll : idem
+epoll : idem
+kqueue : ecoute un evenement system sur un fd
+
+socket : Créer un point de communication pour un domaine (renvoi un fd)
+socketpair : cree deux sockets connectées
+accept : accepte une connexion sur une socket
+listen : Attendre des connexions sur une socket
+send : envoyer un message sur une socket
+recv : Recevoir un message sur une socket
+bind : Fournir un nom à une socket
+connect : initialise une connection sur un socket
+setsockopt : definir les options d'une socket
+getsockname : renvoi le nom d'une socket
+getprotobyname : renvoi une structure en fonction du nom du protocole trouvé
+getaddrinfo : renvoie une ou plusieurs structures addrinfo
+freeaddrinfo : free une ou plusieurs addrinfo
+gai_strerror : information decrivant le nom et d'addresse d'une erreur
+
+fcntl : permet de manipuler des fds
+
+access : verifie les permissions d'un utilisateur sur un fichier
+stat : obtenir l'etat d'un fichier
+chdir : changer le repertoire courant
+opendir : ouvrir un repertoire
+readdir : consulter un repertoire
+closedir : fermer un repertoire

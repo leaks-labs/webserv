@@ -60,7 +60,10 @@ EXT:=	.cpp
 
 MAIN:=	main
 
-SRCS_FILES:=    
+SRCS_FILES:=	WebServ				\
+				Listener			\
+				ListenerListInfo	\
+				EventBroker
 
 ################################################################################
 #                                 SRC's FORMATING                              #
