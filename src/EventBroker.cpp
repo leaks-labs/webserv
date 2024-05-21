@@ -191,11 +191,11 @@ int EventBroker::run()
                 std::cout << "ENTER: AcceptConnection " << std::endl;
                 AcceptConnection(event[i].data.fd);
                 // TODO: check error here?
-            } else if (event[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
+            } else if ((event[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) != 0u) {
                 std::cout << "ENTER: DeleteConnection " << std::endl;
                 DeleteConnection(event[i].data.fd);
                 // TODO: check error here?
-            } else if (event[i].events & EPOLLIN) {
+            } else if ((event[i].events & EPOLLIN) != 0u) {
                 std::cout << "ENTER: read and sending message " << std::endl;
                 // TODO:
                 // prepare the request
