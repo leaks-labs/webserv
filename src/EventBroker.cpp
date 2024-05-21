@@ -14,7 +14,7 @@
 
 // to remove
 #include <iostream>
-#include <stdio.h>
+#include <cstdio>
 // to remove
 
 
