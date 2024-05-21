@@ -1,27 +1,27 @@
 #ifndef WEBSERV_HPP_
-# define WEBSERV_HPP_
+#define WEBSERV_HPP_
 
-# include <string>
-# include <vector>
+#include <string>
+#include <vector>
 
-# include "Listener.hpp"
-# include "ListenerListInfo.hpp"
+#include "Listener.hpp"
+#include "ListenerListInfo.hpp"
 
 class WebServ {
-    public:
-        WebServ();
-        WebServ(const std::string &config_file);
+public:
+  WebServ();
+  WebServ(const std::string &config_file);
 
-        ~WebServ();
+  ~WebServ();
 
-        int run() const;
+  int run() const;
 
-    private:
-        WebServ(const WebServ& src);
-        WebServ&    operator=(const WebServ& rhs);
+private:
+  WebServ(const WebServ &src);
+  WebServ &operator=(const WebServ &rhs);
 
-        std::vector<Listener*>  listeners_;
-        ListenerListInfo        listener_list_info_;
+  std::vector<Listener *> listeners_;
+  ListenerListInfo listener_list_info_;
 };
 
-#endif  // WEBSERV_HPP_
+#endif // WEBSERV_HPP_

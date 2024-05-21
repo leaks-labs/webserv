@@ -1,22 +1,22 @@
 #ifndef LISTENER_HPP_
-# define LISTENER_HPP_
+#define LISTENER_HPP_
 
-# include <netdb.h>
+#include <netdb.h>
 
 class Listener {
-    public:
-        Listener(const struct addrinfo& address);
+public:
+  Listener(const struct addrinfo &address);
 
-        ~Listener();
+  ~Listener();
 
-        int get_sfd() const;
+  int get_sfd() const;
 
-    private:
-        Listener();
-        Listener(const Listener& src);
-        Listener&   operator=(const Listener& rhs);
+private:
+  Listener();
+  Listener(const Listener &src);
+  Listener &operator=(const Listener &rhs);
 
-        int sfd_; /* socket file descriptor */
+  int sfd_; /* socket file descriptor */
 };
 
-#endif  // LISTENER_HPP_
+#endif // LISTENER_HPP_
