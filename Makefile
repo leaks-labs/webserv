@@ -15,7 +15,7 @@ LDLIBS:=
 LIB_DIRS=
 
 CC:=	cc
-CXX:=	c++
+CXX:=	clang++
 
 CXXFLAGS= -Wall -Wextra -Werror -std=c++98
 
