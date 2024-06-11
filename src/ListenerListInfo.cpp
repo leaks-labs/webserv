@@ -1,6 +1,7 @@
 #include "ListenerListInfo.hpp"
 
 #include <cstring>
+#include <stdexcept>
 
 const std::string  ListenerListInfo::kDefaultPort = "8080";
 
