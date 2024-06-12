@@ -1,5 +1,7 @@
 #include "EventBroker.hpp"
 
+#include "Request.hpp"
+
 #include <algorithm>
 #include <csignal>
 #include <stdexcept>

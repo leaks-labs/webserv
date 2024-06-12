@@ -63,6 +63,7 @@ MAIN:=	main
 SRCS_FILES:=	WebServ				\
 				Listener			\
 				ListenerListInfo	\
+				Request				\
 				EventBroker
 
 ################################################################################
