@@ -8,7 +8,7 @@
 NAME:=  webserv
 
 SRCS_DIR:= src
-INC_DIRS= include
+INC_DIRS= include include/request
 BUILD_DIR:= build
 
 LDLIBS:=
@@ -34,10 +34,10 @@ CFLAGS+=	-Wconversion \
 			-Wmissing-prototypes \
 			-Wmissing-declarations
 
-#			-Wpedantic 
+#			-Wpedantic
 # 			-pedantic-errors
 #			-Wcast-qual
-#			-Wstrict-prototypes 
+#			-Wstrict-prototypes
 #			-Wpadded
 #
 #			gcc flags only
@@ -60,10 +60,12 @@ EXT:=	.cpp
 
 MAIN:=	main
 
-SRCS_FILES:=	WebServ				\
-				Listener			\
-				ListenerListInfo	\
-				Request				\
+SRCS_FILES:=	WebServ					\
+				Listener				\
+				ListenerListInfo		\
+				request/Request			\
+				request/RequestHeader	\
+				request/RequestLine		\
 				EventBroker
 
 ################################################################################
