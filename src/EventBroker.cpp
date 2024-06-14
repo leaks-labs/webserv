@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 #ifdef __APPLE__
-# include <fcntl.h>
+// # include <fcntl.h>
 # include <sys/event.h>
 #elif __linux__
 # include <sys/epoll.h>
