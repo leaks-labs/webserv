@@ -1,11 +1,14 @@
 #include <csignal>
 #include <iostream>
 #include <exception>
-
 #include "WebServ.hpp"
+#include "Config.hpp"
 
 int main(int argc, char **argv)
 {
+    Config config;
+
+    config.loadData("port", "9000");
     signal(SIGINT, SIG_IGN);
 
     if (argc > 2) {

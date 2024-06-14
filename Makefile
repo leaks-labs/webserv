@@ -63,7 +63,8 @@ MAIN:=	main
 SRCS_FILES:=	WebServ				\
 				Listener			\
 				ListenerListInfo	\
-				EventBroker
+				EventBroker			\
+				Config
 
 ################################################################################
 #                                 SRC's FORMATING                              #
