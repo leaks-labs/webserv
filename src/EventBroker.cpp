@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #ifdef __APPLE__
+# include <fcntl.h>
 # include <sys/event.h>
 #elif __linux__
 # include <sys/epoll.h>
@@ -16,6 +17,7 @@
 #include <iostream>
 #include <cstdio>
 // to remove
+
 
 
 namespace 
@@ -41,7 +43,7 @@ EventBroker::EventBroker(const std::vector<Listener*>& listeners)
         throw std::runtime_error("kqueue() failed");
         // TODO: or perror ?
 
-    std::vector<struct kevent> events(listeners_.size());
+    std::vector<struct kevent>  events(listeners_.size());
     // TODO: check if events is empty or if vector throws exception
 
     // Populate the events array
@@ -97,7 +99,7 @@ EventBroker::~EventBroker()
     for (std::vector<Listener*>::const_iterator it = listeners_.begin(); it != listeners_.end(); ++it, ++it_events)
         EV_SET(&(*it_events), (*it)->get_sfd(), EVFILT_READ, EV_DELETE, 0, 0, NULL);
     for (std::vector<int>::const_iterator it = accepted_sfd_list_.begin(); it != accepted_sfd_list_.end(); ++it, ++it_events)
-        EV_SET(&(*it_events), *it, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+        EV_SET(&(*it_events), *it, EVFILT_READ | EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
 
     // Register all events with a single kevent call
     kevent(queue_, events.data(), events.size(), NULL, 0, NULL);
@@ -133,6 +135,11 @@ int EventBroker::run()
     struct kevent   event[kMaxEvents];
     int             number_events;
 
+    // TODO: to remove, it's just to simulate request and response queue
+    char buf[100000];
+    *buf = '\0';
+    // TODO: to remove, it's just to simulate request and response queue
+
     signal(SIGINT, signal_handler);
 
     while (g_signal_received == 0) {
@@ -141,6 +148,7 @@ int EventBroker::run()
         // TODO: what happens if kevent fails?
 
         for (int i = 0; i < number_events && g_signal_received == 0; ++i) {
+            std::cout << "socket: " << event[i].ident << std::endl;
             if (IsListener(event[i].ident)) {
                 std::cout << "ENTER: AcceptConnection " << std::endl;
                 AcceptConnection(event[i].ident);
@@ -149,26 +157,62 @@ int EventBroker::run()
                 std::cout << "ENTER: DeleteConnection " << std::endl;
                 DeleteConnection(event[i].ident);
                 // TODO: check error here?
-            } else if (event[i].flags & EVFILT_READ) {
-                std::cout << "ENTER: read and sending message " << std::endl;
-                // TODO:
-                // prepare the request
-                // analyse request and send to state machine
-                // prepare response
-                // send response
 
-                // TODO: for now, just echo back the request
-                std::cout << "Received data from socket " << event[i].ident << std::endl;
-                char buf[10000];
-                int bytes_read = recv(event[i].ident, buf, sizeof(buf) - 1, 0 /* MSG_WAITALL */);
-                buf[bytes_read] = 0;
-                const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello world!";
-                send(event[i].ident, response.c_str(), response.size(), 0);
+                // TODO: delete all pending requests and responses for that connection
+
+            } else {
+                if (event[i].flags & EVFILT_WRITE /* TODO: && a response is ready for that fd */ && *buf != '\0') {
+                    std::cout << "ENTER: send a message " << std::endl;
+
+                    // TODO: send the response
+                    // TODO: for now, just echo back;
+                    const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello world!";
+                    send(event[i].ident, response.c_str(), response.size(), 0);
+                    // TODO: check error here
+
+                    // TODO: to remove
+                    *buf = '\0';
+                    // TODO: to remove
+
+                    // modify the filter to remove EVFILT_WRITE
+                    // TODO: only if there is no more response to send
+                    struct kevent   filter;
+                    EV_SET(&filter, event[i].ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+                    if (kevent(queue_, &filter, 1, NULL, 0, NULL) == -1) {
+                    // TODO: what happens if kevent fails and set failed flag?
+                        perror("kevent_ctl() failed"); // signal error and continue
+                        // TODO: handle error, how?
+                    }
+
+                // TODO: else if or just a if?
+                } else if (event[i].flags & EVFILT_READ) {
+                    std::cout << "ENTER: read a message " << std::endl;
+
+                    // TODO: prepare the request or append to complete an incomplete request
+
+                    // for now, just consume data
+                    int bytes_read = recv(event[i].ident, buf, sizeof(buf) - 1, 0 /* MSG_WAITALL */);
+                    buf[bytes_read] = '\0';
+
+                    // modify the filter to add EVFILT_WRITE
+                    struct kevent   filter;
+                    EV_SET(&filter, event[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, NULL);
+                    if (kevent(queue_, &filter, 1, NULL, 0, NULL) == -1) {
+                    // TODO: what happens if kevent fails and set failed flag?
+                        perror("kevent() failed"); // signal error and continue
+                        // TODO: handle error, how?
+                    }
+                }
             }
 
             // TODO: else ? ERROR flag ??
+
         }
+
+        // TODO: analyse all complete requests and create responses
+
     }
+
     return 0;
 }
 
@@ -178,6 +222,11 @@ int EventBroker::run()
 {
     struct epoll_event  event[kMaxEvents];
     int                 number_events;
+
+    // TODO: to remove, it's just to simulate request and response queue
+    char buf[10000];
+    *buf = '\0';
+    // TODO: to remove, it's just to simulate request and response queue
 
     signal(SIGINT, signal_handler);
 
@@ -195,25 +244,61 @@ int EventBroker::run()
                 std::cout << "ENTER: DeleteConnection " << std::endl;
                 DeleteConnection(event[i].data.fd);
                 // TODO: check error here?
-            } else if (event[i].events & EPOLLIN) {
-                std::cout << "ENTER: read and sending message " << std::endl;
-                // TODO:
-                // prepare the request
-                // analyse request and send to state machine
-                // prepare response
-                // send response
 
-                // TODO: for now, just echo back the request
-                std::cout << "Received data from socket " << event[i].data.fd << std::endl;
-                char buf[10000];
-                int bytes_read = recv(event[i].data.fd, buf, sizeof(buf) - 1, 0 /* MSG_WAITALL */);
-                buf[bytes_read] = 0;
-                const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello world!";
-                send(event[i].data.fd, response.c_str(), response.size(), 0);
+                // TODO: delete all pending requests and responses for that connection
+
+            } else {
+                if (event[i].events & EPOLLOUT /* TODO: && a response is ready for that fd */ && *buf != '\0') {
+                    std::cout << "ENTER: send a message " << std::endl;
+
+                    // TODO: send the response
+                    // TODO: for now, just echo back;
+                    const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello world!";
+                    send(event[i].data.fd, response.c_str(), response.size(), 0);
+                    // TODO: check error here
+
+                    // TODO: to remove
+                    *buf = '\0';
+                    // TODO: to remove
+
+                    // modify the filter to remove EPOLLOUT
+                    // TODO: only if there is no more response to send
+                    struct epoll_event   filter = {};
+                    filter.events = (EPOLLIN | EPOLLRDHUP);
+                    filter.data.fd = event[i].data.fd;
+                    if (epoll_ctl(queue_, EPOLL_CTL_MOD, filter.data.fd, &filter) == -1) {
+                        perror("epoll_ctl() failed"); // signal error and continue
+                        // TODO: handle error, how?
+                    }
+
+                // TODO: else if or just a if?
+                } else if (event[i].events & EPOLLIN) {
+                    std::cout << "ENTER: read a message " << std::endl;
+
+                    // TODO: prepare the request or append to complete an incomplete request
+
+                    // for now, just consume data
+                    int bytes_read = recv(event[i].data.fd, buf, sizeof(buf) - 1, 0 /* MSG_WAITALL */);
+                    buf[bytes_read] = '\0';
+
+
+                    // modify the filter to add EPOLLOUT
+                    struct epoll_event   filter = {};
+                    filter.events = (EPOLLIN | EPOLLOUT | EPOLLRDHUP);
+                    filter.data.fd = event[i].data.fd;
+                    if (epoll_ctl(queue_, EPOLL_CTL_MOD, filter.data.fd, &filter) == -1) {
+                        perror("epoll_ctl() failed"); // signal error and continue
+                        // TODO: handle error, how?
+                    }
+                }
             }
 
             // TODO: else ? ERROR flag ??
+
         }
+
+        // TODO: analyse all complete requests and create responses
+
     }
     return 0;
 }
@@ -235,8 +320,10 @@ int EventBroker::AcceptConnection(int ident)
     struct sockaddr_storage addr;
     socklen_t               addr_len = sizeof(addr);
     int new_sfd = accept(ident, reinterpret_cast<struct sockaddr*>(&addr), &addr_len);
-    if (new_sfd == -1) {
+    if (new_sfd == -1 /*|| fcntl(new_sfd, F_SETFL, O_NONBLOCK) == -1*/) {
         perror("accept() failed"); // signal error and continue
+        if (new_sfd != -1)
+            close(new_sfd);
         return -1;
     }
 
@@ -290,7 +377,7 @@ int EventBroker::AcceptConnection(int ident)
 int EventBroker::DeleteConnection(int ident)
 {
     struct kevent   filter;
-    EV_SET(&filter, ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+    EV_SET(&filter, ident, EVFILT_READ | EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
     kevent(queue_, &filter, 1, NULL, 0, NULL);
     // TODO: what happens if kevent fails and set failed flag?
 
