@@ -9,10 +9,8 @@
 class Config {
 
     private:
-        Config(const Config& src);
-        Config&   operator=(const Config& rhs);
+        std::string host;
         int port;
-        int host[4];
         std::vector<std::string> server_names;
         std::string errors;
         std::string default_file;
@@ -21,13 +19,19 @@ class Config {
         bool listing;
         std::string root;
         std::vector<std::string> methods;
+        bool proxymode;
         std::string proxy;
 
     public:
-        Config();
+        Config(const Config& src);
+        Config&   operator=(Config const & rhs);
+        Config(std::string hostname);
         ~Config();
-        int loadData(std::string key, std::string value);
+        int load(std::ifstream & file);
+        int loadline(std::string line);
+        int setValue(std::string key, std::string value);
         int setPort(std::string value);
+        void print()const;
 
 };
 

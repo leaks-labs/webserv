@@ -1,26 +1,5 @@
-# infos propres au server
-
-port            int         8080
-host            int[]       0 0 0 0
-server_names    str[]       webserv
-errors          str         data/errors
-default         str         data/repository.html
-bodymax         int         100000
-
-# infos propres à chaque location
-
-#location       str         /
-cgi             str         php
-listing         bool        true
-root            str         /data
-methods         str[]       GET POST DELETE
-proxy           str         0
-
-
-# server 1
-[
+# 0.0.255.0
 port 80
-host 0.0.255.0
 server_names abc.com xyz.c
 errors /data/errors
 default /data/default.html
@@ -30,21 +9,13 @@ listing false
 methods GET
 cgi php
 proxy false
-
-location /
-    [
-    methods GET
-    root /data/folder1
-    listing true
-    ]
-location /images
-    [
-    methods GET POST
-    root /data/images
-    default /data/defaultimg.html
-    ]
-location /images
-    [
-    proxy otherwebsite.com
-    ]
-]
+> /
+methods GET
+root /data/folder1
+listing true
+> /images
+methods GET POST
+root /data/images
+default /data/defaultimg.html
+> /other
+proxy otherwebsite.com

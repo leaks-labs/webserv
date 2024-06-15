@@ -11,15 +11,18 @@ WebServ::WebServ()
     listener_list_info_.AddDefaultsRecords();
     // listener_list_info_.PrintListenerRecords();
     listener_list_info_.CreateListeners(listeners_);
+    configs.push_back(Config("localhost"));
+
 }
 
 WebServ::WebServ(const std::string& config_file)
 {
     std::ifstream file(config_file.c_str());
-
     if (file.good() == false)
         throw std::runtime_error("opening config_file failed");
-
+    ConfigLoader loader(file);
+    if(loader.load(configs))
+        throw std::runtime_error("config file uncorrect");
     // TODO: read config_file and initialize a config object
     // TODO: listener_list_info_.AddRecord();
     // TODO: listener_list_info_.CreateListeners(listeners_);
