@@ -7,7 +7,6 @@
 #include <unistd.h>
 
 #ifdef __APPLE__
-// # include <fcntl.h>
 # include <sys/event.h>
 #elif __linux__
 # include <sys/epoll.h>
@@ -161,7 +160,7 @@ int EventBroker::run()
                 // TODO: delete all pending requests and responses for that connection
 
             } else {
-                if (event[i].flags & EVFILT_WRITE /* TODO: && a response is ready for that fd */ && *buf != '\0') {
+                if (event[i].filter == EVFILT_WRITE /* TODO: && a response is ready for that fd */ && *buf != '\0') {
                     std::cout << "ENTER: send a message " << std::endl;
 
                     // TODO: send the response
@@ -185,7 +184,7 @@ int EventBroker::run()
                     }
 
                 // TODO: else if or just a if?
-                } else if (event[i].flags & EVFILT_READ) {
+                } else if (event[i].filter == EVFILT_READ) {
                     std::cout << "ENTER: read a message " << std::endl;
 
                     // TODO: prepare the request or append to complete an incomplete request
@@ -322,7 +321,7 @@ int EventBroker::AcceptConnection(int ident)
     struct sockaddr_storage addr;
     socklen_t               addr_len = sizeof(addr);
     int new_sfd = accept(ident, reinterpret_cast<struct sockaddr*>(&addr), &addr_len);
-    if (new_sfd == -1 /*|| fcntl(new_sfd, F_SETFL, O_NONBLOCK) == -1*/) {
+    if (new_sfd == -1) {
         perror("accept() failed"); // signal error and continue
         if (new_sfd != -1)
             close(new_sfd);
