@@ -175,7 +175,7 @@ int EventBroker::run()
                     // TODO: to remove
 
                     // modify the filter to remove EVFILT_WRITE
-                    // TODO: only if there is no more response to send
+                    // TODO: only if there is no more response to send for this fd
                     struct kevent   filter;
                     EV_SET(&filter, event[i].ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
                     if (kevent(queue_, &filter, 1, NULL, 0, NULL) == -1) {
@@ -195,6 +195,7 @@ int EventBroker::run()
                     buf[bytes_read] = '\0';
 
                     // modify the filter to add EVFILT_WRITE
+                    // TODO: only if the request queue is empty for this fd
                     struct kevent   filter;
                     EV_SET(&filter, event[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, NULL);
                     if (kevent(queue_, &filter, 1, NULL, 0, NULL) == -1) {
@@ -262,7 +263,7 @@ int EventBroker::run()
                     // TODO: to remove
 
                     // modify the filter to remove EPOLLOUT
-                    // TODO: only if there is no more response to send
+                    // TODO: only if there is no more response to send for this fd
                     struct epoll_event   filter = {};
                     filter.events = (EPOLLIN | EPOLLRDHUP);
                     filter.data.fd = event[i].data.fd;
@@ -283,6 +284,7 @@ int EventBroker::run()
 
 
                     // modify the filter to add EPOLLOUT
+                    // TODO: only if the request queue is empty for this fd
                     struct epoll_event   filter = {};
                     filter.events = (EPOLLIN | EPOLLOUT | EPOLLRDHUP);
                     filter.data.fd = event[i].data.fd;
