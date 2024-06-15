@@ -6,11 +6,6 @@
 
 #include <unistd.h>
 
-#ifdef __APPLE__
-# include <sys/event.h>
-#elif __linux__
-# include <sys/epoll.h>
-#endif
 
 // to remove
 #include <iostream>
@@ -160,48 +155,15 @@ int EventBroker::run()
                 // TODO: delete all pending requests and responses for that connection
 
             } else {
-                if (event[i].filter == EVFILT_WRITE /* TODO: && a response is ready for that fd */ && *buf != '\0') {
-                    std::cout << "ENTER: send a message " << std::endl;
-
-                    // TODO: send the response
-                    // TODO: for now, just echo back;
-                    const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello world!";
-                    send(event[i].ident, response.c_str(), response.size(), 0);
-                    // TODO: check error here
-
-                    // TODO: to remove
-                    *buf = '\0';
-                    // TODO: to remove
-
-                    // modify the filter to remove EVFILT_WRITE
-                    // TODO: only if there is no more response to send for this fd
-                    struct kevent   filter;
-                    EV_SET(&filter, event[i].ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-                    if (kevent(queue_, &filter, 1, NULL, 0, NULL) == -1) {
-                    // TODO: what happens if kevent fails and set failed flag?
-                        perror("kevent_ctl() failed"); // signal error and continue
-                        // TODO: handle error, how?
-                    }
-
-                // TODO: else if or just a if?
-                } else if (event[i].filter == EVFILT_READ) {
-                    std::cout << "ENTER: read a message " << std::endl;
-
-                    // TODO: prepare the request or append to complete an incomplete request
-
-                    // for now, just consume data
-                    int bytes_read = recv(event[i].ident, buf, sizeof(buf) - 1, 0 /* MSG_WAITALL */);
-                    buf[bytes_read] = '\0';
-
-                    // modify the filter to add EVFILT_WRITE
-                    // TODO: only if the request queue is empty for this fd
-                    struct kevent   filter;
-                    EV_SET(&filter, event[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, NULL);
-                    if (kevent(queue_, &filter, 1, NULL, 0, NULL) == -1) {
-                    // TODO: what happens if kevent fails and set failed flag?
-                        perror("kevent() failed"); // signal error and continue
-                        // TODO: handle error, how?
-                    }
+                if (event->filter == EVFILT_WRITE /* TODO: && a response is ready for that fd */ && *buf != '\0') {
+                    std::cout << "ENTER: SendData " << std::endl;
+                    SendData(&event[i], buf);
+                    // TODO: check error here?
+                }
+                if (event->filter == EVFILT_READ) {
+                    std::cout << "ENTER: ReceiveData " << std::endl;
+                    ReceiveData(&event[i], buf);
+                    // TODO: check error here?
                 }
             }
 
@@ -236,6 +198,7 @@ int EventBroker::run()
         // TODO: what happens if epoll fails?
 
         for (int i = 0; i < number_events && g_signal_received == 0; ++i) {
+            std::cout << "socket: " << event[i].data.fd << std::endl;
             if (IsListener(event[i].data.fd)) {
                 std::cout << "ENTER: AcceptConnection " << std::endl;
                 AcceptConnection(event[i].data.fd);
@@ -248,49 +211,15 @@ int EventBroker::run()
                 // TODO: delete all pending requests and responses for that connection
 
             } else {
-                if (event[i].events & EPOLLOUT /* TODO: && a response is ready for that fd */ && *buf != '\0') {
-                    std::cout << "ENTER: send a message " << std::endl;
-
-                    // TODO: send the response
-                    // TODO: for now, just echo back;
-                    const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello world!";
-                    send(event[i].data.fd, response.c_str(), response.size(), 0);
-                    // TODO: check error here
-
-                    // TODO: to remove
-                    *buf = '\0';
-                    // TODO: to remove
-
-                    // modify the filter to remove EPOLLOUT
-                    // TODO: only if there is no more response to send for this fd
-                    struct epoll_event   filter = {};
-                    filter.events = (EPOLLIN | EPOLLRDHUP);
-                    filter.data.fd = event[i].data.fd;
-                    if (epoll_ctl(queue_, EPOLL_CTL_MOD, filter.data.fd, &filter) == -1) {
-                        perror("epoll_ctl() failed"); // signal error and continue
-                        // TODO: handle error, how?
-                    }
-
-                // TODO: else if or just a if?
-                } else if (event[i].events & EPOLLIN) {
-                    std::cout << "ENTER: read a message " << std::endl;
-
-                    // TODO: prepare the request or append to complete an incomplete request
-
-                    // for now, just consume data
-                    int bytes_read = recv(event[i].data.fd, buf, sizeof(buf) - 1, 0 /* MSG_WAITALL */);
-                    buf[bytes_read] = '\0';
-
-
-                    // modify the filter to add EPOLLOUT
-                    // TODO: only if the request queue is empty for this fd
-                    struct epoll_event   filter = {};
-                    filter.events = (EPOLLIN | EPOLLOUT | EPOLLRDHUP);
-                    filter.data.fd = event[i].data.fd;
-                    if (epoll_ctl(queue_, EPOLL_CTL_MOD, filter.data.fd, &filter) == -1) {
-                        perror("epoll_ctl() failed"); // signal error and continue
-                        // TODO: handle error, how?
-                    }
+                if (event->events & EPOLLOUT /* TODO: && a response is ready for that fd */ && *buf != '\0') {
+                    std::cout << "ENTER: SendData " << std::endl;
+                    SendData(&event[i], buf);
+                    // TODO: check error here?
+                }
+                if (event->events & EPOLLIN) {
+                    std::cout << "ENTER: ReceiveData " << std::endl;
+                    ReceiveData(&event[i], buf);
+                    // TODO: check error here?
                 }
             }
 
@@ -401,6 +330,100 @@ int EventBroker::DeleteConnection(int ident)
     // TODO: is there a possibility that find return .last() and erase fails?
 
     return 0;
+}
+
+#endif
+
+#ifdef __APPLE__
+
+void    EventBroker::SendData(struct kevent* event, char* buf /* replace with future request and response queue */)
+{
+    // TODO: send the response
+    // TODO: for now, just echo back;
+    const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello world!";
+    send(event->ident, response.c_str(), response.size(), 0);
+    // TODO: check error here
+
+    // TODO: to remove
+    *buf = '\0';
+    // TODO: to remove
+
+    // modify the filter to remove EVFILT_WRITE
+    // TODO: only if there is no more response to send for this fd
+    struct kevent   filter;
+    EV_SET(&filter, event->ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+    if (kevent(queue_, &filter, 1, NULL, 0, NULL) == -1) {
+    // TODO: what happens if kevent fails and set failed flag?
+        perror("kevent() failed"); // signal error and continue
+        // TODO: handle error, how?
+    }
+}
+
+#elif __linux__
+
+void    EventBroker::SendData(struct epoll_event* event, char* buf /* replace with future request and response queue */)
+{
+    // TODO: send the response
+    // TODO: for now, just echo back;
+    const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello world!";
+    send(event->data.fd, response.c_str(), response.size(), 0);
+    // TODO: check error here
+
+    // TODO: to remove
+    *buf = '\0';
+    // TODO: to remove
+
+    // modify the filter to remove EPOLLOUT
+    // TODO: only if there is no more response to send for this fd
+    struct epoll_event   filter = {};
+    filter.events = (EPOLLIN | EPOLLRDHUP);
+    filter.data.fd = event->data.fd;
+    if (epoll_ctl(queue_, EPOLL_CTL_MOD, filter.data.fd, &filter) == -1) {
+        perror("epoll_ctl() failed"); // signal error and continue
+        // TODO: handle error, how?
+    }
+}
+
+#endif
+
+#ifdef __APPLE__
+
+void    EventBroker::ReceiveData(struct kevent* event, char* buf /* replace with future request and response queue */)
+{
+    // TODO: prepare the request or append to complete an incomplete request
+    // for now, just consume data
+    int bytes_read = recv(event->ident, buf, 100000 - 1, 0 /* MSG_WAITALL */);
+    buf[bytes_read] = '\0';
+
+    // modify the filter to add EVFILT_WRITE
+    // TODO: only if the request queue is empty for this fd
+    struct kevent   filter;
+    EV_SET(&filter, event->ident, EVFILT_WRITE, EV_ADD, 0, 0, NULL);
+    if (kevent(queue_, &filter, 1, NULL, 0, NULL) == -1) {
+    // TODO: what happens if kevent fails and set failed flag?
+        perror("kevent() failed"); // signal error and continue
+        // TODO: handle error, how?
+    }
+}
+
+#elif __linux__
+
+void    EventBroker::ReceiveData(struct epoll_event* event, char* buf /* replace with future request and response queue */)
+{
+    // TODO: prepare the request or append to complete an incomplete request
+    // for now, just consume data
+    int bytes_read = recv(event->data.fd, buf, 100000 - 1, 0 /* MSG_WAITALL */);
+    buf[bytes_read] = '\0';
+
+    // modify the filter to add EPOLLOUT
+    // TODO: only if the request queue is empty for this fd
+    struct epoll_event   filter = {};
+    filter.events = (EPOLLIN | EPOLLOUT | EPOLLRDHUP);
+    filter.data.fd = event->data.fd;
+    if (epoll_ctl(queue_, EPOLL_CTL_MOD, filter.data.fd, &filter) == -1) {
+        perror("epoll_ctl() failed"); // signal error and continue
+        // TODO: handle error, how?
+    }
 }
 
 #endif
