@@ -11,8 +11,7 @@ WebServ::WebServ()
     listener_list_info_.AddDefaultsRecords();
     // listener_list_info_.PrintListenerRecords();
     listener_list_info_.CreateListeners(listeners_);
-    configs.push_back(Config("localhost"));
-
+    configs.push_back(new Config("localhost"));
 }
 
 WebServ::WebServ(const std::string& config_file)
