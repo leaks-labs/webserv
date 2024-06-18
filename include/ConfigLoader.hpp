@@ -5,20 +5,20 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
-#include "Config.hpp"
+#include "Server.hpp"
 
 class ConfigLoader {
 
     private:
         std::ifstream & file;
-        std::vector<Config*> configs;
+        std::vector<Server*> configs;
         ConfigLoader(const ConfigLoader& src);
         ConfigLoader&   operator=(const ConfigLoader& rhs);
 
     public:
         ConfigLoader(std::ifstream & file);
         ~ConfigLoader();
-        int load(std::vector<Config*> & configs);
+        int load(std::vector<Server*> & configs);
 };
 
 #endif

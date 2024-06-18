@@ -5,7 +5,6 @@
 # include <vector>
 
 # include "ConfigLoader.hpp"
-# include "Config.hpp"
 # include "Listener.hpp"
 # include "ListenerListInfo.hpp"
 
@@ -19,7 +18,7 @@ class WebServ {
     private:
         WebServ(const WebServ& src);
         WebServ&    operator=(const WebServ& rhs);
-        std::vector<Config*>     configs;
+        std::vector<Server*>    servers;
         std::vector<Listener*>  listeners_;
         ListenerListInfo        listener_list_info_;
 };

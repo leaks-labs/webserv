@@ -65,7 +65,8 @@ SRCS_FILES:=	WebServ				\
 				ListenerListInfo	\
 				EventBroker			\
 				ConfigLoader		\
-				Config
+				Server				\
+				Location
 
 ################################################################################
 #                                 SRC's FORMATING                              #

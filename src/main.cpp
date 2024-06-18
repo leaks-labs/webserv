@@ -2,7 +2,7 @@
 #include <iostream>
 #include <exception>
 #include "WebServ.hpp"
-#include "Config.hpp"
+#include "Server.hpp"
 
 int main(int argc, char **argv)
 {
