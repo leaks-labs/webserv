@@ -3,7 +3,6 @@
 
 # include <string>
 # include <vector>
-
 # include "ConfigLoader.hpp"
 # include "Listener.hpp"
 # include "ListenerListInfo.hpp"

@@ -2,6 +2,7 @@
 # define SERVER_HPP_
 
 #include "Location.hpp"
+#include <map>
 
 class Server
 {
@@ -12,6 +13,7 @@ class Server
         std::string errors;
         int bodymax;
         std::vector<Location*> locations;
+        std::map<std::string, int (Server::*)(std::string)> set_functions;
     public:
         Server();
         ~Server();
@@ -25,6 +27,7 @@ class Server
         int setBodyMax(std::string value);
         int addLocation(std::string value);
         int setLastLocation(std::string key, std::string value);
+        void print()const;
 };
 
 typedef struct s_server_set_pair

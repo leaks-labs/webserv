@@ -1,78 +1,105 @@
 #include "Server.hpp"
 
-t_server_set_pair server_pairs[] = 
-{
-    {"port", &Server::setPort},
-    {"errors", &Server::setErrors}
-};
-
 Server::Server() : 
-    host("localhost"),
+    host("0.0.0.0"),
     port("8080"),
     errors("/data/errors"),
-    bodymax(100000)
+    bodymax(0)
 {
     server_names.push_back("webserv");
+    addLocation("/");
+    set_functions.insert(std::make_pair("host", &Server::setHost));
+    set_functions.insert(std::make_pair("port", &Server::setPort));
+    set_functions.insert(std::make_pair("server_names", &Server::setServerNames));
+    set_functions.insert(std::make_pair("errors", &Server::setErrors));
+    set_functions.insert(std::make_pair("bodymax", &Server::setBodyMax));
 };
-
 
 int Server::setValue(std::string key, std::string value)
 {
-    int size;
+    typedef std::map<std::string, int (Server::*)(std::string)>::iterator it;
 
-    size = sizeof(server_pairs) / sizeof(server_pairs[0]);
-    for (int i = 0; i < size; i++)
-    {
-        if(!key.compare(server_pairs[i].key))
-            return (this->*server_pairs[i].set)(value);
-    }
-    return(0);
+    it i= set_functions.find(key);
+    if(i == set_functions.end())
+        return(-1);
+    return(this->*(i->second))(value);
 }
 
 int Server::setHost(std::string value)
 {
     host = value;
-    std::cout << "set host: " << value << std::endl;
     return(0);
 }
 
 int Server::setPort(std::string value)
 {
     port = value;
-    std::cout << "set port: " << value << std::endl;
     return(0);
 }
 
 int Server::setServerNames(std::string value)
 {
-    std::cout << "set server names: " << value << std::endl;
+    std::string::size_type start = 0;
+    std::string::size_type end = value.find(' ');
+
+    while (end != std::string::npos) {
+        server_names.push_back(value.substr(start, end - start));
+        start = end + 1;
+        end = value.find(' ', start);
+    }
     return(0);
 }
 
 int Server::setErrors(std::string value)
 {
-    std::cout << "set error: " << value << "-> shoud check if path exist" <<std::endl;
     errors = value;
     return(0);
 }
 
 int Server::setBodyMax(std::string value)
 {
-    std::cout << "set bodymax: " << value << std::endl;
+    typedef std::string::const_iterator it;
+    it i = value.begin();
+    while(i < value.end())
+    {
+        if(*i < '0' && *i > '9')
+        {   
+            std::cout << "bodymax value shoud be a digit" << std::endl;         
+            return (1);
+        }
+        i++;
+    }
+    std::stringstream ss(value);
+    ss >> bodymax;
     return(0);
 }
 
 int Server::addLocation(std::string value)
 {
     locations.push_back(new Location());
-    locations.back()->setRoot(value);
-    std::cout << "add location: " << value<< std::endl;
+    locations.back()->setPath(value);
     return(0);
 }
 
 int Server::setLastLocation(std::string key, std::string value)
 {
     locations.back()->setValue(key, value);
-    std::cout << "set last location: " << value << std::endl;
     return(0);
+}
+
+void Server::print()const
+{
+    std::cout   << "host: " << host << std::endl
+                << "port: " << port << std::endl
+                << "errors: " << errors << std::endl
+                << "bodymax: " << bodymax << std::endl;
+    for (std::vector<std::string>::const_iterator it=server_names.begin(); it != server_names.end(); ++it)
+    {
+        std::cout << "server_name: " << *it << std::endl;
+    }
+    for(std::vector<Location*>::const_iterator it=locations.begin(); it != locations.end(); ++it)
+    {
+        std::cout << std::endl;
+        (*it)->print();
+    }
 }

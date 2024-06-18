@@ -7,41 +7,45 @@ ConfigLoader::~ConfigLoader(){};
 
 int ConfigLoader::load(std::vector<Server*> & servers)
 {
+    std::string line;
     std::string key;
     std::string value;
-    int line;
-    bool location;
-    line = 0;
+    int count;
+    int err;
+    int sep;
+
+    count = 0;
     while(file)
     {
-        line++;
-        std::getline(file, key, ' ');
-        std::getline(file, value, '\n');
+        count++;
+        std::getline(file, line, '\n');
+        sep = line.find(' ');
+        key = line.substr(0, sep);
+        value = line.substr(sep + 1, line.length());
         if(key.length() == 0 || value.length() == 0)
             continue;
         if(!key.compare("#"))
         {
             servers.push_back(new Server());
-            location = false;
+            if(value.length() > 0)
+                servers.back()->setHost(value);
         }
-        if(!key.compare(">"))
+        else if(!key.compare(">"))
         {
             servers.back()->addLocation(value);
-            location = false;
         }
         else 
         {
-            if(!location && servers.back()->setValue(key, value))
-            {
-                std::cerr << "Error in config file at line " << line << std::endl;
+            err = servers.back()->setValue(key, value);
+            if (err == -1)
+                err = servers.back()->setLastLocation(key, value);
+            if(err)
                 return(1);
-            }
-            if(location && servers.back()->setLastLocation(key, value))
-            {
-                std::cerr << "Error in config file at line " << line << std::endl;
-                return(1);
-            }
         }
+    }
+    for (std::vector<Server*>::const_iterator it = servers.begin(); it != servers.end(); ++it)
+    {
+        (*it)->print();
     }
     return(0);
 }

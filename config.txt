@@ -1,8 +1,8 @@
-# 0.0.255.0
+#
 port 80
 server_names abc.com xyz.c
 errors /data/errors
-default /data/default.html
+default_file /data/default.html
 bodymax 10000
 root /data/server1
 listing false
@@ -16,6 +16,6 @@ listing true
 > /images
 methods GET POST
 root /data/images
-default /data/defaultimg.html
+default_file /data/defaultimg.html
 > /other
 proxy otherwebsite.com
