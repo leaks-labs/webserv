@@ -9,11 +9,11 @@
 #  include <sys/epoll.h>
 # endif
 
-# include "Listener.hpp"
+# include "ListenerListInfo.hpp"
 
 class EventBroker {
     public:
-        EventBroker(const std::vector<Listener*>& listeners);
+        EventBroker(const ListenerList& listeners);
 
         ~EventBroker();
 
@@ -30,16 +30,16 @@ class EventBroker {
         int     AcceptConnection(int ident);
         void    DeleteConnection(int ident);
 # ifdef __APPLE__
-        void    SendData(struct kevent* event, char* buf /* replace with future request and response queue */);
-        void    ReceiveData(struct kevent* event, char* buf /* replace with future request and response queue */);
+        void    SendData(const struct kevent& event, char* buf /* replace with future request and response queue */);
+        void    ReceiveData(const struct kevent& event, char* buf /* replace with future request and response queue */);
 # elif __linux__
-        void    SendData(struct epoll_event* event, char* buf /* replace with future request and response queue */);
-        void    ReceiveData(struct epoll_event* event, char* buf /* replace with future request and response queue */);
+        void    SendData(const struct epoll_event& event, char* buf /* replace with future request and response queue */);
+        void    ReceiveData(const struct epoll_event& event, char* buf /* replace with future request and response queue */);
 # endif
 
-        int                             queue_;
-        const std::vector<Listener*>&   listeners_;
-        std::vector<int>                accepted_sfd_list_;
+        const ListenerList& listeners_;
+        const int           queue_;
+        std::vector<int>    accepted_sfd_list_;
 };
 
 #endif  // EVENT_BROKER_HPP_

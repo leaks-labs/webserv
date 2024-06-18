@@ -8,9 +8,9 @@
 
 WebServ::WebServ()
 {
-    listener_list_info_.AddDefaultsRecords();
+    listener_list_.AddDefaultListenerRecords();
     // listener_list_info_.PrintListenerRecords();
-    listener_list_info_.CreateListeners(listeners_);
+    listener_list_.EnableListeners();
 }
 
 WebServ::WebServ(const std::string& config_file)
@@ -27,13 +27,11 @@ WebServ::WebServ(const std::string& config_file)
 
 WebServ::~WebServ()
 {
-    for (std::vector<Listener*>::iterator it = listeners_.begin(); it != listeners_.end(); ++it)
-        delete *it;
 }
 
 int WebServ::run() const
 {
-    EventBroker event_broker(listeners_);
+    EventBroker event_broker(listener_list_);
 
     return event_broker.run();
 }

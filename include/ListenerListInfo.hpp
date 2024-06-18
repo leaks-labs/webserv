@@ -8,20 +8,63 @@
 
 # include "Listener.hpp"
 
+class ListenerList {
+    public:
+        class   ConstIterator {
+            public:
+                ConstIterator();
+                ConstIterator(std::vector<Listener*>::const_iterator it);
+
+                ~ConstIterator();
+
+                ConstIterator(const ConstIterator& src);
+                ConstIterator&  operator=(const ConstIterator& rhs);
+
+                Listener&       operator*();
+                Listener*       operator->();
+                ConstIterator&  operator++();
+                ConstIterator   operator++(int);
+                ConstIterator&  operator--();
+                ConstIterator   operator--(int);
+                bool            operator==(const ConstIterator& rhs) const;
+                bool            operator!=(const ConstIterator& rhs) const;
+
+            private:
+                std::vector<Listener*>::const_iterator  it_;
+        };
+
+        ListenerList();
+
+        ~ListenerList();
+
+        const Listener&  operator[](size_t index) const;
+
+        ConstIterator   begin() const;
+        ConstIterator   end() const;
+
+        size_t  EnabledListenerCount() const;
+        void    AddDefaultListenerRecords();
+        void    AddListenerRecord(const char* ip, const std::string& port);
+        void    EnableListeners();
+
+    private:
+        static const std::string  kDefaultPort;
+
+        ListenerList(const ListenerList& src);
+        ListenerList&   operator=(const ListenerList& rhs);
+
+        bool    IsValidUniqAddr(const struct addrinfo* addr) const;
+
+        struct addrinfo                 hints_;
+        std::vector<struct addrinfo*>   listener_records_;
+        std::vector<struct addrinfo*>   listener_records_uniq_;
+        std::vector<Listener*>          EnabledListeners_;
+};
+
 // to remove
 // # include <arpa/inet.h>
 // # include <iostream>
 // to remove
-
-class ListenerListInfo {
-    public:
-        ListenerListInfo();
-
-        ~ListenerListInfo();
-
-        void    AddDefaultsRecords();
-        void    AddRecords(const char* ip, const std::string& port);
-        void    CreateListeners(std::vector<Listener*>& listeners);
 
 // // to remove
 //         void    PrintListenerRecords() const {
@@ -45,18 +88,5 @@ class ListenerListInfo {
 //             }
 //         }
 // // to remove
-
-    private:
-        static const std::string  kDefaultPort;
-
-        ListenerListInfo(const ListenerListInfo& src);
-        ListenerListInfo&   operator=(const ListenerListInfo& rhs);
-
-        bool    IsValidUniqAddr(struct addrinfo* addr) const;
-
-        struct addrinfo                 hints_;
-        std::vector<struct addrinfo*>   listener_records_;
-        std::vector<struct addrinfo*>   listeners_addr_uniq;
-};
 
 #endif  // LISTENER_LIST_INFO_HPP_

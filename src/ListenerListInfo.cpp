@@ -3,9 +3,68 @@
 #include <cstring>
 #include <stdexcept>
 
-const std::string  ListenerListInfo::kDefaultPort = "8080";
+const std::string  ListenerList::kDefaultPort = "8080";
 
-ListenerListInfo::ListenerListInfo()
+ListenerList::ConstIterator::ConstIterator() : it_()
+{
+}
+
+ListenerList::ConstIterator::ConstIterator(std::vector<Listener*>::const_iterator it) : it_(it)
+{
+}
+
+ListenerList::ConstIterator::~ConstIterator()
+{
+}
+
+ListenerList::ConstIterator::ConstIterator(const ConstIterator& src) : it_(src.it_)
+{
+}
+
+ListenerList::ConstIterator&    ListenerList::ConstIterator::operator=(const ListenerList::ConstIterator& rhs) {
+    it_ = rhs.it_;
+    return *this;
+}
+
+Listener&   ListenerList::ConstIterator::operator*() {
+    return **it_;
+}
+
+Listener*   ListenerList::ConstIterator::operator->() {
+    return *it_;
+}
+
+ListenerList::ConstIterator&    ListenerList::ConstIterator::operator++() {
+    ++it_;
+    return *this;
+}
+
+ListenerList::ConstIterator ListenerList::ConstIterator::operator++(int) {
+    ConstIterator    tmp = *this;
+    ++it_;
+    return tmp;
+}
+
+ListenerList::ConstIterator&    ListenerList::ConstIterator::operator--() {
+    --it_;
+    return *this;
+}
+
+ListenerList::ConstIterator ListenerList::ConstIterator::operator--(int) {
+    ConstIterator    tmp = *this;
+    --it_;
+    return tmp;
+}
+
+bool    ListenerList::ConstIterator::operator==(const ConstIterator& rhs) const {
+    return it_ == rhs.it_;
+}
+
+bool    ListenerList::ConstIterator::operator!=(const ConstIterator& rhs) const {
+    return it_ != rhs.it_;
+}
+
+ListenerList::ListenerList()
 {
     memset(&hints_, 0, sizeof(hints_));
     hints_.ai_family = PF_UNSPEC;
@@ -13,18 +72,37 @@ ListenerListInfo::ListenerListInfo()
     hints_.ai_flags = AI_PASSIVE;
 }
 
-ListenerListInfo::~ListenerListInfo()
+ListenerList::~ListenerList()
 {
     for (std::vector<struct addrinfo*>::iterator it = listener_records_.begin(); it != listener_records_.end(); ++it)
         freeaddrinfo(*it);
+    for (std::vector<Listener*>::iterator it = EnabledListeners_.begin(); it != EnabledListeners_.end(); ++it)
+        delete *it;
 }
 
-void    ListenerListInfo::AddDefaultsRecords()
+const Listener& ListenerList::operator[](size_t index) const {
+    return *EnabledListeners_[index];
+}
+
+ListenerList::ConstIterator ListenerList::begin() const {
+    return EnabledListeners_.begin();
+}
+
+ListenerList::ConstIterator ListenerList::end() const {
+    return EnabledListeners_.end();
+}
+
+size_t  ListenerList::EnabledListenerCount() const
 {
-    AddRecords(NULL, kDefaultPort);
+    return EnabledListeners_.size();
 }
 
-void    ListenerListInfo::AddRecords(const char* ip, const std::string& port)
+void    ListenerList::AddDefaultListenerRecords()
+{
+    AddListenerRecord(NULL, kDefaultPort);
+}
+
+void    ListenerList::AddListenerRecord(const char* ip, const std::string& port)
 {
     struct addrinfo *res;
     int             err;
@@ -42,17 +120,17 @@ void    ListenerListInfo::AddRecords(const char* ip, const std::string& port)
     }
 }
 
-void    ListenerListInfo::CreateListeners(std::vector<Listener*>& listeners)
+void    ListenerList::EnableListeners()
 {
     for (std::vector<struct addrinfo*>::const_iterator it = listener_records_.begin(); it != listener_records_.end(); ++it)
         for (struct addrinfo *res = *it; res != NULL; res = res->ai_next)
             if (IsValidUniqAddr(res) == true)
-                listeners_addr_uniq.push_back(res);
-    for (std::vector<struct addrinfo*>::const_iterator it = listeners_addr_uniq.begin(); it != listeners_addr_uniq.end(); ++it) {
+                listener_records_uniq_.push_back(res);
+    for (std::vector<struct addrinfo*>::const_iterator it = listener_records_uniq_.begin(); it != listener_records_uniq_.end(); ++it) {
         Listener*   new_listener = new Listener(**it);
         try
         {
-            listeners.push_back(new_listener);
+            EnabledListeners_.push_back(new_listener);
         }
         catch(const std::exception& e)
         {
@@ -62,12 +140,11 @@ void    ListenerListInfo::CreateListeners(std::vector<Listener*>& listeners)
     }
 }
 
-
-bool    ListenerListInfo::IsValidUniqAddr(struct addrinfo* addr) const
+bool    ListenerList::IsValidUniqAddr(const struct addrinfo* addr) const
 {
     if (addr->ai_family != PF_INET6 && addr->ai_family != PF_INET)
         return false;
-    for (std::vector<struct addrinfo*>::const_iterator it = listeners_addr_uniq.begin(); it != listeners_addr_uniq.end(); ++it)
+    for (std::vector<struct addrinfo*>::const_iterator it = listener_records_uniq_.begin(); it != listener_records_uniq_.end(); ++it)
         if (addr->ai_family == (*it)->ai_family && memcmp(addr->ai_addr, (*it)->ai_addr, sizeof(struct sockaddr)) == 0)
             return false;
     return true;

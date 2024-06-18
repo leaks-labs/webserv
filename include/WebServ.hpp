@@ -20,8 +20,7 @@ class WebServ {
         WebServ(const WebServ& src);
         WebServ&    operator=(const WebServ& rhs);
 
-        std::vector<Listener*>  listeners_;
-        ListenerListInfo        listener_list_info_;
+        ListenerList    listener_list_;
 };
 
 #endif  // WEBSERV_HPP_

@@ -5,9 +5,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-Listener::Listener(const struct addrinfo& address)
+Listener::Listener(const struct addrinfo& address) : sfd_(socket(address.ai_family, address.ai_socktype, address.ai_protocol))
 {
-    if ((sfd_ = socket(address.ai_family, address.ai_socktype, address.ai_protocol)) == -1)
+    if (sfd_ == -1)
         throw std::runtime_error("socket() failed to create a socket");
     try
     {
