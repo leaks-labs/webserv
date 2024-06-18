@@ -1,5 +1,5 @@
-#ifndef LISTENER_LIST_INFO_HPP_
-# define LISTENER_LIST_INFO_HPP_
+#ifndef LISTENER_LIST_HPP_
+# define LISTENER_LIST_HPP_
 
 # include <string>
 # include <vector>
@@ -89,4 +89,4 @@ class ListenerList {
 //         }
 // // to remove
 
-#endif  // LISTENER_LIST_INFO_HPP_
+#endif  // LISTENER_LIST_HPP_
