@@ -34,23 +34,15 @@ EventBroker::EventBroker(const std::vector<Listener*>& listeners)
     : listeners_(listeners)
 {
     if ((queue_ = kqueue()) == -1)
-        throw std::runtime_error("kqueue() failed");
-        // TODO: or perror ?
+        throw std::runtime_error("kqueue() failed to create the queue");
 
     std::vector<struct kevent>  events(listeners_.size());
-    // TODO: check if events is empty or if vector throws exception
 
-    // Populate the events array
     for (size_t i = 0; i < listeners_.size(); ++i)
         EV_SET(&events[i], listeners_[i]->get_sfd(), EVFILT_READ, EV_ADD, 0, 0, NULL);
-
-    // Register all events with a single kevent call
-    int ret = kevent(queue_, events.data(), events.size(), NULL, 0, NULL);
-    // TODO: what happens if kevent fails and set failed flag?
-    if (ret == -1 /*|| static_cast<size_t>(ret) != events.size()*/) {
-        // TODO: or perror ?
+    if (kevent(queue_, events.data(), events.size(), NULL, 0, NULL) == -1) {
         close(queue_);
-        throw std::runtime_error("kevent() registration failed");
+        throw std::runtime_error("kevent() failed to register listeners in the queue");
     }
 }
 
@@ -60,67 +52,26 @@ EventBroker::EventBroker(const std::vector<Listener*>& listeners)
     : listeners_(listeners)
 {
     if ((queue_ = epoll_create(1)) == -1)
-        throw std::runtime_error("epoll_create() failed");
-        // TODO: or perror ?
+        throw std::runtime_error("epoll_create() failed to create the queue");
 
     for (std::vector<Listener*>::const_iterator it = listeners_.begin(); it != listeners_.end(); ++it) {
         struct epoll_event  event = {};
         event.events = EPOLLIN;
         event.data.fd = (*it)->get_sfd();
         if (epoll_ctl(queue_, EPOLL_CTL_ADD, event.data.fd, &event) == -1) {
-            // TODO: or perror ?
-            for (std::vector<Listener*>::const_iterator it2 = listeners_.begin(); it2 != it; ++it2)
-                epoll_ctl(queue_, EPOLL_CTL_DEL, (*it2)->get_sfd(), NULL);
-                // TODO: what happens if kevent fails ?
             close(queue_);
-            throw std::runtime_error("epoll_ctl() failed");
+            throw std::runtime_error("epoll_ctl() failed to register listeners in the queue");
         }
     }
 }
 
 #endif
 
-#ifdef __APPLE__
-
 EventBroker::~EventBroker()
 {
-    size_t  total_size = listeners_.size() + accepted_sfd_list_.size();
-    std::vector<struct kevent> events(total_size);
-    // TODO: check if events is empty or if vector throws exception
-
-    // Populate the events array
-    std::vector<struct kevent>::iterator    it_events = events.begin();
-    for (std::vector<Listener*>::const_iterator it = listeners_.begin(); it != listeners_.end(); ++it, ++it_events)
-        EV_SET(&(*it_events), (*it)->get_sfd(), EVFILT_READ, EV_DELETE, 0, 0, NULL);
-    for (std::vector<int>::const_iterator it = accepted_sfd_list_.begin(); it != accepted_sfd_list_.end(); ++it, ++it_events)
-        EV_SET(&(*it_events), *it, EVFILT_READ | EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-
-    // Register all events with a single kevent call
-    kevent(queue_, events.data(), events.size(), NULL, 0, NULL);
-    // TODO: what happens if kevent fails and set failed flag?
-
     std::for_each(accepted_sfd_list_.begin(), accepted_sfd_list_.end(), close);
-
     close(queue_);
 }
-
-#elif __linux__
-
-EventBroker::~EventBroker()
-{
-    for (std::vector<Listener*>::const_iterator it = listeners_.begin(); it != listeners_.end(); ++it)
-        epoll_ctl(queue_, EPOLL_CTL_DEL, (*it)->get_sfd(), NULL);
-        // TODO: what happens if kevent fails ?
-    for (std::vector<int>::const_iterator it = accepted_sfd_list_.begin(); it != accepted_sfd_list_.end(); ++it) {
-        epoll_ctl(queue_, EPOLL_CTL_DEL, *it, NULL);
-        // TODO: what happens if kevent fails ?
-        close(*it);
-    }
-
-    close(queue_);
-}
-
-#endif
 
 #ifdef __APPLE__
 
@@ -134,11 +85,14 @@ int EventBroker::run()
     *buf = '\0';
     // TODO: to remove, it's just to simulate request and response queue
 
-    signal(SIGINT, signal_handler);
+    if (signal(SIGINT, signal_handler) == SIG_ERR) {
+        perror("ERROR: signal() failed");
+        return -1;
+    }
 
     while (g_signal_received == 0) {
         std::cout << "Waiting for events..." << std::endl;
-        number_events = kevent(queue_, NULL, 0, event, kMaxEvents, NULL /* TODO: timeout ? */);
+        number_events = kevent(queue_, NULL, 0, event, kMaxEvents, NULL);
         // TODO: what happens if kevent fails?
 
         for (int i = 0; i < number_events && g_signal_received == 0; ++i) {
@@ -166,14 +120,13 @@ int EventBroker::run()
                     // TODO: check error here?
                 }
             }
-
-            // TODO: else ? ERROR flag ??
-
         }
 
         // TODO: analyse all complete requests and create responses
 
     }
+
+    // TODO: clean all pending requests and responses
 
     return 0;
 }
@@ -190,11 +143,14 @@ int EventBroker::run()
     *buf = '\0';
     // TODO: to remove, it's just to simulate request and response queue
 
-    signal(SIGINT, signal_handler);
+    if (signal(SIGINT, signal_handler) == SIG_ERR) {
+        perror("ERROR: signal() failed");
+        return -1;
+    }
 
     while (g_signal_received == 0) {
         std::cout << "Waiting for events..." << std::endl;
-        number_events = epoll_wait(queue_, event, kMaxEvents, -1 /* TODO: timeout ? */);
+        number_events = epoll_wait(queue_, event, kMaxEvents, -1);
         // TODO: what happens if epoll fails?
 
         for (int i = 0; i < number_events && g_signal_received == 0; ++i) {
@@ -222,14 +178,14 @@ int EventBroker::run()
                     // TODO: check error here?
                 }
             }
-
-            // TODO: else ? ERROR flag ??
-
         }
 
         // TODO: analyse all complete requests and create responses
 
     }
+
+    // TODO: clean all pending requests and responses
+
     return 0;
 }
 
@@ -239,8 +195,8 @@ bool    EventBroker::IsListener(int ident) const
 {
     for (std::vector<Listener*>::const_iterator it = listeners_.begin(); it != listeners_.end(); ++it)
         if ((*it)->get_sfd() == ident)
-            return (true);
-    return (false);
+            return true;
+    return false;
 }
 
 #ifdef __APPLE__
@@ -251,25 +207,29 @@ int EventBroker::AcceptConnection(int ident)
     socklen_t               addr_len = sizeof(addr);
     int new_sfd = accept(ident, reinterpret_cast<struct sockaddr*>(&addr), &addr_len);
     if (new_sfd == -1) {
-        perror("accept() failed"); // signal error and continue
-        if (new_sfd != -1)
-            close(new_sfd);
+        perror("ERROR: accept() failed to accept a new client");
         return -1;
     }
 
     struct kevent   filter;
     EV_SET(&filter, new_sfd, EVFILT_READ, EV_ADD, 0, 0, NULL);
-    // TODO: what happens if kevent fails and set failed flag?
     if (kevent(queue_, &filter, 1, NULL, 0, NULL) == -1) {
-        perror("kevent() failed"); // signal error and continue
+        perror("ERROR: kevent() failed to register a new client in the queue");
         close(new_sfd);
         return -1;
     }
 
-    accepted_sfd_list_.push_back(new_sfd);
-    // TODO: check if push_back fails, and may be closes the socket, and delete from queue
-
-    return 0;
+    try
+    {
+        accepted_sfd_list_.push_back(new_sfd);
+        return 0;
+    }
+    catch(const std::exception& e)
+    {
+		std::cerr << "ERROR: " << e.what() << std::endl;
+        close(new_sfd);
+        return -1;
+    }
 }
 
 #elif __linux__
@@ -280,59 +240,39 @@ int EventBroker::AcceptConnection(int ident)
     socklen_t               addr_len = sizeof(addr);
     int new_sfd = accept(ident, reinterpret_cast<struct sockaddr*>(&addr), &addr_len);
     if (new_sfd == -1) {
-        perror("accept() failed"); // signal error and continue
+        perror("ERROR: accept() failed to accept a new client");
         return -1;
     }
 
     struct epoll_event   filter = {};
     filter.events = (EPOLLIN | EPOLLRDHUP);
     filter.data.fd = new_sfd;
-
     if (epoll_ctl(queue_, EPOLL_CTL_ADD, new_sfd, &filter) == -1) {
-        perror("epoll_ctl() failed"); // signal error and continue
+        perror("ERROR: epoll_ctl() failed to register a new client in the queue");
         close(new_sfd);
         return -1;
     }
 
-    accepted_sfd_list_.push_back(new_sfd);
-    // TODO: check if push_back fails, and may be closes the socket, and delete from queue
-
-    return 0;
+    try
+    {
+        accepted_sfd_list_.push_back(new_sfd);
+        return 0;
+    }
+    catch(const std::exception& e)
+    {
+		std::cerr << "ERROR: " << e.what() << std::endl;
+        close(new_sfd);
+        return -1;
+    }
 }
 
 #endif
 
-#ifdef __APPLE__
-
-int EventBroker::DeleteConnection(int ident)
+void    EventBroker::DeleteConnection(int ident)
 {
-    struct kevent   filter;
-    EV_SET(&filter, ident, EVFILT_READ | EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-    kevent(queue_, &filter, 1, NULL, 0, NULL);
-    // TODO: what happens if kevent fails and set failed flag?
-
     close(ident);
     accepted_sfd_list_.erase(std::find(accepted_sfd_list_.begin(), accepted_sfd_list_.end(), ident));
-    // TODO: is there a possibility that find return .last() and erase fails?
-
-    return 0;
 }
-
-#elif __linux__
-
-int EventBroker::DeleteConnection(int ident)
-{
-    epoll_ctl(queue_, EPOLL_CTL_DEL, ident, NULL);
-    // TODO: what happens if kevent fails ?
-
-    close(ident);
-    accepted_sfd_list_.erase(std::find(accepted_sfd_list_.begin(), accepted_sfd_list_.end(), ident));
-    // TODO: is there a possibility that find return .last() and erase fails?
-
-    return 0;
-}
-
-#endif
 
 #ifdef __APPLE__
 
@@ -353,9 +293,8 @@ void    EventBroker::SendData(struct kevent* event, char* buf /* replace with fu
     struct kevent   filter;
     EV_SET(&filter, event->ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
     if (kevent(queue_, &filter, 1, NULL, 0, NULL) == -1) {
-    // TODO: what happens if kevent fails and set failed flag?
-        perror("kevent() failed"); // signal error and continue
-        // TODO: handle error, how?
+        perror("ERROR: kevent() failed to delete EVFILT_WRITE filter for a socket");
+        // TODO: how to handle this error? Maybe close the connection?
     }
 }
 
@@ -379,8 +318,8 @@ void    EventBroker::SendData(struct epoll_event* event, char* buf /* replace wi
     filter.events = (EPOLLIN | EPOLLRDHUP);
     filter.data.fd = event->data.fd;
     if (epoll_ctl(queue_, EPOLL_CTL_MOD, filter.data.fd, &filter) == -1) {
-        perror("epoll_ctl() failed"); // signal error and continue
-        // TODO: handle error, how?
+        perror("ERROR: epoll_ctl() failed to delete EPOLLOUT filter for a socket");
+        // TODO: how to handle this error? Maybe close the connection?
     }
 }
 
@@ -400,9 +339,8 @@ void    EventBroker::ReceiveData(struct kevent* event, char* buf /* replace with
     struct kevent   filter;
     EV_SET(&filter, event->ident, EVFILT_WRITE, EV_ADD, 0, 0, NULL);
     if (kevent(queue_, &filter, 1, NULL, 0, NULL) == -1) {
-    // TODO: what happens if kevent fails and set failed flag?
-        perror("kevent() failed"); // signal error and continue
-        // TODO: handle error, how?
+        perror("ERROR: kevent() failed to add EVFILT_WRITE filter for a socket");
+        // TODO: how to handle this error? Maybe close the connection?
     }
 }
 
@@ -421,7 +359,7 @@ void    EventBroker::ReceiveData(struct epoll_event* event, char* buf /* replace
     filter.events = (EPOLLIN | EPOLLOUT | EPOLLRDHUP);
     filter.data.fd = event->data.fd;
     if (epoll_ctl(queue_, EPOLL_CTL_MOD, filter.data.fd, &filter) == -1) {
-        perror("epoll_ctl() failed"); // signal error and continue
+        perror("ERROR: epoll_ctl() failed to add EPOLLOUT filter for a socket");
         // TODO: handle error, how?
     }
 }

@@ -27,22 +27,27 @@ void    ListenerListInfo::AddDefaultsRecords()
 void    ListenerListInfo::AddRecords(const char* ip, const std::string& port)
 {
     struct addrinfo *res;
+    int             err;
 
-    if (getaddrinfo(ip, port.c_str(), &hints_, &res) == -1)
-        throw std::runtime_error("getaddrinfo failed");
-        // TODO: or gai_strerror ?
-    listener_records_.push_back(res);
-    // TODO: check for push_back failure
+    if ((err = getaddrinfo(ip, port.c_str(), &hints_, &res)) != 0)
+        throw std::runtime_error("getaddrinfo(): " + std::string(gai_strerror(err)));
+    try
+    {
+        listener_records_.push_back(res);
+    }
+    catch(const std::exception& e)
+    {
+        freeaddrinfo(res);
+        throw;
+    }
 }
 
 void    ListenerListInfo::CreateListeners(std::vector<Listener*>& listeners)
 {
-    for (std::vector<struct addrinfo*>::const_iterator it = listener_records_.begin(); it != listener_records_.end(); ++it) {
+    for (std::vector<struct addrinfo*>::const_iterator it = listener_records_.begin(); it != listener_records_.end(); ++it)
         for (struct addrinfo *res = *it; res != NULL; res = res->ai_next)
             if (IsValidUniqAddr(res) == true)
                 listeners_addr_uniq.push_back(res);
-                // TODO: check for push_back failure
-    }
     for (std::vector<struct addrinfo*>::const_iterator it = listeners_addr_uniq.begin(); it != listeners_addr_uniq.end(); ++it) {
         Listener*   new_listener = new Listener(**it);
         try

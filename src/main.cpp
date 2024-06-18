@@ -6,7 +6,10 @@
 
 int main(int argc, char **argv)
 {
-    signal(SIGINT, SIG_IGN);
+    if (signal(SIGINT, SIG_IGN) == SIG_ERR) {
+        std::cerr << "ERROR: signal() failed" << std::endl;
+        return 1;
+    }
 
     if (argc > 2) {
         std::cerr << "Usage: " << argv[0] << " [config_file]" << std::endl;
@@ -16,18 +19,15 @@ int main(int argc, char **argv)
 	try
 	{
         WebServ* server;
-        if (argc == 2) {
+        if (argc == 2)
             server = new WebServ(argv[1]);
-        } else {
+        else
             server = new WebServ;
-        }
-        server->run();
+        return server->run() < 0 ? 1 : 0;
 	}
 	catch(const std::exception &e)
 	{
 		std::cerr << "ERROR: " << e.what() << std::endl;
 		return 1;
 	}
-
-	return 0;
 }

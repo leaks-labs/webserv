@@ -27,10 +27,8 @@ WebServ::WebServ(const std::string& config_file)
 
 WebServ::~WebServ()
 {
-    for (std::vector<Listener*>::iterator it = listeners_.begin(); it != listeners_.end(); ++it) {
+    for (std::vector<Listener*>::iterator it = listeners_.begin(); it != listeners_.end(); ++it)
         delete *it;
-        // TODO: is *it = NULL necessary ?;
-    }
 }
 
 int WebServ::run() const

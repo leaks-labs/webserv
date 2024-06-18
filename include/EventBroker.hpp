@@ -28,7 +28,7 @@ class EventBroker {
 
         bool    IsListener(int ident) const;
         int     AcceptConnection(int ident);
-        int     DeleteConnection(int ident);
+        void    DeleteConnection(int ident);
 # ifdef __APPLE__
         void    SendData(struct kevent* event, char* buf /* replace with future request and response queue */);
         void    ReceiveData(struct kevent* event, char* buf /* replace with future request and response queue */);
