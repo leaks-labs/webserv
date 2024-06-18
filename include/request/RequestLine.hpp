@@ -7,25 +7,26 @@
 /* Maybe should be in WebServ.hpp */
 # define HTTP_VERSION "1.1"
 
-/* Enum to represent url types */
-enum e_request_url_type {
+/* Enum to represent uri types */
+enum e_request_uri_type {
     URL,
     PATH,
     AUTHORITY
 };
 
-/* Struct to store the url and his type */
+/* Struct to store the uri and his types */
 struct s_request_uri {
     std::string         uri;
-    e_request_url_type  uri_type;
+    e_request_uri_type  uri_type;
 };
 
-/* Struct to build a dictionary of available request type */
+/* Struct to build a dictionary of available requests */
 struct s_request_dictionary {
     std::string request_type;
     bool        is_used;
 };
 
+/* Dictionary to find available requests */
 const s_request_dictionary request_dictionary[] = {
         {"OPTIONS", false},
         {"GET", true},
@@ -52,23 +53,14 @@ class RequestLine
         /* Assignment constructor for RequestLine class */
         RequestLine& operator=(const RequestLine& requestLine);
 
-        /* Getter for request_type_ attribute */
-        const std::string& GetRequestType() const;
-
-        /* Setter for request_type_ attribute */
-        void SetRequestType(const std::string& request_type);
-
         /* Getter for request_uri_ attribute */
         const s_request_uri& GetRequestUri() const;
 
-        /* Setter for request_uri_ attribute */
-        void SetRequestUri(const s_request_uri& request_uri);
+        /* Getter for request_type_ attribute */
+        const std::string& GetRequestType() const;
 
         /* Getter for request_http_version_ attribute */
         const std::string& GetRequestHttpVersion() const;
-
-        /* Setter for request_http_version_ attribute */
-        void SetRequestHttpVersion(const std::string& request_http_version);
 
         /* Find matching request type and return true if a match is found
          * and available for use, otherwise return false */
@@ -78,6 +70,16 @@ class RequestLine
         void Parse(const std::string& request_line);
 
     private:
+        /* Setter for request_uri_ attribute (only accessible by definition) */
+        void SetRequestUri(const s_request_uri& request_uri);
+
+        /* Setter for request_type_ attribute (only accessible by definition) */
+        void SetRequestType(const std::string& request_type);
+
+        /* Setter for request_http_version_ attribute
+         * (only accessible by definition) */
+        void SetRequestHttpVersion(const std::string& request_http_version);
+
         /* Class RequestLine private attribute */
         s_request_uri           request_uri_;
         std::string             request_type_;

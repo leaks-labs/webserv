@@ -14,10 +14,22 @@ Request::~Request()
 {
 }
 
-/* Getter for request_raw_ attribute */
-const std::string& Request::GetRequestRaw() const
+/* Copy constructor for Request class */
+Request::Request(const Request &request)
+        : request_line_(request.GetRequestLine()),
+          request_header_(request.GetRequestHeader()),
+          request_(request.GetRequest()),
+          is_request_complete_(request.GetIsRequestComplete())
 {
-    return request_raw_;
+}
+
+Request &Request::operator=(const Request &request)
+{
+    request_line_ = request.GetRequestLine();
+    request_header_ = request.GetRequestHeader();
+    request_ = request.GetRequest();
+    is_request_complete_ = GetIsRequestComplete();
+    return *this;
 }
 
 /* Getter for request_line_ attribute */
@@ -44,6 +56,18 @@ RequestHeader &Request::GetRequestHeaderPrivate()
     return request_header_;
 }
 
+/* Getter for request_ attribute */
+const std::string& Request::GetRequest() const
+{
+    return request_;
+}
+
+/* Setter for request_ attribute (only accessible by definition) */
+void Request::SetRequest(const std::string &request)
+{
+    request_ = request;
+}
+
 /* Getter for is_request_complete_ attribute */
 bool Request::GetIsRequestComplete() const
 {
@@ -51,17 +75,25 @@ bool Request::GetIsRequestComplete() const
 }
 
 /* Setter for is_complete_ attribute (only accessible by definition) */
-void Request::SetIsComplete(bool is_request_complete)
+void Request::SetIsRequestComplete(bool is_request_complete)
 {
     is_request_complete_ = is_request_complete;
+}
+
+void Request::AddRequestData(const std::string& request_data)
+{
+    if (request_data.empty() || GetIsRequestComplete())
+        throw std::runtime_error("Empty string or already complete request");
+    SetRequest(GetRequest() + request_data);
+    if (IsRequestComplete(GetRequest()))
+        SetIsRequestComplete(true);
 }
 
 /* Parse and verify request method */
 void Request::Parse()
 {
-    std::istringstream request(GetRequestRaw());
+    std::istringstream request(GetRequest());
     std::string buf;
-
     try
     {
         std::getline(request, buf);
@@ -70,7 +102,7 @@ void Request::Parse()
         }
         GetRequestLinePrivate().Parse(buf);
         for (size_t i = 0; std::getline(request, buf); ++i) {
-            GetRequestHeaderPrivate().Parse(buf);
+            ;
         }
     }
     catch (std::exception& e)
