@@ -1,5 +1,6 @@
 #include "ListenerList.hpp"
 
+#include <cstdio>
 #include <cstring>
 #include <stdexcept>
 
