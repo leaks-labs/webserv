@@ -15,7 +15,7 @@ LDLIBS:=
 LIB_DIRS=
 
 CC:=	cc
-CXX:=	c++
+CXX:=	clang++
 
 CXXFLAGS= -Wall -Wextra -Werror -std=c++98
 
@@ -60,10 +60,13 @@ EXT:=	.cpp
 
 MAIN:=	main
 
-SRCS_FILES:=	WebServ			\
-				Listener		\
-				ListenerList	\
-				EventBroker
+SRCS_FILES:=	WebServ				\
+				Listener			\
+				ListenerList		\
+				EventBroker			\
+				ConfigLoader		\
+				Server				\
+				Location
 
 ################################################################################
 #                                 SRC's FORMATING                              #

@@ -3,7 +3,7 @@
 
 # include <string>
 # include <vector>
-
+# include "ConfigLoader.hpp"
 # include "Listener.hpp"
 # include "ListenerList.hpp"
 
@@ -11,9 +11,7 @@ class WebServ {
     public:
         WebServ();
         WebServ(const std::string &config_file);
-
         ~WebServ();
-
         int run() const;
 
     private:
@@ -21,6 +19,7 @@ class WebServ {
         WebServ&    operator=(const WebServ& rhs);
 
         ListenerList    listener_list_;
+        std::vector<Server*>    servers;
 };
 
 #endif  // WEBSERV_HPP_

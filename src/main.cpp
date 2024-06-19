@@ -1,8 +1,8 @@
 #include <csignal>
 #include <iostream>
 #include <exception>
-
 #include "WebServ.hpp"
+#include "Server.hpp"
 
 int main(int argc, char **argv)
 {
