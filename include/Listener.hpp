@@ -16,7 +16,7 @@ class Listener {
         Listener(const Listener& src);
         Listener&   operator=(const Listener& rhs);
 
-        int sfd_; /* socket file descriptor */
+        const int   sfd_;
 };
 
 #endif  // LISTENER_HPP_

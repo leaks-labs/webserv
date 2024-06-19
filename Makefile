@@ -60,9 +60,9 @@ EXT:=	.cpp
 
 MAIN:=	main
 
-SRCS_FILES:=	WebServ				\
-				Listener			\
-				ListenerListInfo	\
+SRCS_FILES:=	WebServ			\
+				Listener		\
+				ListenerList	\
 				EventBroker
 
 ################################################################################

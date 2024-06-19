@@ -3,11 +3,17 @@
 
 # include <vector>
 
-# include "Listener.hpp"
+# ifdef __APPLE__
+#  include <sys/event.h>
+# elif __linux__
+#  include <sys/epoll.h>
+# endif
+
+# include "ListenerList.hpp"
 
 class EventBroker {
     public:
-        EventBroker(const std::vector<Listener*>& listeners);
+        EventBroker(const ListenerList& listeners);
 
         ~EventBroker();
 
@@ -22,11 +28,18 @@ class EventBroker {
 
         bool    IsListener(int ident) const;
         int     AcceptConnection(int ident);
-        int     DeleteConnection(int ident);
+        void    DeleteConnection(int ident);
+# ifdef __APPLE__
+        void    SendData(const struct kevent& event, char* buf /* replace with future request and response queue */);
+        void    ReceiveData(const struct kevent& event, char* buf /* replace with future request and response queue */);
+# elif __linux__
+        void    SendData(const struct epoll_event& event, char* buf /* replace with future request and response queue */);
+        void    ReceiveData(const struct epoll_event& event, char* buf /* replace with future request and response queue */);
+# endif
 
-        int                             queue_;
-        const std::vector<Listener*>&   listeners_;
-        std::vector<int>                accepted_sfd_list_;
+        const ListenerList& listeners_;
+        const int           queue_;
+        std::vector<int>    accepted_sfd_list_;
 };
 
 #endif  // EVENT_BROKER_HPP_
