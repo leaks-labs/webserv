@@ -124,7 +124,7 @@ void    ListenerList::EnableListeners()
 {
     for (std::vector<struct addrinfo*>::const_iterator it = listener_records_.begin(); it != listener_records_.end(); ++it)
         for (struct addrinfo *res = *it; res != NULL; res = res->ai_next)
-            if (IsValidUniqAddr(res) == true)
+            if (IsValidUniqAddr(*res) == true)
                 listener_records_uniq_.push_back(res);
     for (std::vector<struct addrinfo*>::const_iterator it = listener_records_uniq_.begin(); it != listener_records_uniq_.end(); ++it) {
         Listener*   new_listener = new Listener(**it);
@@ -140,12 +140,12 @@ void    ListenerList::EnableListeners()
     }
 }
 
-bool    ListenerList::IsValidUniqAddr(const struct addrinfo* addr) const
+bool    ListenerList::IsValidUniqAddr(const struct addrinfo& addr) const
 {
-    if (addr->ai_family != PF_INET6 && addr->ai_family != PF_INET)
+    if (addr.ai_family != PF_INET6 && addr.ai_family != PF_INET)
         return false;
     for (std::vector<struct addrinfo*>::const_iterator it = listener_records_uniq_.begin(); it != listener_records_uniq_.end(); ++it)
-        if (addr->ai_family == (*it)->ai_family && memcmp(addr->ai_addr, (*it)->ai_addr, sizeof(struct sockaddr)) == 0)
+        if (addr.ai_family == (*it)->ai_family && addr.ai_addrlen == (*it)->ai_addrlen && memcmp(addr.ai_addr, (*it)->ai_addr, addr.ai_addrlen) == 0)
             return false;
     return true;
 }

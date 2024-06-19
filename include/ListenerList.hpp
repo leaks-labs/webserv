@@ -53,7 +53,7 @@ class ListenerList {
         ListenerList(const ListenerList& src);
         ListenerList&   operator=(const ListenerList& rhs);
 
-        bool    IsValidUniqAddr(const struct addrinfo* addr) const;
+        bool    IsValidUniqAddr(const struct addrinfo& addr) const;
 
         struct addrinfo                 hints_;
         std::vector<struct addrinfo*>   listener_records_;
