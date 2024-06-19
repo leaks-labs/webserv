@@ -20,7 +20,7 @@ int Location::setValue(std::string key, std::string value)
 {
     typedef std::map<std::string, int (Location::*)(std::string)>::iterator it;
 
-    it i= set_functions.find(key);
+    it i = set_functions.find(key);
     if(i == set_functions.end())
     {
         std::cout << "setting key does not exist: " << key << std::endl;
@@ -35,10 +35,20 @@ int Location::setPath(std::string value)
     return(0);
 }
 
+std::string Location::getPath() const
+{
+    return (path);
+}
+
 int Location::setRoot(std::string value)
 {
     root = value;
     return(0);
+}
+
+std::string Location::getRoot() const
+{
+    return (root);
 }
 
 int Location::setDefaultFile(std::string value)
@@ -47,6 +57,10 @@ int Location::setDefaultFile(std::string value)
     return(0);
 }
 
+std::string Location::getDefaulFile() const
+{
+    return (default_file);
+}
 
 int Location::setCgi(std::string value)
 {
@@ -59,6 +73,11 @@ int Location::setCgi(std::string value)
     return(0);
 }
 
+std::string Location::getCgi() const
+{
+    return (cgi);
+}
+
 int Location::setMethods(std::string value)
 {
     std::string::size_type beg;
@@ -68,30 +87,43 @@ int Location::setMethods(std::string value)
     beg = 0;
     end = value.find(' ');
     methods = 0;
-    while (end != std::string::npos)
+    while (1)
     {
-        str = value.substr(beg, end);
-        if(!str.compare("GET") && methods % 2 == 0)
+        str = value.substr(beg, end - beg);
+        if(!str.compare("GET") && (methods & 1) == 0)
             methods += 1;
-        else if(!str.compare("POST") && methods % 4 < 2)
+        else if(!str.compare("POST") && (methods & 2) == 0)
             methods += 2;
-        else if(!str.compare("DELETE") && methods < 4)
+        else if(!str.compare("DELETE") && (methods & 4) == 0)
             methods += 4;
         else
         {
             std::cout << "method should be GET POST or DELETE" << std::endl;
             return(1);
         }
+        if(end == std::string::npos)
+            break;
         beg = end + 1;
         end = value.find(' ', beg);
     }
     return(0);
 }
 
+int Location::getMethods() const
+{
+    return (methods);
+}
+
+
 int Location::setProxy(std::string value)
 {
     proxy = value;
     return(0);
+}
+
+std::string Location::getProxy() const
+{
+    return (proxy);
 }
 
 int Location::setListing(std::string value)
@@ -107,6 +139,12 @@ int Location::setListing(std::string value)
     }
     return(0);
 }
+
+bool Location::getListing() const
+{
+    return (listing);
+}
+
 
 void Location::print()const
 {

@@ -16,12 +16,19 @@ WebServ::WebServ()
 
 WebServ::WebServ(const std::string& config_file)
 {
+    int err;
+
     std::ifstream file(config_file.c_str());
     if (file.good() == false)
         throw std::runtime_error("opening config_file failed");
     ConfigLoader loader(file);
-    if(loader.load(servers))
-        throw std::runtime_error("config file uncorrect");
+    err = loader.loadFileConfig(servers);
+    if(err)
+    {
+        std::cout << "Config file error at line: " << err << std::endl;
+        throw std::runtime_error("Config file Error");
+    }
+    //loader.print(servers);
     // TODO: read config_file and initialize a config object
     // TODO: listener_list_info_.AddRecord();
     // TODO: listener_list_info_.CreateListeners(listeners_);

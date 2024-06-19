@@ -31,10 +31,20 @@ int Server::setHost(std::string value)
     return(0);
 }
 
+std::string Server::getHost()const
+{
+    return (host);
+}
+
 int Server::setPort(std::string value)
 {
     port = value;
     return(0);
+}
+
+std::string Server::getPort()const
+{
+    return (port);
 }
 
 int Server::setServerNames(std::string value)
@@ -50,28 +60,41 @@ int Server::setServerNames(std::string value)
     return(0);
 }
 
+std::vector<std::string> Server::getServerNames()const
+{
+    return (server_names);
+}
+
 int Server::setErrors(std::string value)
 {
     errors = value;
     return(0);
 }
 
+std::string Server::getErrors()const
+{
+    return (errors);
+}
+
 int Server::setBodyMax(std::string value)
 {
     typedef std::string::const_iterator it;
-    it i = value.begin();
-    while(i < value.end())
+    for(it i = value.begin(); i != value.end(); i++)
     {
-        if(*i < '0' && *i > '9')
+        if(!(*i >= '0' && *i <= '9'))
         {   
             std::cout << "bodymax value shoud be a digit" << std::endl;         
             return (1);
         }
-        i++;
     }
     std::stringstream ss(value);
     ss >> bodymax;
     return(0);
+}
+
+int Server::getBodyMax()const
+{
+    return (bodymax);
 }
 
 int Server::addLocation(std::string value)
@@ -81,10 +104,19 @@ int Server::addLocation(std::string value)
     return(0);
 }
 
+std::vector<Location*> Server::getLocations()const
+{
+    return (locations);   
+}
+
 int Server::setLastLocation(std::string key, std::string value)
 {
-    locations.back()->setValue(key, value);
-    return(0);
+    return(locations.back()->setValue(key, value));
+}
+
+void Server::setAddrInfo(struct addrinfo *addrinfo)
+{
+    addr = addrinfo;
 }
 
 void Server::print()const

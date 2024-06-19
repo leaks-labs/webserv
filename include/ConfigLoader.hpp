@@ -18,7 +18,8 @@ class ConfigLoader {
     public:
         ConfigLoader(std::ifstream & file);
         ~ConfigLoader();
-        int load(std::vector<Server*> & configs);
+        int loadFileConfig(std::vector<Server*> & configs);
+        void print(std::vector<Server*> & servers)const;
 };
 
 #endif

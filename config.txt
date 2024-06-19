@@ -1,12 +1,11 @@
 #
-port 80
+port 8080
 server_names abc.com xyz.c
 errors /data/errors
 default_file /data/default.html
 bodymax 10000
 root /data/server1
 listing false
-methods GET
 cgi php
 proxy false
 > /

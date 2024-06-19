@@ -32,6 +32,13 @@ class Location {
         int setMethods(std::string value);
         int setProxy(std::string value);
         int setListing(std::string value);
+        std::string getPath() const;
+        std::string getRoot() const;
+        std::string getDefaulFile() const;
+        std::string getCgi() const;
+        int getMethods()const;
+        std::string getProxy()const;
+        bool getListing()const;
         void print()const;
 };
 

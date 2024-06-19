@@ -1,11 +1,12 @@
 #include "ConfigLoader.hpp"
 
+
 ConfigLoader::ConfigLoader(std::ifstream & f) : file(f)
 {};
 
 ConfigLoader::~ConfigLoader(){};
 
-int ConfigLoader::load(std::vector<Server*> & servers)
+int ConfigLoader::loadFileConfig(std::vector<Server*> & servers)
 {
     std::string line;
     std::string key;
@@ -27,8 +28,13 @@ int ConfigLoader::load(std::vector<Server*> & servers)
         if(!key.compare("#"))
         {
             servers.push_back(new Server());
-            if(value.length() > 0)
+            if(value.compare(key))
                 servers.back()->setHost(value);
+        }
+        else if(!value.compare(key))
+        {
+            std::cerr << "Value is empty" << std::endl;
+            return(count);
         }
         else if(!key.compare(">"))
         {
@@ -40,12 +46,16 @@ int ConfigLoader::load(std::vector<Server*> & servers)
             if (err == -1)
                 err = servers.back()->setLastLocation(key, value);
             if(err)
-                return(1);
+                return(count);
         }
     }
+    return(0);
+}
+
+void ConfigLoader::print(std::vector<Server*> & servers)const
+{
     for (std::vector<Server*>::const_iterator it = servers.begin(); it != servers.end(); ++it)
     {
         (*it)->print();
     }
-    return(0);
 }

@@ -14,6 +14,7 @@ class Server
         int bodymax;
         std::vector<Location*> locations;
         std::map<std::string, int (Server::*)(std::string)> set_functions;
+        struct addrinfo *addr;
     public:
         Server();
         ~Server();
@@ -27,6 +28,13 @@ class Server
         int setBodyMax(std::string value);
         int addLocation(std::string value);
         int setLastLocation(std::string key, std::string value);
+        void setAddrInfo(struct addrinfo *addr);
+        std::string getHost()const;
+        std::string getPort()const;
+        std::vector<std::string> getServerNames()const;
+        std::string getErrors()const;
+        int getBodyMax()const;
+        std::vector<Location*> getLocations()const;
         void print()const;
 };
 
