@@ -64,6 +64,20 @@ bool    ListenerList::ConstIterator::operator!=(const ConstIterator& rhs) const 
     return it_ != rhs.it_;
 }
 
+int ListenerList::IsSameAddr(const int listener_sfd, const struct addrinfo* addr_list)
+{
+    struct sockaddr_storage addr_buf;
+    socklen_t               len_buf;
+    if (getsockname(listener_sfd, reinterpret_cast<struct sockaddr*>(&addr_buf), &len_buf) == -1) {
+        perror("ERROR: getsockname()");
+        return -1;
+    }
+    for (const struct addrinfo *tmp = addr_list; tmp != NULL; tmp = tmp->ai_next)
+        if (tmp->ai_addrlen == len_buf && memcmp(tmp->ai_addr, &addr_buf, len_buf) == 0)
+            return 1;
+    return 0;
+}
+
 ListenerList::ListenerList()
 {
     memset(&hints_, 0, sizeof(hints_));
@@ -102,7 +116,7 @@ void    ListenerList::AddDefaultListenerRecords()
     AddListenerRecord(NULL, kDefaultPort);
 }
 
-void    ListenerList::AddListenerRecord(const char* ip, const std::string& port)
+const struct addrinfo*  ListenerList::AddListenerRecord(const char* ip, const std::string& port)
 {
     struct addrinfo *res;
     int             err;
@@ -118,6 +132,7 @@ void    ListenerList::AddListenerRecord(const char* ip, const std::string& port)
         freeaddrinfo(res);
         throw;
     }
+    return res;
 }
 
 void    ListenerList::EnableListeners()

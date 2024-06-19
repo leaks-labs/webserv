@@ -33,6 +33,8 @@ class ListenerList {
                 std::vector<Listener*>::const_iterator  it_;
         };
 
+        static int IsSameAddr(const int listener_sfd, const struct addrinfo* addr_list);
+
         ListenerList();
 
         ~ListenerList();
@@ -42,10 +44,10 @@ class ListenerList {
         ConstIterator   begin() const;
         ConstIterator   end() const;
 
-        size_t  EnabledListenerCount() const;
-        void    AddDefaultListenerRecords();
-        void    AddListenerRecord(const char* ip, const std::string& port);
-        void    EnableListeners();
+        size_t                  EnabledListenerCount() const;
+        void                    AddDefaultListenerRecords();
+        const struct addrinfo*  AddListenerRecord(const char* ip, const std::string& port);
+        void                    EnableListeners();
 
     private:
         static const std::string  kDefaultPort;
