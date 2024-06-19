@@ -52,8 +52,10 @@ int Server::setServerNames(std::string value)
     std::string::size_type start = 0;
     std::string::size_type end = value.find(' ');
 
-    while (end != std::string::npos) {
+    while (1) {
         server_names.push_back(value.substr(start, end - start));
+        if(end == std::string::npos)
+            break;
         start = end + 1;
         end = value.find(' ', start);
     }

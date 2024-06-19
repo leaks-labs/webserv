@@ -28,7 +28,7 @@ WebServ::WebServ(const std::string& config_file)
         std::cout << "Config file error at line: " << err << std::endl;
         throw std::runtime_error("Config file Error");
     }
-    //loader.print(servers);
+    loader.print(servers);
     // TODO: read config_file and initialize a config object
     // TODO: listener_list_info_.AddRecord();
     // TODO: listener_list_info_.CreateListeners(listeners_);

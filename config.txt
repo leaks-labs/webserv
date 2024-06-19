@@ -1,6 +1,6 @@
 #
 port 8080
-server_names abc.com xyz.c
+server_names abc.com xyz.fr
 errors /data/errors
 default_file /data/default.html
 bodymax 10000
