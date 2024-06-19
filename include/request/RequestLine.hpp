@@ -3,39 +3,40 @@
 
 # include <string>
 
-/* default HTTP version for the webserver, if not matched, throw an error */
-/* Maybe should be in WebServ.hpp */
+/* default HTTP version for the webserver */
 # define HTTP_VERSION "1.1"
 
-/* Enum to represent uri types */
-enum e_request_uri_type {
-    URL,
-    PATH,
-    AUTHORITY
+/* Enum to represent request target type */
+enum RequestTargetType {
+    ORIGIN_FORM,
+    ABSOLUTE_FORM,
+    AUTHORITY_FORM,
+    ASTERISK_FORM
 };
 
-/* Struct to store the uri and his types */
-struct s_request_uri {
-    std::string         uri;
-    e_request_uri_type  uri_type;
+/* Struct to store the request target and his type */
+struct RequestTarget {
+    std::string         target;
+    RequestTargetType   type;
 };
 
-/* Struct to build a dictionary of available requests */
-struct s_request_dictionary {
-    std::string request_type;
+/* Struct to store request, request len and request availability */
+struct RequestMethod {
+    std::string method;
+    size_t      len;
     bool        is_used;
 };
 
-/* Dictionary to find available requests */
-const s_request_dictionary request_dictionary[] = {
-        {"OPTIONS", false},
-        {"GET", true},
-        {"HEAD", false},
-        {"POST", true},
-        {"PUT", false},
-        {"DELETE", true},
-        {"TRACE", false},
-        {"CONNECT", false},
+/* Dictionary to find available request method */
+const RequestMethod method_dictionary[] = {
+    {"OPTIONS", 7, false},
+    {"GET", 3, true},
+    {"HEAD", 4, false},
+    {"POST", 4,true},
+    {"PUT", 3, false},
+    {"DELETE", 6, true},
+    {"TRACE", 5, false},
+    {"CONNECT", 7, false},
 };
 
 class RequestLine
@@ -48,42 +49,52 @@ class RequestLine
         ~RequestLine();
 
         /* Copy constructor for RequestLine class */
-        RequestLine(const RequestLine& requestLine);
+        RequestLine(const RequestLine& request_line);
 
         /* Assignment constructor for RequestLine class */
-        RequestLine& operator=(const RequestLine& requestLine);
+        RequestLine& operator=(const RequestLine& request_line);
 
-        /* Getter for request_uri_ attribute */
-        const s_request_uri& GetRequestUri() const;
+        /* Getter for request_target_ attribute */
+        const RequestTarget& GetRequestTarget() const;
 
-        /* Getter for request_type_ attribute */
-        const std::string& GetRequestType() const;
+        /* Getter for request_method_ attribute */
+        const std::string& GetRequestMethod() const;
 
         /* Getter for request_http_version_ attribute */
         const std::string& GetRequestHttpVersion() const;
 
         /* Find matching request type and return true if a match is found
          * and available for use, otherwise return false */
-        static bool FindDictionaryRequest();
+        static bool FindDictionaryRequest(
+            RequestMethod method_dictionary[],
+            const std::string& request_method
+        );
 
         /* Parse and verify request method */
         void Parse(const std::string& request_line);
 
     private:
-        /* Setter for request_uri_ attribute (only accessible by definition) */
-        void SetRequestUri(const s_request_uri& request_uri);
+        /* Setter for request_target_ attribute (only accessible by definition) */
+        void SetRequestTarget(const RequestTarget& request_target);
 
-        /* Setter for request_type_ attribute (only accessible by definition) */
-        void SetRequestType(const std::string& request_type);
+        /* Setter for request_method_ attribute (only accessible by definition) */
+        void SetRequestMethod(const std::string& request_method);
 
         /* Setter for request_http_version_ attribute
          * (only accessible by definition) */
         void SetRequestHttpVersion(const std::string& request_http_version);
 
         /* Class RequestLine private attribute */
-        s_request_uri           request_uri_;
-        std::string             request_type_;
-        std::string             request_http_version_;
+        RequestTarget   request_target_;
+        /* A server that receives a method longer than any that it implements
+           SHOULD respond with a 501 (Not Implemented) status code.
+        An origin server that receives a request method that is recognized
+         and implemented, but not allowed for the target resource,
+         SHOULD respond with the 405 (Method Not Allowed) status code */
+        RequestMethod   request_method_;
+        /* A server that receives a request-target longer than any URI it
+         * wishes to parse MUST respond with a 414 (URI Too Long) status code */
+        std::string     request_http_version_;
 };
 
 #endif

@@ -8,9 +8,6 @@
 
 # define INPUT_ERROR "Reading Error: Failed to read input file\n"
 
-/* Case where request data has been added */
-/* Case where request is already complete */
-
 class Request
 {
     public:
@@ -67,6 +64,7 @@ class Request
         RequestLine         request_line_;
         RequestHeader       request_header_;
         std::string         request_;
+        std::string         body_;
         bool                is_request_complete_;
 };
 

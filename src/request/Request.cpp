@@ -89,6 +89,13 @@ void Request::AddRequestData(const std::string& request_data)
         SetIsRequestComplete(true);
 }
 
+bool Request::IsRequestComplete(const std::string &request) const {
+    if (request.empty())
+        throw std::runtime_error("Error: Empty string argument");
+    size_t len = request.length();
+    return request[len - 1] == '\n';
+}
+
 /* Parse and verify request method */
 void Request::Parse()
 {
