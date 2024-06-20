@@ -25,25 +25,35 @@ void    signal_handler(int signal)
 
 }
 
+#ifdef __APPLE__
+
 EventBroker::EventBroker(const ListenerList& listeners)
     : listeners_(listeners), queue_(kqueue())
 {
     if (queue_ == -1)
         throw std::runtime_error("kqueue() failed to create the queue");
-#ifdef __APPLE__
     if (AddReadFilterFromListeners() == -1) {
         close(queue_);
         throw std::runtime_error("kevent() failed to register listeners in the queue");
     }
+}
+
 #elif __linux__
+
+EventBroker::EventBroker(const ListenerList& listeners)
+    : listeners_(listeners), queue_(epoll_create(1))
+{
+    if (queue_ == -1)
+        throw std::runtime_error("kqueue() failed to create the queue");
     for (ListenerList::ConstIterator it = listeners_.begin(); it != listeners_.end(); ++it) {
         if (AddReadFilter(it->get_sfd()) == -1) {
             close(queue_);
             throw std::runtime_error("epoll_ctl() failed to register listeners in the queue");
         }
     }
-#endif
 }
+
+#endif
 
 EventBroker::~EventBroker()
 {
@@ -149,10 +159,10 @@ bool    EventBroker::IsEventWrite(const Event& event) const
 #endif
 }
 
-int     EventBroker::WaitForEvents(int queue, std::vector<Event>& event_list, int event_list_size) const
+int     EventBroker::WaitForEvents(std::vector<Event>& event_list, int event_list_size) const
 {
 #ifdef __APPLE__
-    return kevent(queue, NULL, 0, event_list.data(), event_list_size, NULL);
+    return kevent(queue_, NULL, 0, event_list.data(), event_list_size, NULL);
 #elif __linux__
     return epoll_wait(queue_, event_list.data(), event_list_size, -1);
 #endif
@@ -169,7 +179,7 @@ void    EventBroker::WaitingLoop()
 
     while (g_signal_received == 0) {
         std::cout << "Waiting for events..." << std::endl;
-        int number_events = WaitForEvents(queue_, event_list, kMaxEvents);
+        int number_events = WaitForEvents(event_list, kMaxEvents);
         // TODO: what happens if kevent fails?
 
         HandleEvents(event_list, number_events, buf);
@@ -184,7 +194,7 @@ void    EventBroker::WaitingLoop()
 void    EventBroker::HandleEvents(const std::vector<Event>& event_list, int number_events, char* buf)
 {
     for (std::vector<Event>::const_iterator event = event_list.begin(); number_events > 0 && g_signal_received == 0; ++event, --number_events) {
-        std::cout << "socket: " << event->ident << std::endl;
+        std::cout << "socket: " << GetIdent(*event) << std::endl;
         if (IsListener(GetIdent(*event))) {
             std::cout << "ENTER: AcceptConnection " << std::endl;
             AcceptConnection(GetIdent(*event));

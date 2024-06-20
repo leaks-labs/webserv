@@ -42,7 +42,7 @@ class EventBroker {
         bool    IsEventEOF(const Event& event) const;
         bool    IsEventRead(const Event& event) const;
         bool    IsEventWrite(const Event& event) const;
-        int     WaitForEvents(int queue, std::vector<Event>& event_list, int event_list_size) const;
+        int     WaitForEvents(std::vector<Event>& event_list, int event_list_size) const;
         void    WaitingLoop();
         void    HandleEvents(const std::vector<Event>& event_list, int number_events, char* buf);
         bool    IsListener(int ident) const;
