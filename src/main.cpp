@@ -23,7 +23,7 @@ int main(int argc, char **argv)
             server = new WebServ(argv[1]);
         else
             server = new WebServ;
-        int ret = server->run();
+        int ret = server->Run();
         delete server;
         return ret < 0 ? 1 : 0;
 	}

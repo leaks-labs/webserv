@@ -29,9 +29,9 @@ WebServ::~WebServ()
 {
 }
 
-int WebServ::run() const
+int WebServ::Run() const
 {
     EventBroker event_broker(listener_list_);
 
-    return event_broker.run();
+    return event_broker.Run();
 }
