@@ -10,7 +10,7 @@
 class WebServ {
     public:
         WebServ();
-        WebServ(const std::string &config_file);
+        WebServ(const std::string& config_file);
 
         ~WebServ();
 

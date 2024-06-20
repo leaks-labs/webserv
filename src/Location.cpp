@@ -20,7 +20,7 @@ Location::Location(const Location& src)
     *this = src;
 }
 
-Location&   Location::operator=(Location const & rhs)
+Location&   Location::operator=(Location const& rhs)
 {
     if (this != &rhs) {
         path_ = rhs.get_path();
