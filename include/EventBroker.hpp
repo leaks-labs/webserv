@@ -17,25 +17,39 @@ class EventBroker {
 
         ~EventBroker();
 
-        int run();
+        int Run();
 
     private:
+# ifdef __APPLE__
+        typedef struct kevent       Event;
+# elif __linux__
+        typedef struct epoll_event  Event;
+# endif
+
         static const int    kMaxEvents = 32;
 
         EventBroker();
         EventBroker(const EventBroker& src);
         EventBroker&    operator=(const EventBroker& rhs);
 
+# ifdef __APPLE__
+        int     AddReadFilterFromListeners() const;
+# endif
+        int     AddReadFilter(int fd) const;
+        int     AddWriteFilter(int fd) const;
+        int     DelWriteFilter(int fd) const;
+        int     GetIdent(const Event& event) const;
+        bool    IsEventEOF(const Event& event) const;
+        bool    IsEventRead(const Event& event) const;
+        bool    IsEventWrite(const Event& event) const;
+        int     WaitForEvents(std::vector<Event>& event_list, int event_list_size) const;
+        void    WaitingLoop();
+        void    HandleEvents(const std::vector<Event>& event_list, int number_events, char* buf);
         bool    IsListener(int ident) const;
         int     AcceptConnection(int ident);
         void    DeleteConnection(int ident);
-# ifdef __APPLE__
-        void    SendData(const struct kevent& event, char* buf /* replace with future request and response queue */);
-        void    ReceiveData(const struct kevent& event, char* buf /* replace with future request and response queue */);
-# elif __linux__
-        void    SendData(const struct epoll_event& event, char* buf /* replace with future request and response queue */);
-        void    ReceiveData(const struct epoll_event& event, char* buf /* replace with future request and response queue */);
-# endif
+        void    SendData(const Event& event, char* buf /* replace with future request and response queue */);
+        void    ReceiveData(const Event& event, char* buf /* replace with future request and response queue */);
 
         const ListenerList& listeners_;
         const int           queue_;
