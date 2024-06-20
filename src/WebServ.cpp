@@ -11,24 +11,22 @@ WebServ::WebServ()
     listener_list_.AddDefaultListenerRecords();
     // listener_list_info_.PrintListenerRecords();
     listener_list_.EnableListeners();
-    servers.push_back(new Server());
+    server_list_.addServer();
+    server_list_.print();
 }
 
 WebServ::WebServ(const std::string& config_file)
 {
-    int err;
-
-    std::ifstream file(config_file.c_str());
-    if (file.good() == false)
-        throw std::runtime_error("opening config_file failed");
-    ConfigLoader loader(file);
-    err = loader.loadFileConfig(servers);
-    if(err)
+    try
     {
-        std::cout << "Config file error at line: " << err << std::endl;
-        throw std::runtime_error("Config file Error");
+        server_list_.openFile(config_file);
+        server_list_.print();
     }
-    loader.print(servers);
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+    
     // TODO: read config_file and initialize a config object
     // TODO: listener_list_info_.AddRecord();
     // TODO: listener_list_info_.CreateListeners(listeners_);

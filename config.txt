@@ -8,6 +8,7 @@ root /data/server1
 listing false
 cgi php
 proxy false
+
 > /
 methods GET
 root /data/folder1
@@ -18,3 +19,6 @@ root /data/images
 default_file /data/defaultimg.html
 > /other
 proxy otherwebsite.com
+
+#
+port 80

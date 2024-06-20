@@ -7,19 +7,20 @@
 class Server
 {
     private:
+        void initSetFunctions();
+        Server&   operator=(Server const & rhs);
         std::string host;
         std::string port;
         std::vector<std::string> server_names;
         std::string errors;
         int bodymax;
-        std::vector<Location*> locations;
+        std::vector<Location> locations;
         std::map<std::string, int (Server::*)(std::string)> set_functions;
         struct addrinfo *addr;
     public:
         Server();
-        ~Server();
         Server(const Server& src);
-        Server&   operator=(Server const & rhs);
+        ~Server();
         int setValue(std::string key, std::string value);
         int setHost(std::string value);
         int setPort(std::string value);
@@ -29,12 +30,12 @@ class Server
         int addLocation(std::string value);
         int setLastLocation(std::string key, std::string value);
         void setAddrInfo(struct addrinfo *addr);
-        std::string getHost()const;
-        std::string getPort()const;
-        std::vector<std::string> getServerNames()const;
-        std::string getErrors()const;
+        std::string const & getHost()const;
+        std::string const & getPort()const;
+        std::vector<std::string> const & getServerNames()const;
+        std::string const & getErrors()const;
         int getBodyMax()const;
-        std::vector<Location*> getLocations()const;
+        std::vector<Location> const & getLocations()const;
         void print()const;
 };
 

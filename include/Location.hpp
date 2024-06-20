@@ -11,6 +11,7 @@
 class Location {
 
     private:
+        void initSetFunctions();
         std::string path;
         std::string root;
         std::string default_file;
@@ -32,14 +33,17 @@ class Location {
         int setMethods(std::string value);
         int setProxy(std::string value);
         int setListing(std::string value);
-        std::string getPath() const;
-        std::string getRoot() const;
-        std::string getDefaulFile() const;
-        std::string getCgi() const;
+        std::string const & getPath() const;
+        std::string const & getRoot() const;
+        std::string const & getDefaulFile() const;
+        std::string const & getCgi() const;
         int getMethods()const;
-        std::string getProxy()const;
+        std::string const & getProxy()const;
         bool getListing()const;
         void print()const;
+        static const int GET = 1;
+        static const int POST = 2;
+        static const int DELETE = 4;
 };
 
 #endif

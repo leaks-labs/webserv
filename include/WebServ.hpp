@@ -3,7 +3,7 @@
 
 # include <string>
 # include <vector>
-# include "ConfigLoader.hpp"
+# include "ServerList.hpp"
 # include "Listener.hpp"
 # include "ListenerList.hpp"
 
@@ -19,6 +19,7 @@ class WebServ {
         WebServ&    operator=(const WebServ& rhs);
 
         ListenerList    listener_list_;
+        ServerList      server_list_;
         std::vector<Server*>    servers;
 };
 

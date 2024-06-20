@@ -8,12 +8,38 @@ Server::Server() :
 {
     server_names.push_back("webserv");
     addLocation("/");
-    set_functions.insert(std::make_pair("host", &Server::setHost));
-    set_functions.insert(std::make_pair("port", &Server::setPort));
-    set_functions.insert(std::make_pair("server_names", &Server::setServerNames));
-    set_functions.insert(std::make_pair("errors", &Server::setErrors));
-    set_functions.insert(std::make_pair("bodymax", &Server::setBodyMax));
+    initSetFunctions();
 };
+
+Server::Server(const Server & src) : 
+    host(src.getHost()),
+    port(src.getPort()),
+    errors(src.getErrors()),
+    bodymax(src.getBodyMax())
+{
+    server_names = src.getServerNames();
+    locations = src.getLocations();
+    initSetFunctions();
+};
+
+void Server::initSetFunctions()
+{
+    try
+    {
+        set_functions.insert(std::make_pair("host", &Server::setHost));
+        set_functions.insert(std::make_pair("port", &Server::setPort));
+        set_functions.insert(std::make_pair("server_names", &Server::setServerNames));
+        set_functions.insert(std::make_pair("errors", &Server::setErrors));
+        set_functions.insert(std::make_pair("bodymax", &Server::setBodyMax));
+    }
+    catch(const std::exception& e)
+    {
+        throw(e.what());
+    }
+    
+}
+
+Server::~Server(){};
 
 int Server::setValue(std::string key, std::string value)
 {
@@ -31,7 +57,7 @@ int Server::setHost(std::string value)
     return(0);
 }
 
-std::string Server::getHost()const
+std::string const & Server::getHost()const
 {
     return (host);
 }
@@ -42,7 +68,7 @@ int Server::setPort(std::string value)
     return(0);
 }
 
-std::string Server::getPort()const
+std::string const & Server::getPort()const
 {
     return (port);
 }
@@ -62,7 +88,7 @@ int Server::setServerNames(std::string value)
     return(0);
 }
 
-std::vector<std::string> Server::getServerNames()const
+std::vector<std::string> const & Server::getServerNames()const
 {
     return (server_names);
 }
@@ -73,7 +99,7 @@ int Server::setErrors(std::string value)
     return(0);
 }
 
-std::string Server::getErrors()const
+std::string const & Server::getErrors()const
 {
     return (errors);
 }
@@ -85,7 +111,7 @@ int Server::setBodyMax(std::string value)
     {
         if(!(*i >= '0' && *i <= '9'))
         {   
-            std::cout << "bodymax value shoud be a digit" << std::endl;         
+            std::cerr << "bodymax value shoud be a digit" << std::endl;         
             return (1);
         }
     }
@@ -101,19 +127,26 @@ int Server::getBodyMax()const
 
 int Server::addLocation(std::string value)
 {
-    locations.push_back(new Location());
-    locations.back()->setPath(value);
+    try
+    {
+        locations.push_back(Location());
+        locations.back().setPath(value);
+    }
+    catch(const std::exception& e)
+    {
+        throw e.what();
+    }
     return(0);
 }
 
-std::vector<Location*> Server::getLocations()const
+std::vector<Location> const & Server::getLocations()const
 {
     return (locations);   
 }
 
 int Server::setLastLocation(std::string key, std::string value)
 {
-    return(locations.back()->setValue(key, value));
+    return(locations.back().setValue(key, value));
 }
 
 void Server::setAddrInfo(struct addrinfo *addrinfo)
@@ -131,9 +164,9 @@ void Server::print()const
     {
         std::cout << "server_name: " << *it << std::endl;
     }
-    for(std::vector<Location*>::const_iterator it=locations.begin(); it != locations.end(); ++it)
+    for(std::vector<Location>::const_iterator it=locations.begin(); it != locations.end(); ++it)
     {
         std::cout << std::endl;
-        (*it)->print();
+        it->print();
     }
 }

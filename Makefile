@@ -64,7 +64,7 @@ SRCS_FILES:=	WebServ				\
 				Listener			\
 				ListenerList		\
 				EventBroker			\
-				ConfigLoader		\
+				ServerList			\
 				Server				\
 				Location
 
