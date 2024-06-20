@@ -69,7 +69,7 @@ void    ServerList::AddServer()
 
 void    ServerList::OpenFile(const std::string& path)
 {
-    file_.open(path);
+    file_.open(path.c_str());
     if (file_.good() == false)
         throw std::runtime_error("opening config_file failed");
     int err = LoadFile();
