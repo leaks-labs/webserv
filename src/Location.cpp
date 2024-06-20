@@ -94,7 +94,7 @@ int Location::set_default_file(const std::string& value)
 
 int Location::set_cgi(const std::string& value)
 {
-    if(value != "php" && value != "python" && value != "none") {
+    if (value != "php" && value != "python" && value != "none") {
         std::cerr << "cgi value should be php, python or none" << std::endl;
         return 1;
     }
@@ -123,9 +123,9 @@ int Location::set_methods(const std::string& value)
             methods_ |= kDelete;
         } else {
             std::cerr << "method should be GET POST or DELETE" << std::endl;
-            return(1);
+            return 1;
         }
-        if(end == std::string::npos)
+        if (end == std::string::npos)
             break;
         beg = end + 1;
         end = value.find(' ', beg);

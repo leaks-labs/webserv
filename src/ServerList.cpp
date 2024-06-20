@@ -115,7 +115,7 @@ int ServerList::LoadFile()
             if (err == -1)
                 err = servers_.back().SetLastLocation(key, value);
             if (err)
-                return(count);
+                return count;
         }
     }
     if (file_.fail() == true) {

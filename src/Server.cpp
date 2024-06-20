@@ -83,7 +83,7 @@ int Server::set_errors(const std::string& value)
 int Server::set_bodymax(const std::string& value)
 {
     for (std::string::const_iterator it = value.begin(); it != value.end(); ++it) {
-        if(!(*it >= '0' && *it <= '9')) {   
+        if (!(*it >= '0' && *it <= '9')) {   
             std::cerr << "bodymax value shoud be a digit" << std::endl;         
             return 1;
         }
@@ -111,7 +111,7 @@ int Server::set_server_names(const std::string& value)
 
     while (true) {
         server_names_.push_back(value.substr(start, end - start));
-        if(end == std::string::npos)
+        if (end == std::string::npos)
             break;
         start = end + 1;
         end = value.find(' ', start);
