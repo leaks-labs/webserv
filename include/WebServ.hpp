@@ -20,7 +20,6 @@ class WebServ {
 
         ListenerList    listener_list_;
         ServerList      server_list_;
-        std::vector<Server*>    servers;
 };
 
 #endif  // WEBSERV_HPP_

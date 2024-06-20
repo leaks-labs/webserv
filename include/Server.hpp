@@ -39,11 +39,4 @@ class Server
         void print()const;
 };
 
-typedef struct s_server_set_pair
-{
-    std::string key;
-    int         (Server::*set)(std::string);
-} t_server_set_pair;
-
-
 #endif
