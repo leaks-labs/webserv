@@ -1,49 +1,56 @@
 #ifndef LOCATION_HPP_
 # define LOCATION_HPP_
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <vector>
-#include <unistd.h>
-#include <map>
+# include <fstream>
+# include <iostream>
+# include <map>
+# include <sstream>
+# include <vector>
+
+# include <unistd.h>
 
 class Location {
-
-    private:
-        void initSetFunctions();
-        std::string path;
-        std::string root;
-        std::string default_file;
-        std::string cgi;
-        unsigned int methods;
-        std::string proxy;
-        bool listing;
-        std::map<std::string, int(Location::*)(std::string)> set_functions;
     public:
+        static const int    kGet = 1;
+        static const int    kPost = 2;
+        static const int    kDelete = 4;
+
         Location();
         Location(const Location& src);
-        Location&   operator=(Location const & rhs);
+        Location&   operator=(const Location& rhs);
+
         ~Location();
-        int setValue(std::string key, std::string value);
-        int setPath(std::string value);
-        int setRoot(std::string value);
-        int setDefaultFile(std::string value);
-        int setCgi(std::string value);
-        int setMethods(std::string value);
-        int setProxy(std::string value);
-        int setListing(std::string value);
-        std::string const & getPath() const;
-        std::string const & getRoot() const;
-        std::string const & getDefaulFile() const;
-        std::string const & getCgi() const;
-        int getMethods()const;
-        std::string const & getProxy()const;
-        bool getListing()const;
-        void print()const;
-        static const int GET = 1;
-        static const int POST = 2;
-        static const int DELETE = 4;
+
+        const std::string&  get_path() const;
+        const std::string&  get_root() const;
+        const std::string&  get_default_file() const;
+        const std::string&  get_cgi() const;
+        const std::string&  get_proxy() const;
+        int                 get_methods() const;
+        bool                get_listing() const;
+
+        int set_path(const std::string& value);
+        int set_root(const std::string& value);
+        int set_default_file(const std::string& value);
+        int set_cgi(const std::string& value);
+        int set_proxy(const std::string& value);
+        int set_methods(const std::string& value);
+        int set_listing(const std::string& value);
+
+        int SetValue(const std::string& key, const std::string& value);
+        void Print() const;
+
+    private:
+        void InitSetFunctions();
+
+        std::string     path_;
+        std::string     root_;
+        std::string     default_file_;
+        std::string     cgi_;
+        std::string     proxy_;
+        unsigned int    methods_;
+        bool            listing_;
+        std::map<const std::string, int(Location::*)(const std::string&)> set_functions_;
 };
 
-#endif
+#endif  // LOCATION_HPP_

@@ -1,42 +1,49 @@
 #ifndef SERVER_HPP_
 # define SERVER_HPP_
 
-#include "Location.hpp"
-#include <map>
+# include <map>
 
-class Server
-{
-    private:
-        void initSetFunctions();
-        Server&   operator=(Server const & rhs);
-        std::string host;
-        std::string port;
-        std::vector<std::string> server_names;
-        std::string errors;
-        int bodymax;
-        std::vector<Location> locations;
-        std::map<std::string, int (Server::*)(std::string)> set_functions;
-        struct addrinfo *addr;
+# include "Location.hpp"
+
+class Server {
     public:
         Server();
         Server(const Server& src);
+
         ~Server();
-        int setValue(std::string key, std::string value);
-        int setHost(std::string value);
-        int setPort(std::string value);
-        int setServerNames(std::string value);
-        int setErrors(std::string value);
-        int setBodyMax(std::string value);
-        int addLocation(std::string value);
-        int setLastLocation(std::string key, std::string value);
-        void setAddrInfo(struct addrinfo *addr);
-        std::string const & getHost()const;
-        std::string const & getPort()const;
-        std::vector<std::string> const & getServerNames()const;
-        std::string const & getErrors()const;
-        int getBodyMax()const;
-        std::vector<Location> const & getLocations()const;
-        void print()const;
+
+        const std::string&              get_host() const;
+        const std::string&              get_port() const;
+        const std::string&              get_errors() const;
+        int                             get_bodymax() const;
+        const std::vector<std::string>& get_server_names() const;
+        const std::vector<Location>&    get_locations() const;
+
+        int     set_host(const std::string& value);
+        int     set_port(const std::string& value);
+        int     set_errors(const std::string& value);
+        int     set_bodymax(const std::string& value);
+        int     set_server_names(const std::string& value);
+        void    set_addr(const struct addrinfo* addr);
+
+        int     SetValue(const std::string& key, const std::string& value);
+        int     AddLocation(const std::string& value);
+        int     SetLastLocation(const std::string& key, const std::string& value);
+        void    Print() const;
+
+    private:
+        Server& operator=(const Server& rhs);
+
+        void    InitSetFunctions();
+
+        std::string                 host_;
+        std::string                 port_;
+        std::string                 errors_;
+        int                         bodymax_;
+        std::vector<std::string>    server_names_;
+        std::vector<Location>       locations_;
+        const struct addrinfo*      addr_;
+        std::map<const std::string, int (Server::*)(const std::string&)> set_functions_;
 };
 
-#endif
+#endif // SERVER_HPP_

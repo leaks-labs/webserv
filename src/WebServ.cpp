@@ -8,37 +8,30 @@
 
 WebServ::WebServ()
 {
-    listener_list_.AddDefaultListenerRecords();
+    server_list_.AddServer();
+    server_list_.begin()->set_addr(listener_list_.AddDefaultListenerRecords());
+    server_list_.Print();
     // listener_list_info_.PrintListenerRecords();
     listener_list_.EnableListeners();
-    server_list_.addServer();
-    server_list_.print();
 }
 
 WebServ::WebServ(const std::string& config_file)
 {
-    try
-    {
-        server_list_.openFile(config_file);
-        server_list_.print();
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-    }
-    
-    // TODO: read config_file and initialize a config object
-    // TODO: listener_list_info_.AddRecord();
-    // TODO: listener_list_info_.CreateListeners(listeners_);
+    server_list_.OpenFile(config_file);
+    for (ServerList::Iterator it = server_list_.begin(); it != server_list_.end(); ++it)
+        it->set_addr(listener_list_.AddListenerRecord(it->get_host().c_str(), it->get_port()));
+    server_list_.Print();
+    // listener_list_info_.PrintListenerRecords();
+    listener_list_.EnableListeners();
 }
 
 WebServ::~WebServ()
 {
 }
 
-int WebServ::run() const
+int WebServ::Run() const
 {
     EventBroker event_broker(listener_list_);
 
-    return event_broker.run();
+    return event_broker.Run();
 }

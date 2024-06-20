@@ -1,139 +1,124 @@
 #include "Location.hpp"
 
-Location::Location() :
-    path("/"),
-    root("/"),
-    default_file("/data/default.html"),
-    cgi("php"),
-    methods(7),
-    proxy("false"),
-    listing(true)
+Location::Location()
+    : path_("/"),
+      root_("/"),
+      default_file_("/data/default.html"),
+      cgi_("php"),
+      proxy_("false"),
+      methods_(7),
+      listing_(true)
 {
-    initSetFunctions();
+    InitSetFunctions();
 };
 
-Location::Location(const Location& src) :
-    path(src.getPath()),
-    root(src.getRoot()),
-    default_file(src.getDefaulFile()),
-    cgi(src.getCgi()),
-    methods(src.getMethods()),
-    proxy(src.getProxy()),
-    listing(src.getListing())
+Location::Location(const Location& src)
 {
-    initSetFunctions();
+    *this = src;
 }
-
-Location::~Location(){};
 
 Location&   Location::operator=(Location const & rhs)
 {
-    if (this != &rhs)
-        *this = rhs;
+    if (this != &rhs) {
+        path_ = rhs.get_path();
+        root_ = rhs.get_root();
+        default_file_ = rhs.get_default_file();
+        cgi_ = rhs.get_cgi();
+        proxy_ = rhs.get_proxy();
+        methods_ = rhs.get_methods();
+        listing_ = rhs.get_listing();
+        InitSetFunctions();
+    }
     return *this;
 }
 
-void Location::initSetFunctions()
+Location::~Location()
 {
-    try
-    {
-        set_functions.insert(std::make_pair("root", &Location::setRoot));
-        set_functions.insert(std::make_pair("default_file", &Location::setDefaultFile));
-        set_functions.insert(std::make_pair("cgi", &Location::setCgi));
-        set_functions.insert(std::make_pair("methods", &Location::setMethods));
-        set_functions.insert(std::make_pair("proxy", &Location::setProxy));
-        set_functions.insert(std::make_pair("listing", &Location::setListing));
-    }
-    catch(const std::exception& e)
-    {
-        throw(e.what());
-    }
-    
 }
 
-
-int Location::setValue(std::string key, std::string value)
+const std::string&  Location::get_path() const
 {
-    typedef std::map<std::string, int (Location::*)(std::string)>::iterator it;
-
-    it i = set_functions.find(key);
-    if(i == set_functions.end())
-    {
-        std::cerr << "setting key does not exist: " << key << std::endl;
-        return(1);
-    }
-    return(this->*(i->second))(value);
+    return path_;
 }
 
-int Location::setPath(std::string value)
+const std::string&  Location::get_root() const
 {
-    path = value;
-    return(0);
+    return root_;
 }
 
-std::string const & Location::getPath() const
+const std::string&  Location::get_default_file() const
 {
-    return (path);
+    return default_file_;
 }
 
-int Location::setRoot(std::string value)
+const std::string&  Location::get_cgi() const
 {
-    root = value;
-    return(0);
+    return cgi_;
 }
 
-std::string const & Location::getRoot() const
+const std::string&  Location::get_proxy() const
 {
-    return (root);
+    return proxy_;
 }
 
-int Location::setDefaultFile(std::string value)
+int Location::get_methods() const
 {
-    default_file = value;
-    return(0);
+    return methods_;
 }
 
-std::string const & Location::getDefaulFile() const
+bool    Location::get_listing() const
 {
-    return (default_file);
+    return listing_;
 }
 
-int Location::setCgi(std::string value)
+int Location::set_path(const std::string& value)
 {
-    if(value.compare("php") && value.compare("python") && value.compare("none"))
-    {
+    path_ = value;
+    return 0;
+}
+
+int Location::set_root(const std::string& value)
+{
+    root_ = value;
+    return 0;
+}
+
+int Location::set_default_file(const std::string& value)
+{
+    default_file_ = value;
+    return 0;
+}
+
+int Location::set_cgi(const std::string& value)
+{
+    if(value != "php" && value != "python" && value != "none") {
         std::cerr << "cgi value should be php, python or none" << std::endl;
-        return (1);
+        return 1;
     }
-    cgi = value;
-    return(0);
+    cgi_ = value;
+    return 0;
 }
 
-std::string const & Location::getCgi() const
+int Location::set_proxy(const std::string& value)
 {
-    return (cgi);
+    proxy_ = value;
+    return 0;
 }
 
-int Location::setMethods(std::string value)
+int Location::set_methods(const std::string& value)
 {
-    std::string::size_type beg;
-    std::string::size_type end;
-    std::string str;
-
-    beg = 0;
-    end = value.find(' ');
-    methods = 0;
-    while (1)
-    {
-        str = value.substr(beg, end - beg);
-        if(str == "GET" && (methods & GET) == 0)
-            methods += 1;
-        else if(str == "POST" && (methods & POST) == 0)
-            methods += 2;
-        else if(str == "DELETE" && (methods & DELETE) == 0)
-            methods += 4;
-        else
-        {
+    std::string::size_type  beg = 0;
+    std::string::size_type  end = value.find(' ');
+    methods_ = 0;
+    while (true) {
+        std::string str = value.substr(beg, end - beg);
+        if(str == "GET" && (methods_ & kGet) == 0)
+            methods_ |= kGet;
+        else if(str == "POST" && (methods_ & kPost) == 0)
+            methods_ |= kPost;
+        else if(str == "DELETE" && (methods_ & kDelete) == 0)
+            methods_ |= kDelete;
+        else {
             std::cerr << "method should be GET POST or DELETE" << std::endl;
             return(1);
         }
@@ -142,53 +127,52 @@ int Location::setMethods(std::string value)
         beg = end + 1;
         end = value.find(' ', beg);
     }
-    return(0);
+    return 0;
 }
 
-int Location::getMethods() const
+int Location::set_listing(const std::string& value)
 {
-    return (methods);
-}
-
-
-int Location::setProxy(std::string value)
-{
-    proxy = value;
-    return(0);
-}
-
-std::string const & Location::getProxy() const
-{
-    return (proxy);
-}
-
-int Location::setListing(std::string value)
-{
-    if(!value.compare("true"))
-        listing = true;
-    else if(!value.compare("false"))
-        listing = false;
+    if(value == "true")
+        listing_ = true;
+    else if(value =="false")
+        listing_ = false;
     else
     {
         std::cerr << "Listing value should be true or false" << std::endl;
-        return(1);
+        return 1;
     }
-    return(0);
+    return 0;
 }
 
-bool Location::getListing() const
+int Location::SetValue(const std::string& key, const std::string& value)
 {
-    return (listing);
+    typedef std::map<const std::string, int (Location::*)(const std::string&)>::iterator it;
+
+    it i = set_functions_.find(key);
+    if (i == set_functions_.end()) {
+        std::cerr << "setting key does not exist: " << key << std::endl;
+        return 1;
+    }
+    return (this->*(i->second))(value);
 }
 
-
-void Location::print()const
+void Location::Print() const
 {
-    std::cout   << "\tlocation: " << path << std::endl
-                << "\troot: " << root << std::endl
-                << "\tdefault_file: " << default_file << std::endl
-                << "\tcgi: " << cgi << std::endl
-                << "\tmethods: " << methods << std::endl
-                << "\tproxy: " << proxy << std::endl
-                << "\tlisting: " << listing << std::endl;
+    std::cout   << "\tlocation: " << path_ << std::endl
+                << "\troot: " << root_ << std::endl
+                << "\tdefault_file: " << default_file_ << std::endl
+                << "\tcgi: " << cgi_ << std::endl
+                << "\tmethods: " << methods_ << std::endl
+                << "\tproxy: " << proxy_ << std::endl
+                << "\tlisting: " << listing_ << std::endl;
+}
+
+void Location::InitSetFunctions()
+{
+    set_functions_.insert(std::make_pair("root", &Location::set_root));
+    set_functions_.insert(std::make_pair("default_file", &Location::set_default_file));
+    set_functions_.insert(std::make_pair("cgi", &Location::set_cgi));
+    set_functions_.insert(std::make_pair("methods", &Location::set_methods));
+    set_functions_.insert(std::make_pair("proxy", &Location::set_proxy));
+    set_functions_.insert(std::make_pair("listing", &Location::set_listing));
 }
