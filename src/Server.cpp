@@ -1,5 +1,9 @@
 #include "Server.hpp"
 
+#include <sstream>
+#include <iostream>
+#include <utility>
+
 Server::Server()
     : host_("0.0.0.0"),
       port_("8080"),
@@ -78,13 +82,13 @@ int Server::set_errors(const std::string& value)
 
 int Server::set_bodymax(const std::string& value)
 {
-    for(std::string::const_iterator it = value.begin(); it != value.end(); ++it) {
+    for (std::string::const_iterator it = value.begin(); it != value.end(); ++it) {
         if(!(*it >= '0' && *it <= '9')) {   
             std::cerr << "bodymax value shoud be a digit" << std::endl;         
             return 1;
         }
     }
-    std::stringstream   ss(value);
+    std::istringstream   ss(value);
     ss >> bodymax_;
     return 0;
 
@@ -148,7 +152,7 @@ void    Server::Print() const
                 << "bodymax: " << bodymax_ << std::endl;
     for (std::vector<std::string>::const_iterator it=server_names_.begin(); it != server_names_.end(); ++it)
         std::cout << "server_name: " << *it << std::endl;
-    for(std::vector<Location>::const_iterator it=locations_.begin(); it != locations_.end(); ++it) {
+    for (std::vector<Location>::const_iterator it=locations_.begin(); it != locations_.end(); ++it) {
         std::cout << std::endl;
         it->Print();
     }

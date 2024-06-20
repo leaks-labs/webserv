@@ -1,5 +1,9 @@
 #include "ServerList.hpp"
 
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+
 ServerList::ServerList()
 {
 }
@@ -69,8 +73,8 @@ void    ServerList::OpenFile(const std::string& path)
     if (file_.good() == false)
         throw std::runtime_error("opening config_file failed");
     int err = LoadFile();
-    if(err) {
-        std::stringstream  ss;
+    if (err) {
+        std::ostringstream  ss;
         ss << err;
         std::string err_str(ss.str());
         throw std::runtime_error("Config file Error at line: " + err_str);
@@ -95,16 +99,16 @@ int ServerList::LoadFile()
         int sep = line.find(' ');
         std::string key = line.substr(0, sep);
         std::string value = line.substr(sep + 1, line.length());
-        if(key.length() == 0 || value.length() == 0)
+        if (key.length() == 0 || value.length() == 0)
             continue;
-        if(key == "#") {
+        if (key == "#") {
             servers_.push_back(Server());
-            if(value != key)
+            if (value != key)
                 servers_.back().set_host(value);
-        } else if(key == value) {
+        } else if (key == value) {
             std::cerr << "Value is empty" << std::endl;
             return count;
-        } else if(key == ">") {
+        } else if (key == ">") {
             servers_.back().AddLocation(value);
         } else {
             int err = servers_.back().SetValue(key, value);

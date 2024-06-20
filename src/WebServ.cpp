@@ -2,7 +2,6 @@
 
 #include <fstream>
 #include <iostream>
-#include <stdexcept>
 
 #include "EventBroker.hpp"
 

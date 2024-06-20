@@ -2,6 +2,10 @@
 # define SERVER_HPP_
 
 # include <map>
+# include <string>
+# include <vector>
+
+# include <netdb.h>
 
 # include "Location.hpp"
 

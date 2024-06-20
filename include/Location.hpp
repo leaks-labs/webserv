@@ -1,11 +1,8 @@
 #ifndef LOCATION_HPP_
 # define LOCATION_HPP_
 
-# include <fstream>
-# include <iostream>
 # include <map>
-# include <sstream>
-# include <vector>
+# include <string>
 
 # include <unistd.h>
 

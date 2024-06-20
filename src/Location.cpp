@@ -1,5 +1,8 @@
 #include "Location.hpp"
 
+#include <iostream>
+#include <utility>
+
 Location::Location()
     : path_("/"),
       root_("/"),
@@ -112,13 +115,13 @@ int Location::set_methods(const std::string& value)
     methods_ = 0;
     while (true) {
         std::string str = value.substr(beg, end - beg);
-        if(str == "GET" && (methods_ & kGet) == 0)
+        if (str == "GET" && (methods_ & kGet) == 0) {
             methods_ |= kGet;
-        else if(str == "POST" && (methods_ & kPost) == 0)
+        } else if (str == "POST" && (methods_ & kPost) == 0) {
             methods_ |= kPost;
-        else if(str == "DELETE" && (methods_ & kDelete) == 0)
+        } else if (str == "DELETE" && (methods_ & kDelete) == 0) {
             methods_ |= kDelete;
-        else {
+        } else {
             std::cerr << "method should be GET POST or DELETE" << std::endl;
             return(1);
         }
@@ -132,12 +135,11 @@ int Location::set_methods(const std::string& value)
 
 int Location::set_listing(const std::string& value)
 {
-    if(value == "true")
+    if (value == "true") {
         listing_ = true;
-    else if(value =="false")
+    } else if (value =="false") {
         listing_ = false;
-    else
-    {
+    } else {
         std::cerr << "Listing value should be true or false" << std::endl;
         return 1;
     }
