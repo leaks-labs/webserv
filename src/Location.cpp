@@ -156,7 +156,7 @@ int Location::SetValue(const std::string& key, const std::string& value)
     return (this->*(i->second))(value);
 }
 
-void Location::Print() const
+void    Location::Print() const
 {
     std::cout   << "\tlocation: " << path_ << std::endl
                 << "\troot: " << root_ << std::endl
@@ -167,7 +167,7 @@ void Location::Print() const
                 << "\tlisting: " << listing_ << std::endl;
 }
 
-void Location::InitSetFunctions()
+void    Location::InitSetFunctions()
 {
     set_functions_.insert(std::make_pair("root", &Location::set_root));
     set_functions_.insert(std::make_pair("default_file", &Location::set_default_file));

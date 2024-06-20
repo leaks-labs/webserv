@@ -37,11 +37,11 @@ class Location {
         int set_methods(const std::string& value);
         int set_listing(const std::string& value);
 
-        int SetValue(const std::string& key, const std::string& value);
-        void Print() const;
+        int     SetValue(const std::string& key, const std::string& value);
+        void    Print() const;
 
     private:
-        void InitSetFunctions();
+        void    InitSetFunctions();
 
         std::string     path_;
         std::string     root_;

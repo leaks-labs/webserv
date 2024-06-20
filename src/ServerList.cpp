@@ -13,32 +13,32 @@ Server& ServerList::operator[](size_t index)
     return servers_[index];
 }
 
-ServerList::Iterator                ServerList::begin()
+ServerList::Iterator    ServerList::begin()
 {
     return servers_.begin();
 }
 
-ServerList::Iterator                ServerList::end()
+ServerList::Iterator    ServerList::end()
 {
     return servers_.end();
 }
 
-ServerList::ConstIterator           ServerList::begin() const
+ServerList::ConstIterator   ServerList::begin() const
 {
     return servers_.begin();
 }
 
-ServerList::ConstIterator           ServerList::end() const
+ServerList::ConstIterator   ServerList::end() const
 {
     return servers_.end();
 }
 
-ServerList::ReverseIterator         ServerList::rbegin()
+ServerList::ReverseIterator ServerList::rbegin()
 {
     return servers_.rbegin();
 }
 
-ServerList::ReverseIterator         ServerList::rend()
+ServerList::ReverseIterator ServerList::rend()
 {
     return servers_.rend();
 }
@@ -65,7 +65,7 @@ void    ServerList::AddServer()
 
 void    ServerList::OpenFile(const std::string& path)
 {
-    file_.open(path.c_str());
+    file_.open(path);
     if (file_.good() == false)
         throw std::runtime_error("opening config_file failed");
     int err = LoadFile();
@@ -77,22 +77,21 @@ void    ServerList::OpenFile(const std::string& path)
     }
 }
 
-void ServerList::Print() const
+void    ServerList::Print() const
 {
     for (std::vector<Server>::const_iterator it = servers_.begin(); it != servers_.end(); ++it)
         it->Print();
 }
 
-const std::vector<Server>&  ServerList::get_servers() const
+const   std::vector<Server>&  ServerList::get_servers() const
 {
     return servers_;
 }
 
 int ServerList::LoadFile()
 {
-    for (int count = 1; file_; ++count) {
-        std::string line;
-        std::getline(file_, line, '\n');
+    int count = 1;
+    for (std::string line; std::getline(file_, line); ++count) {
         int sep = line.find(' ');
         std::string key = line.substr(0, sep);
         std::string value = line.substr(sep + 1, line.length());
@@ -114,6 +113,10 @@ int ServerList::LoadFile()
             if (err)
                 return(count);
         }
+    }
+    if (file_.fail() == true) {
+        std::cerr << "Error reading file" << std::endl;
+        return count;
     }
     return 0;
 }

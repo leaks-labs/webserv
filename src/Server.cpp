@@ -33,7 +33,7 @@ const std::string&  Server::get_host() const
     return host_;
 }
 
-const std::string& Server::get_port() const
+const std::string&  Server::get_port() const
 {
     return port_;
 }
@@ -115,7 +115,7 @@ int Server::set_server_names(const std::string& value)
     return 0;
 }
 
-void Server::set_addr(const struct addrinfo* addrinfo)
+void    Server::set_addr(const struct addrinfo* addrinfo)
 {
     addr_ = addrinfo;
 }
@@ -154,7 +154,7 @@ void    Server::Print() const
     }
 }
 
-void Server::InitSetFunctions()
+void    Server::InitSetFunctions()
 {
     set_functions_.insert(std::make_pair("host", &Server::set_host));
     set_functions_.insert(std::make_pair("port", &Server::set_port));
