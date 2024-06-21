@@ -28,7 +28,8 @@ void    signal_handler(int signal)
 #ifdef __APPLE__
 
 EventBroker::EventBroker(const ListenerList& listeners)
-    : listeners_(listeners), queue_(kqueue())
+    : listeners_(listeners),
+      queue_(kqueue())
 {
     if (queue_ == -1)
         throw std::runtime_error("kqueue() failed to create the queue");
@@ -41,7 +42,8 @@ EventBroker::EventBroker(const ListenerList& listeners)
 #elif __linux__
 
 EventBroker::EventBroker(const ListenerList& listeners)
-    : listeners_(listeners), queue_(epoll_create(1))
+    : listeners_(listeners),
+      queue_(epoll_create(1))
 {
     if (queue_ == -1)
         throw std::runtime_error("kqueue() failed to create the queue");

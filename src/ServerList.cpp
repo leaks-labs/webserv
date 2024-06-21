@@ -108,8 +108,6 @@ int ServerList::LoadFile()
         if (sep != std::string::npos)
             value = line.substr(sep + 1, line.length());
         if (key == "#" && (sep == std::string::npos || !value.empty())) {
-            if(servers_.size() > 0)
-                servers_.back().PopFirstLocation();
             servers_.push_back(Server());
             if (!value.empty())
                 servers_.back().set_host(value);
@@ -118,23 +116,18 @@ int ServerList::LoadFile()
             return count;
         } else if (key == ">" || key == ">=") {
             servers_.back().AddLocation(value);
-            if(key == ">=")
-                servers_.back().SetLastLocationStrict(true);
-            else
-                servers_.back().SetLastLocationStrict(false);
-        } else {
-            int err = servers_.back().SetValue(key, value);
-            if (err == -1)
-                err = servers_.back().SetLastLocation(key, value);
-            if (err != 0)
-                return count;
+            servers_.back().SetLastLocationStrict(key == ">=");
+        } else if (servers_.back().SetValue(key, value) == -1 && servers_.back().SetLastLocation(key, value) != 0) {
+            // TODO: if SetValue return > 0 ?? now, it can return -1, 0 or 1. Set>Location return 0 or 1
+            return count;
         }
     }
     if (file_.fail() && !file_.eof()) {
         std::cerr << "Error reading file" << std::endl;
         return count;
     }
-    if(servers_.size() > 0)
-        servers_.back().PopFirstLocation();
+    for (std::vector<Server>::iterator it = servers_.begin(); it != servers_.end(); ++it)
+        it->PopFirstLocation();
+    // TODO: for now, it's possible to have a server without a location, but it's behavior is undefined
     return 0;
 }

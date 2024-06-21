@@ -1,7 +1,6 @@
 #ifndef SERVER_HPP_
 # define SERVER_HPP_
 
-# include <list>
 # include <map>
 # include <string>
 # include <vector>
@@ -21,7 +20,7 @@ class Server {
         const std::string&                      get_errors() const;
         int                                     get_bodymax() const;
         const std::vector<const std::string>&   get_server_names() const;
-        const std::list<Location>&              get_locations() const;
+        const std::vector<Location>&            get_locations() const;
 
         int     set_host(const std::string& value);
         int     set_port(const std::string& value);
@@ -49,7 +48,7 @@ class Server {
         std::string                     errors_;
         int                             bodymax_;
         std::vector<const std::string>  server_names_;
-        std::list<Location>             locations_;
+        std::vector<Location>           locations_;
         const struct addrinfo*          addr_;
 };
 
