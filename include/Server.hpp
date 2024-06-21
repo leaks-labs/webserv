@@ -15,12 +15,12 @@ class Server {
 
         ~Server();
 
-        const std::string&                      get_host() const;
-        const std::string&                      get_port() const;
-        const std::string&                      get_errors() const;
-        int                                     get_bodymax() const;
-        const std::vector<const std::string>&   get_server_names() const;
-        const std::vector<Location>&            get_locations() const;
+        const std::string&              get_host() const;
+        const std::string&              get_port() const;
+        const std::string&              get_errors() const;
+        int                             get_bodymax() const;
+        const std::vector<std::string>& get_server_names() const;
+        const std::vector<Location>&    get_locations() const;
 
         int     set_host(const std::string& value);
         int     set_port(const std::string& value);
@@ -47,7 +47,7 @@ class Server {
         std::string                     port_;
         std::string                     errors_;
         int                             bodymax_;
-        std::vector<const std::string>  server_names_;
+        std::vector<std::string>  server_names_;
         std::vector<Location>           locations_;
         const struct addrinfo*          addr_;
 };

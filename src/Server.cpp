@@ -51,7 +51,7 @@ int Server::get_bodymax() const
     return bodymax_;
 }
 
-const std::vector<const std::string>&   Server::get_server_names() const 
+const std::vector<std::string>& Server::get_server_names() const 
 {
     return server_names_;
 }
