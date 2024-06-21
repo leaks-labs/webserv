@@ -51,12 +51,12 @@ int Server::get_bodymax() const
     return bodymax_;
 }
 
-const std::vector<std::string>& Server::get_server_names() const 
+const std::vector<const std::string>&   Server::get_server_names() const 
 {
     return server_names_;
 }
 
-const std::list<Location>&    Server::get_locations() const
+const std::list<Location>&  Server::get_locations() const
 {
     return locations_;   
 }
@@ -119,7 +119,7 @@ int Server::SetValue(const std::string& key, const std::string& value)
 
 int Server::AddLocation(const std::string& value)
 {
-    if(locations_.size() == 0)
+    if (locations_.size() == 0)
         locations_.push_back(Location());
     else
         locations_.push_back(Location(locations_.front()));
@@ -141,7 +141,6 @@ void     Server::PopFirstLocation()
 {
     locations_.pop_front();
 }
-
 
 void    Server::Print() const
 {

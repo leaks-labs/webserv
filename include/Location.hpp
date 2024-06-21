@@ -27,14 +27,14 @@ class Location {
         bool                get_listing() const;
         bool                get_strict() const;
 
-        int set_path(const std::string& value);
-        int set_root(const std::string& value);
-        int set_default_file(const std::string& value);
-        int set_cgi(const std::string& value);
-        int set_proxy(const std::string& value);
-        int set_methods(const std::string& value);
-        int set_listing(const std::string& value);
-        void set_strict(bool value);
+        int     set_path(const std::string& value);
+        int     set_root(const std::string& value);
+        int     set_default_file(const std::string& value);
+        int     set_cgi(const std::string& value);
+        int     set_proxy(const std::string& value);
+        int     set_methods(const std::string& value);
+        int     set_listing(const std::string& value);
+        void    set_strict(bool value);
 
         int     SetValue(const std::string& key, const std::string& value);
         void    Print() const;

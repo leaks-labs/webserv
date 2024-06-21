@@ -152,7 +152,7 @@ int Location::set_listing(const std::string& value)
     return 0;
 }
 
-void Location::set_strict(bool value)
+void    Location::set_strict(bool value)
 {
    strict_ = value;
 }

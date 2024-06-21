@@ -1,10 +1,10 @@
 #ifndef SERVER_HPP_
 # define SERVER_HPP_
 
+# include <list>
 # include <map>
 # include <string>
 # include <vector>
-# include <list>
 # include <netdb.h>
 
 # include "Location.hpp"
@@ -16,12 +16,12 @@ class Server {
 
         ~Server();
 
-        const std::string&              get_host() const;
-        const std::string&              get_port() const;
-        const std::string&              get_errors() const;
-        int                             get_bodymax() const;
-        const std::vector<std::string>& get_server_names() const;
-        const std::list<Location>&      get_locations() const;
+        const std::string&                      get_host() const;
+        const std::string&                      get_port() const;
+        const std::string&                      get_errors() const;
+        int                                     get_bodymax() const;
+        const std::vector<const std::string>&   get_server_names() const;
+        const std::list<Location>&              get_locations() const;
 
         int     set_host(const std::string& value);
         int     set_port(const std::string& value);
@@ -44,13 +44,13 @@ class Server {
 
         static const std::map<const std::string, int (Server::*)(const std::string&)>   InitSetFunctions();
 
-        std::string                 host_;
-        std::string                 port_;
-        std::string                 errors_;
-        int                         bodymax_;
-        std::vector<std::string>    server_names_;
-        std::list<Location>         locations_;
-        const struct addrinfo*      addr_;
+        std::string                     host_;
+        std::string                     port_;
+        std::string                     errors_;
+        int                             bodymax_;
+        std::vector<const std::string>  server_names_;
+        std::list<Location>             locations_;
+        const struct addrinfo*          addr_;
 };
 
 #endif // SERVER_HPP_

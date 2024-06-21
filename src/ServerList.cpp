@@ -126,7 +126,7 @@ int ServerList::LoadFile()
             int err = servers_.back().SetValue(key, value);
             if (err == -1)
                 err = servers_.back().SetLastLocation(key, value);
-            if (err)
+            if (err != 0)
                 return count;
         }
     }
