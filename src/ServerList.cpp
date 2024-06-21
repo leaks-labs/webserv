@@ -96,16 +96,22 @@ int ServerList::LoadFile()
 {
     int count = 1;
     for (std::string line; !file_.eof() && std::getline(file_, line) && !file_.fail(); ++count) {
-        int sep = line.find(' ');
-        std::string key = line.substr(0, sep);
-        std::string value = line.substr(sep + 1, line.length());
-        if (key.empty() || value.empty())
+        if (line.empty())
             continue;
-        if (key == "#") {
+        size_t  sep = line.find(' ');
+        std::string key = line.substr(0, sep);
+        if (key.empty()) {
+            std::cerr << "Key is empty" << std::endl;
+            return count;
+        }
+        std::string value;
+        if (sep != std::string::npos)
+            line.substr(sep + 1, line.length());
+        if (key == "#" && (sep == std::string::npos || !value.empty())) {
             servers_.push_back(Server());
-            if (value != key)
+            if (!value.empty())
                 servers_.back().set_host(value);
-        } else if (key == value) {
+        } else if (value.empty()) {
             std::cerr << "Value is empty" << std::endl;
             return count;
         } else if (key == ">") {

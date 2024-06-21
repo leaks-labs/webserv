@@ -81,26 +81,12 @@ int Server::set_errors(const std::string& value)
 
 int Server::set_bodymax(const std::string& value)
 {
-    for (std::string::const_iterator it = value.begin(); it != value.end(); ++it) {
-        if (!(*it >= '0' && *it <= '9')) {   
-            std::cerr << "bodymax value shoud be a digit" << std::endl;         
-            return 1;
-        }
-    }
-    std::istringstream   ss(value);
-    ss >> bodymax_;
-    return 0;
-
-    ////////////////////////////
-    // TODO: better version ? //
-    ////////////////////////////
-    // std::istringstream  iss(value);
-    // iss >> std::noskipws >> bodymax_;
-    // if (!iss.fail() && iss.eof() && (value[0] != '0' || bodymax_ == 0)) {
-    //         return 0;
-    // std::cerr << "bodymax value shoud be a digit" << std::endl;         
-    // return 1;
-    //////////////////////////
+    std::istringstream  iss(value);
+    iss >> std::noskipws >> bodymax_;
+    if (!iss.fail() && iss.eof() && (value[0] != '0' || bodymax_ == 0))
+        return 0;
+    std::cerr << "bodymax value shoud be a digit" << std::endl;         
+    return 1;
 }
 
 int Server::set_server_names(const std::string& value)
