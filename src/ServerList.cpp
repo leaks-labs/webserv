@@ -95,7 +95,7 @@ const   std::vector<Server>&  ServerList::get_servers() const
 int ServerList::LoadFile()
 {
     int count = 1;
-    for (std::string line; std::getline(file_, line); ++count) {
+    for (std::string line; !file_.eof() && std::getline(file_, line) && !file_.fail(); ++count) {
         int sep = line.find(' ');
         std::string key = line.substr(0, sep);
         std::string value = line.substr(sep + 1, line.length());
@@ -118,9 +118,9 @@ int ServerList::LoadFile()
                 return count;
         }
     }
-    // if (file_.fail() == true) {
-    //     std::cerr << "Error reading file" << std::endl;
-    //     return count;
-    // }
+    if (file_.fail() && !file_.eof()) {
+        std::cerr << "Error reading file" << std::endl;
+        return count;
+    }
     return 0;
 }
