@@ -30,7 +30,6 @@ class ServerList {
         ConstReverseIterator    rend() const;
 
         size_t                      Size() const;
-        void                        AddServer();
         void                        OpenFile(const std::string& path);
         void                        Print() const;
         const std::vector<Server>&  get_servers() const;

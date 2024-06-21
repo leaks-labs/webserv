@@ -62,11 +62,6 @@ size_t  ServerList::Size() const
     return servers_.size();
 }
 
-void    ServerList::AddServer()
-{
-    servers_.push_back(Server());
-}
-
 void    ServerList::OpenFile(const std::string& path)
 {
     file_.open(path.c_str());

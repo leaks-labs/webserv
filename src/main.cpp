@@ -1,6 +1,7 @@
 #include <csignal>
-#include <iostream>
 #include <exception>
+#include <iostream>
+#include <string>
 
 #include "WebServ.hpp"
 #include "Server.hpp"
@@ -17,21 +18,15 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    WebServ* server = NULL;
 	try
 	{
-        if (argc == 2)
-            server = new WebServ(argv[1]);
-        else
-            server = new WebServ;
-        int ret = server->Run();
-        delete server;
-        return ret < 0 ? 1 : 0;
+        WebServ server(argc == 2 ? argv[1] : WebServ::kDefaultConfigFile);
+        int ret = server.Run();
+        return ret < 0 ;
 	}
 	catch(const std::exception& e)
 	{
 		std::cerr << "ERROR: " << e.what() << std::endl;
-        delete server;
 		return 1;
 	}
 }

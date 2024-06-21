@@ -45,7 +45,6 @@ class ListenerList {
         ConstIterator   end() const;
 
         size_t                  EnabledListenerCount() const;
-        const struct addrinfo*  AddDefaultListenerRecords();
         const struct addrinfo*  AddListenerRecord(const char* ip, const std::string& port);
         void                    EnableListeners();
 

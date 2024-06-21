@@ -5,14 +5,7 @@
 
 #include "EventBroker.hpp"
 
-WebServ::WebServ()
-{
-    server_list_.AddServer();
-    server_list_.begin()->set_addr(listener_list_.AddDefaultListenerRecords());
-    server_list_.Print();
-    // listener_list_info_.PrintListenerRecords();
-    listener_list_.EnableListeners();
-}
+const std::string   WebServ::kDefaultConfigFile = "config.txt";
 
 WebServ::WebServ(const std::string& config_file)
 {
