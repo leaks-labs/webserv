@@ -1,7 +1,6 @@
 #include "Location.hpp"
 
 #include <iostream>
-#include <utility>
 
 Location::Location()
     : path_("/"),
@@ -171,10 +170,10 @@ void    Location::Print() const
 
 void    Location::InitSetFunctions()
 {
-    set_functions_.insert(std::make_pair("root", &Location::set_root));
-    set_functions_.insert(std::make_pair("default_file", &Location::set_default_file));
-    set_functions_.insert(std::make_pair("cgi", &Location::set_cgi));
-    set_functions_.insert(std::make_pair("methods", &Location::set_methods));
-    set_functions_.insert(std::make_pair("proxy", &Location::set_proxy));
-    set_functions_.insert(std::make_pair("listing", &Location::set_listing));
+    set_functions_["root"] = &Location::set_root;
+    set_functions_["default_file"] = &Location::set_default_file;
+    set_functions_["cgi"] = &Location::set_cgi;
+    set_functions_["methods"] = &Location::set_methods;
+    set_functions_["proxy"] = &Location::set_proxy;
+    set_functions_["listing"] = &Location::set_listing;
 }

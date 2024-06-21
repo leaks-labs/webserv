@@ -2,7 +2,6 @@
 
 #include <sstream>
 #include <iostream>
-#include <utility>
 
 Server::Server()
     : host_("0.0.0.0"),
@@ -160,9 +159,9 @@ void    Server::Print() const
 
 void    Server::InitSetFunctions()
 {
-    set_functions_.insert(std::make_pair("host", &Server::set_host));
-    set_functions_.insert(std::make_pair("port", &Server::set_port));
-    set_functions_.insert(std::make_pair("server_names", &Server::set_server_names));
-    set_functions_.insert(std::make_pair("errors", &Server::set_errors));
-    set_functions_.insert(std::make_pair("bodymax", &Server::set_bodymax));
+    set_functions_["host"] = &Server::set_host;
+    set_functions_["port"] = &Server::set_port;
+    set_functions_["server_names"] = &Server::set_server_names;
+    set_functions_["errors"] = &Server::set_errors;
+    set_functions_["bodymax"] = &Server::set_bodymax;
 }
