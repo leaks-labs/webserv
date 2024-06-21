@@ -107,6 +107,13 @@ ListenerList::ConstIterator ListenerList::end() const {
     return EnabledListeners_.end();
 }
 
+void    ListenerList::InitListenerList(ServerList& server_list)
+{
+    for (ServerList::Iterator it = server_list.begin(); it != server_list.end(); ++it)
+        it->set_addr(AddListenerRecord(it->get_host().c_str(), it->get_port()));
+    EnableListeners();
+}
+
 size_t  ListenerList::EnabledListenerCount() const
 {
     return EnabledListeners_.size();

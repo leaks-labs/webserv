@@ -7,6 +7,7 @@
 # include <netdb.h>
 
 # include "Listener.hpp"
+# include "ServerList.hpp"
 
 class ListenerList {
     public:
@@ -44,6 +45,7 @@ class ListenerList {
         ConstIterator   begin() const;
         ConstIterator   end() const;
 
+        void                    InitListenerList(ServerList& server_list);
         size_t                  EnabledListenerCount() const;
         const struct addrinfo*  AddListenerRecord(const char* ip, const std::string& port);
         void                    EnableListeners();
