@@ -4,7 +4,7 @@
 # include <map>
 # include <string>
 # include <vector>
-
+# include <list>
 # include <netdb.h>
 
 # include "Location.hpp"
@@ -21,7 +21,7 @@ class Server {
         const std::string&              get_errors() const;
         int                             get_bodymax() const;
         const std::vector<std::string>& get_server_names() const;
-        const std::vector<Location>&    get_locations() const;
+        const std::list<Location>&      get_locations() const;
 
         int     set_host(const std::string& value);
         int     set_port(const std::string& value);
@@ -33,6 +33,8 @@ class Server {
         int     SetValue(const std::string& key, const std::string& value);
         int     AddLocation(const std::string& value);
         int     SetLastLocation(const std::string& key, const std::string& value);
+        void    SetLastLocationStrict(bool value);
+        void    PopFirstLocation();
         void    Print() const;
 
     private:
@@ -47,7 +49,7 @@ class Server {
         std::string                 errors_;
         int                         bodymax_;
         std::vector<std::string>    server_names_;
-        std::vector<Location>       locations_;
+        std::list<Location>         locations_;
         const struct addrinfo*      addr_;
 };
 

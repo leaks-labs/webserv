@@ -106,16 +106,22 @@ int ServerList::LoadFile()
         }
         std::string value;
         if (sep != std::string::npos)
-            line.substr(sep + 1, line.length());
+            value = line.substr(sep + 1, line.length());
         if (key == "#" && (sep == std::string::npos || !value.empty())) {
+            if(servers_.size() > 0)
+                servers_.back().PopFirstLocation();
             servers_.push_back(Server());
             if (!value.empty())
                 servers_.back().set_host(value);
         } else if (value.empty()) {
             std::cerr << "Value is empty" << std::endl;
             return count;
-        } else if (key == ">") {
+        } else if (key == ">" || key == ">=") {
             servers_.back().AddLocation(value);
+            if(key == ">=")
+                servers_.back().SetLastLocationStrict(true);
+            else
+                servers_.back().SetLastLocationStrict(false);
         } else {
             int err = servers_.back().SetValue(key, value);
             if (err == -1)
@@ -128,5 +134,7 @@ int ServerList::LoadFile()
         std::cerr << "Error reading file" << std::endl;
         return count;
     }
+    if(servers_.size() > 0)
+        servers_.back().PopFirstLocation();
     return 0;
 }

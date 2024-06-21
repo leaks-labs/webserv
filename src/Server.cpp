@@ -56,7 +56,7 @@ const std::vector<std::string>& Server::get_server_names() const
     return server_names_;
 }
 
-const std::vector<Location>&    Server::get_locations() const
+const std::list<Location>&    Server::get_locations() const
 {
     return locations_;   
 }
@@ -119,7 +119,10 @@ int Server::SetValue(const std::string& key, const std::string& value)
 
 int Server::AddLocation(const std::string& value)
 {
-    locations_.push_back(Location());
+    if(locations_.size() == 0)
+        locations_.push_back(Location());
+    else
+        locations_.push_back(Location(locations_.front()));
     locations_.back().set_path(value);
     return 0;
 }
@@ -129,6 +132,17 @@ int Server::SetLastLocation(const std::string& key, const std::string& value)
     return (locations_.back().SetValue(key, value));
 }
 
+void     Server::SetLastLocationStrict(bool value)
+{
+    locations_.back().set_strict(value);
+}
+
+void     Server::PopFirstLocation()
+{
+    locations_.pop_front();
+}
+
+
 void    Server::Print() const
 {
     std::cout   << "host: " << host_ << std::endl
@@ -137,7 +151,7 @@ void    Server::Print() const
                 << "bodymax: " << bodymax_ << std::endl;
     for (std::vector<std::string>::const_iterator it=server_names_.begin(); it != server_names_.end(); ++it)
         std::cout << "server_name: " << *it << std::endl;
-    for (std::vector<Location>::const_iterator it=locations_.begin(); it != locations_.end(); ++it) {
+    for (std::list<Location>::const_iterator it=locations_.begin(); it != locations_.end(); ++it) {
         std::cout << std::endl;
         it->Print();
     }

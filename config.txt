@@ -1,4 +1,4 @@
-#
+# 0.0.0.0
 port 8080
 server_names abc.com xyz.fr
 errors /data/errors
@@ -9,7 +9,7 @@ listing false
 cgi php
 proxy false
 
-> /
+>= /
 methods GET
 root /data/folder1
 listing true
@@ -19,6 +19,3 @@ root /data/images
 default_file /data/defaultimg.html
 > /other
 proxy otherwebsite.com
-
-#
-port 80

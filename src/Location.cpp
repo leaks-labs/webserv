@@ -11,7 +11,8 @@ Location::Location()
       cgi_("php"),
       proxy_("false"),
       methods_(7),
-      listing_(true)
+      listing_(true),
+      strict_(false)
 {
 }
 
@@ -30,6 +31,7 @@ Location&   Location::operator=(Location const& rhs)
         proxy_ = rhs.get_proxy();
         methods_ = rhs.get_methods();
         listing_ = rhs.get_listing();
+        strict_ = rhs.get_strict();
     }
     return *this;
 }
@@ -71,6 +73,11 @@ int Location::get_methods() const
 bool    Location::get_listing() const
 {
     return listing_;
+}
+
+bool    Location::get_strict() const
+{
+    return strict_;
 }
 
 int Location::set_path(const std::string& value)
@@ -145,6 +152,11 @@ int Location::set_listing(const std::string& value)
     return 0;
 }
 
+void Location::set_strict(bool value)
+{
+   strict_ = value;
+}
+
 int Location::SetValue(const std::string& key, const std::string& value)
 {
     typedef std::map<const std::string, int (Location::*)(const std::string&)>::const_iterator it;
@@ -165,7 +177,9 @@ void    Location::Print() const
                 << "\tcgi: " << cgi_ << std::endl
                 << "\tmethods: " << methods_ << std::endl
                 << "\tproxy: " << proxy_ << std::endl
-                << "\tlisting: " << listing_ << std::endl;
+                << "\tlisting: " << listing_ << std::endl
+                << "\tstrict: " << strict_ << std::endl;
+
 }
 
 const std::map<const std::string, int(Location::*)(const std::string&)> Location::InitSetFunctions()
