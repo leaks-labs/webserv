@@ -99,7 +99,7 @@ int ServerList::LoadFile()
         int sep = line.find(' ');
         std::string key = line.substr(0, sep);
         std::string value = line.substr(sep + 1, line.length());
-        if (key.length() == 0 || value.length() == 0)
+        if (key.empty() || value.empty())
             continue;
         if (key == "#") {
             servers_.push_back(Server());
@@ -118,9 +118,9 @@ int ServerList::LoadFile()
                 return count;
         }
     }
-    if (file_.fail() == true) {
-        std::cerr << "Error reading file" << std::endl;
-        return count;
-    }
+    // if (file_.fail() == true) {
+    //     std::cerr << "Error reading file" << std::endl;
+    //     return count;
+    // }
     return 0;
 }

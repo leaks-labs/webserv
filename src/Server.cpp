@@ -3,16 +3,16 @@
 #include <sstream>
 #include <iostream>
 
-std::map<const std::string, int (Server::*)(const std::string&)>    Server::set_functions_ = Server::InitSetFunctions();
+const std::map<const std::string, int (Server::*)(const std::string&)>  Server::set_functions_ = Server::InitSetFunctions();
 
 Server::Server()
     : host_("0.0.0.0"),
       port_("8080"),
       errors_("/data/errors"),
       bodymax_(0),
+      server_names_(1, "webserv"),
       addr_(NULL)
 {
-    server_names_.push_back("webserv");
     AddLocation("/");
 }
 
@@ -21,10 +21,10 @@ Server::Server(const Server& src) :
     port_(src.get_port()),
     errors_(src.get_errors()),
     bodymax_(src.get_bodymax()),
+    server_names_(src.get_server_names()),
+    locations_(src.get_locations()),
     addr_(NULL)
 {
-    server_names_ = src.get_server_names();
-    locations_ = src.get_locations();
 }
 
 Server::~Server()
@@ -125,7 +125,7 @@ void    Server::set_addr(const struct addrinfo* addrinfo)
 
 int Server::SetValue(const std::string& key, const std::string& value)
 {
-    typedef std::map<const std::string, int (Server::*)(const std::string&)>::iterator it;
+    typedef std::map<const std::string, int (Server::*)(const std::string&)>::const_iterator it;
 
     it i = set_functions_.find(key);
     return i == set_functions_.end() ? -1 : (this->*(i->second))(value);
@@ -157,7 +157,7 @@ void    Server::Print() const
     }
 }
 
-std::map<const std::string, int (Server::*)(const std::string&)>    Server::InitSetFunctions()
+const std::map<const std::string, int (Server::*)(const std::string&)>  Server::InitSetFunctions()
 {
     std::map<const std::string, int (Server::*)(const std::string&)>    m;
     m["host"] = &Server::set_host;

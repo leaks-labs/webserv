@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-std::map<const std::string, int(Location::*)(const std::string&)> Location::set_functions_ = Location::InitSetFunctions();
+const std::map<const std::string, int(Location::*)(const std::string&)> Location::set_functions_ = Location::InitSetFunctions();
 
 Location::Location()
     : path_("/"),
@@ -147,7 +147,7 @@ int Location::set_listing(const std::string& value)
 
 int Location::SetValue(const std::string& key, const std::string& value)
 {
-    typedef std::map<const std::string, int (Location::*)(const std::string&)>::iterator it;
+    typedef std::map<const std::string, int (Location::*)(const std::string&)>::const_iterator it;
 
     it i = set_functions_.find(key);
     if (i == set_functions_.end()) {
@@ -168,7 +168,7 @@ void    Location::Print() const
                 << "\tlisting: " << listing_ << std::endl;
 }
 
-std::map<const std::string, int(Location::*)(const std::string&)>   Location::InitSetFunctions()
+const std::map<const std::string, int(Location::*)(const std::string&)> Location::InitSetFunctions()
 {
     std::map<const std::string, int(Location::*)(const std::string&)>   m;
     m["root"] = &Location::set_root;
