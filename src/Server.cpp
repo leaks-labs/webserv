@@ -3,6 +3,8 @@
 #include <sstream>
 #include <iostream>
 
+std::map<const std::string, int (Server::*)(const std::string&)>    Server::set_functions_ = Server::InitSetFunctions();
+
 Server::Server()
     : host_("0.0.0.0"),
       port_("8080"),
@@ -12,8 +14,7 @@ Server::Server()
 {
     server_names_.push_back("webserv");
     AddLocation("/");
-    InitSetFunctions();
-};
+}
 
 Server::Server(const Server& src) : 
     host_(src.get_host()),
@@ -24,8 +25,7 @@ Server::Server(const Server& src) :
 {
     server_names_ = src.get_server_names();
     locations_ = src.get_locations();
-    InitSetFunctions();
-};
+}
 
 Server::~Server()
 {
@@ -157,11 +157,13 @@ void    Server::Print() const
     }
 }
 
-void    Server::InitSetFunctions()
+std::map<const std::string, int (Server::*)(const std::string&)>    Server::InitSetFunctions()
 {
-    set_functions_["host"] = &Server::set_host;
-    set_functions_["port"] = &Server::set_port;
-    set_functions_["server_names"] = &Server::set_server_names;
-    set_functions_["errors"] = &Server::set_errors;
-    set_functions_["bodymax"] = &Server::set_bodymax;
+    std::map<const std::string, int (Server::*)(const std::string&)>    m;
+    m["host"] = &Server::set_host;
+    m["port"] = &Server::set_port;
+    m["server_names"] = &Server::set_server_names;
+    m["errors"] = &Server::set_errors;
+    m["bodymax"] = &Server::set_bodymax;
+    return m;
 }

@@ -38,7 +38,9 @@ class Server {
     private:
         Server& operator=(const Server& rhs);
 
-        void    InitSetFunctions();
+        static std::map<const std::string, int (Server::*)(const std::string&)> set_functions_;
+
+        static std::map<const std::string, int (Server::*)(const std::string&)> InitSetFunctions();
 
         std::string                 host_;
         std::string                 port_;
@@ -47,7 +49,6 @@ class Server {
         std::vector<std::string>    server_names_;
         std::vector<Location>       locations_;
         const struct addrinfo*      addr_;
-        std::map<const std::string, int (Server::*)(const std::string&)> set_functions_;
 };
 
 #endif // SERVER_HPP_

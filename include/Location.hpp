@@ -38,7 +38,9 @@ class Location {
         void    Print() const;
 
     private:
-        void    InitSetFunctions();
+        static std::map<const std::string, int(Location::*)(const std::string&)>    set_functions_;
+
+        static std::map<const std::string, int(Location::*)(const std::string&)>    InitSetFunctions();
 
         std::string     path_;
         std::string     root_;
@@ -47,7 +49,6 @@ class Location {
         std::string     proxy_;
         unsigned int    methods_;
         bool            listing_;
-        std::map<const std::string, int(Location::*)(const std::string&)> set_functions_;
 };
 
 #endif  // LOCATION_HPP_

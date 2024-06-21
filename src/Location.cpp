@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+std::map<const std::string, int(Location::*)(const std::string&)> Location::set_functions_ = Location::InitSetFunctions();
+
 Location::Location()
     : path_("/"),
       root_("/"),
@@ -11,8 +13,7 @@ Location::Location()
       methods_(7),
       listing_(true)
 {
-    InitSetFunctions();
-};
+}
 
 Location::Location(const Location& src)
 {
@@ -29,7 +30,6 @@ Location&   Location::operator=(Location const& rhs)
         proxy_ = rhs.get_proxy();
         methods_ = rhs.get_methods();
         listing_ = rhs.get_listing();
-        InitSetFunctions();
     }
     return *this;
 }
@@ -168,12 +168,14 @@ void    Location::Print() const
                 << "\tlisting: " << listing_ << std::endl;
 }
 
-void    Location::InitSetFunctions()
+std::map<const std::string, int(Location::*)(const std::string&)>   Location::InitSetFunctions()
 {
-    set_functions_["root"] = &Location::set_root;
-    set_functions_["default_file"] = &Location::set_default_file;
-    set_functions_["cgi"] = &Location::set_cgi;
-    set_functions_["methods"] = &Location::set_methods;
-    set_functions_["proxy"] = &Location::set_proxy;
-    set_functions_["listing"] = &Location::set_listing;
+    std::map<const std::string, int(Location::*)(const std::string&)>   m;
+    m["root"] = &Location::set_root;
+    m["default_file"] = &Location::set_default_file;
+    m["cgi"] = &Location::set_cgi;
+    m["methods"] = &Location::set_methods;
+    m["proxy"] = &Location::set_proxy;
+    m["listing"] = &Location::set_listing;
+    return m;
 }
