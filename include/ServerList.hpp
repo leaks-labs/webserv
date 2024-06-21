@@ -1,7 +1,6 @@
 #ifndef SERVER_LIST_HPP_
 # define SERVER_LIST_HPP_
 
-# include <fstream>
 # include <string>
 # include <vector>
 
@@ -30,7 +29,7 @@ class ServerList {
         ConstReverseIterator    rend() const;
 
         size_t                      Size() const;
-        void                        OpenFile(const std::string& path);
+        void                        InitServerList(const std::string& path);
         void                        Print() const;
         const std::vector<Server>&  get_servers() const;
 
@@ -39,9 +38,8 @@ class ServerList {
         ServerList&   operator=(const ServerList& rhs);
 
 
-        int LoadFile();
+        int ParseConfigFile(std::ifstream& file);
 
-        std::ifstream       file_;
         std::vector<Server> servers_;
 };
 

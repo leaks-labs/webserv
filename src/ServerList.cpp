@@ -1,5 +1,6 @@
 #include "ServerList.hpp"
 
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -62,12 +63,12 @@ size_t  ServerList::Size() const
     return servers_.size();
 }
 
-void    ServerList::OpenFile(const std::string& path)
+void    ServerList::InitServerList(const std::string& path)
 {
-    file_.open(path.c_str());
-    if (file_.good() == false)
+    std::ifstream   file(path);
+    if (file.good() == false)
         throw std::runtime_error("opening config_file failed");
-    int err = LoadFile();
+    int err = ParseConfigFile(file);
     if (err) {
         std::ostringstream  ss;
         ss << err;
@@ -87,10 +88,10 @@ const   std::vector<Server>&  ServerList::get_servers() const
     return servers_;
 }
 
-int ServerList::LoadFile()
+int ServerList::ParseConfigFile(std::ifstream& file)
 {
     int count = 1;
-    for (std::string line; !file_.eof() && std::getline(file_, line) && !file_.fail(); ++count) {
+    for (std::string line; !file.eof() && std::getline(file, line) && !file.fail(); ++count) {
         if (line.empty())
             continue;
         size_t  sep = line.find(' ');
@@ -117,7 +118,7 @@ int ServerList::LoadFile()
             return count;
         }
     }
-    if (file_.fail() && !file_.eof()) {
+    if (file.fail() && !file.eof()) {
         std::cerr << "Error reading file" << std::endl;
         return count;
     }
