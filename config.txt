@@ -1,0 +1,24 @@
+#
+port 8080
+server_names abc.com xyz.fr
+errors /data/errors
+default_file /data/default.html
+bodymax 10000
+root /data/server1
+listing false
+cgi php
+proxy false
+
+> /
+methods GET
+root /data/folder1
+listing true
+> /images
+methods GET POST
+root /data/images
+default_file /data/defaultimg.html
+> /other
+proxy otherwebsite.com
+
+#
+port 80

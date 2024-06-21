@@ -4,13 +4,13 @@
 # include <string>
 # include <vector>
 
-# include "Listener.hpp"
 # include "ListenerList.hpp"
+# include "ServerList.hpp"
 
 class WebServ {
     public:
         WebServ();
-        WebServ(const std::string &config_file);
+        WebServ(const std::string& config_file);
 
         ~WebServ();
 
@@ -21,6 +21,7 @@ class WebServ {
         WebServ&    operator=(const WebServ& rhs);
 
         ListenerList    listener_list_;
+        ServerList      server_list_;
 };
 
 #endif  // WEBSERV_HPP_

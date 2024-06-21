@@ -112,9 +112,9 @@ size_t  ListenerList::EnabledListenerCount() const
     return EnabledListeners_.size();
 }
 
-void    ListenerList::AddDefaultListenerRecords()
+const struct addrinfo*  ListenerList::AddDefaultListenerRecords()
 {
-    AddListenerRecord(NULL, kDefaultPort);
+    return AddListenerRecord(NULL, kDefaultPort);
 }
 
 const struct addrinfo*  ListenerList::AddListenerRecord(const char* ip, const std::string& port)

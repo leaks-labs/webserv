@@ -3,6 +3,7 @@
 #include <exception>
 
 #include "WebServ.hpp"
+#include "Server.hpp"
 
 int main(int argc, char **argv)
 {
@@ -27,7 +28,7 @@ int main(int argc, char **argv)
         delete server;
         return ret < 0 ? 1 : 0;
 	}
-	catch(const std::exception &e)
+	catch(const std::exception& e)
 	{
 		std::cerr << "ERROR: " << e.what() << std::endl;
         delete server;
