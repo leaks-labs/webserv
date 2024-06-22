@@ -66,7 +66,7 @@ size_t  ServerList::Size() const
 void    ServerList::InitServerList(const std::string& path)
 {
     std::ifstream   file(path.c_str());
-    if (file.good() == false)
+    if (!file.good())
         throw std::runtime_error("opening config_file failed");
     int err = ParseConfigFile(file);
     if (err) {
