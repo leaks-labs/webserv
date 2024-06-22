@@ -70,8 +70,8 @@ int Server::set_server_names(const std::string& value)
             break;
         server_names_.push_back(res);
         start = end + 1;
-    } while (end != std::string::npos && start != value.size());
-    if ((end != std::string::npos && start == value.size()) || res.empty()) {
+    } while (end != std::string::npos);
+    if (end != std::string::npos || res.empty()) {
         std::cerr << "server_names is invalid" << std::endl;         
         return 1;
     }

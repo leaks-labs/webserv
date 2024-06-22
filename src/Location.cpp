@@ -7,14 +7,14 @@ const std::map<const std::string, int(Location::*)(const std::string&)> Location
 
 Location::Location()
     : path_("/"),
-      root_("/"),
+      root_("/"), // TODO: change to current directory?
       default_file_("/data/default.html"),
       cgi_("php"),
       proxy_("false"),
-      methods_(7),
+      methods_(kGet | kPost | kDelete),
       listing_(true),
       strict_(false),
-      errors_("/data/errors"),
+      errors_("/data/errors"), // TODO: change to a directory inside current directory?
       bodymax_(0)
 {
 }
@@ -115,6 +115,7 @@ int Location::set_default_file(const std::string& value)
 
 int Location::set_cgi(const std::string& value)
 {
+    // TODO: Maybe do a parsing and accept a list of CGI?
     if (value != "php" && value != "python" && value != "none") {
         std::cerr << "cgi value should be php, python or none" << std::endl;
         return 1;
@@ -131,26 +132,23 @@ int Location::set_proxy(const std::string& value)
 
 int Location::set_methods(const std::string& value)
 {
-    std::string::size_type  beg = 0;
-    std::string::size_type  end = value.find(' ');
-    methods_ = 0;
-    while (true) {
-        std::string str = value.substr(beg, end - beg);
-        if (str == "GET" && (methods_ & kGet) == 0) {
+    std::string::size_type  start = 0;
+    std::string::size_type  end;
+    do {
+        end = value.find(' ', start);
+        std::string res = value.substr(start, end - start);
+        if (res == "GET") {
             methods_ |= kGet;
-        } else if (str == "POST" && (methods_ & kPost) == 0) {
+        } else if (res == "POST") {
             methods_ |= kPost;
-        } else if (str == "DELETE" && (methods_ & kDelete) == 0) {
+        } else if (res == "DELETE") {
             methods_ |= kDelete;
         } else {
-            std::cerr << "method should be GET POST or DELETE" << std::endl;
+            std::cerr << "method is invalid: it should be GET POST or DELETE" << std::endl;
             return 1;
         }
-        if (end == std::string::npos)
-            break;
-        beg = end + 1;
-        end = value.find(' ', beg);
-    }
+        start = end + 1;
+    } while (end != std::string::npos);
     return 0;
 }
 
