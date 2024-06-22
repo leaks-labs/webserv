@@ -4,6 +4,8 @@
 #include <sstream>
 
 const std::map<const std::string, int(Location::*)(const std::string&)> Location::set_functions_ = Location::InitSetFunctions();
+const std::map<const std::string, int>                                  Location::methods_ref_ = Location::InitMethodsRef();
+const std::map<const std::string, int>                                  Location::cgi_ref_ = Location::InitCgiRef();
 
 Location::Location()
     : path_("/"),
@@ -133,15 +135,14 @@ int Location::set_cgi(const std::string& value)
     do {
         end = value.find(' ', start);
         std::string res = value.substr(start, end - start);
-        if (res == "none") {
-            cgi_ = kCgiNone;
-        } else if (res == "php") {
-            cgi_ |= kCgiPHP;
-        } else if (res == "python") {
-            cgi_ |= kCgiPython;
-        } else {
+        std::map<const std::string, int>::const_iterator    i = cgi_ref_.find(res);
+        if (i == cgi_ref_.end()) {
             std::cerr << "cgi is invalid: it should be php, python or none" << std::endl;
             return 1;
+        } else if (i->second == kCgiNone) {
+            cgi_ = kCgiNone;
+        } else {
+            cgi_ |= i->second;
         }
         start = end + 1;
     } while (end != std::string::npos);
@@ -156,17 +157,14 @@ int Location::set_methods(const std::string& value)
     do {
         end = value.find(' ', start);
         std::string res = value.substr(start, end - start);
-        if (res == "none") {
-            methods_ = kMethodNone;
-        } else if (res == "GET") {
-            methods_ |= kMethodGet;
-        } else if (res == "POST") {
-            methods_ |= kMethodPost;
-        } else if (res == "DELETE") {
-            methods_ |= kMethodDelete;
-        } else {
+        std::map<const std::string, int>::const_iterator    i = methods_ref_.find(res);
+        if (i == methods_ref_.end()) {
             std::cerr << "method is invalid: it should be GET POST DELETE or none" << std::endl;
             return 1;
+        } else if (i->second == kMethodNone) {
+            methods_ = kMethodNone;
+        } else {
+            methods_ |= i->second;
         }
         start = end + 1;
     } while (end != std::string::npos);
@@ -238,5 +236,24 @@ const std::map<const std::string, int(Location::*)(const std::string&)> Location
     m["listing"] = &Location::set_listing;
     m["errors"] = &Location::set_errors;
     m["bodymax"] = &Location::set_bodymax;
+    return m;
+}
+
+const std::map<const std::string, int>  Location::InitMethodsRef()
+{
+    std::map<const std::string, int>    m;
+    m["none"] = kMethodNone;
+    m["GET"] = kMethodGet;
+    m["POST"] = kMethodPost;
+    m["DELETE"] = kMethodDelete;
+    return m;
+}
+
+const std::map<const std::string, int>  Location::InitCgiRef()
+{
+    std::map<const std::string, int>    m;
+    m["none"] = kCgiNone;
+    m["php"] = kCgiPHP;
+    m["python"] = kCgiPython;
     return m;
 }

@@ -50,8 +50,12 @@ class Location {
 
     private:
         static const std::map<const std::string, int(Location::*)(const std::string&)>  set_functions_;
+        static const std::map<const std::string, int>                                   methods_ref_;
+        static const std::map<const std::string, int>                                   cgi_ref_;
 
         static const std::map<const std::string, int(Location::*)(const std::string&)>  InitSetFunctions();
+        static const std::map<const std::string, int>                                   InitMethodsRef();
+        static const std::map<const std::string, int>                                   InitCgiRef();
 
         std::string     path_;
         std::string     root_;
