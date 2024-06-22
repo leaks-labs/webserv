@@ -91,15 +91,20 @@ int Server::set_bodymax(const std::string& value)
 
 int Server::set_server_names(const std::string& value)
 {
-    std::string::size_type start = 0;
-    std::string::size_type end = value.find(' ');
-
-    while (true) {
-        server_names_.push_back(value.substr(start, end - start));
-        if (end == std::string::npos)
-            break;
-        start = end + 1;
+    std::string::size_type  start = 0;
+    std::string::size_type  end;
+    std::string             res;
+    do {
         end = value.find(' ', start);
+        res = value.substr(start, end - start);
+        if (res.empty())
+            break;
+        server_names_.push_back(res);
+        start = end + 1;
+    } while (end != std::string::npos && start != value.size());
+    if ((end != std::string::npos && start == value.size()) || res.empty()) {
+        std::cerr << "server_names is invalid" << std::endl;         
+        return 1;
     }
     return 0;
 }
@@ -112,6 +117,11 @@ void    Server::set_addr(const struct addrinfo* addrinfo)
 size_t  Server::LocationsCount() const
 {
     return locations_.size();
+}
+
+size_t  Server::ServerNamesCount() const
+{
+    return server_names_.size();
 }
 
 int Server::SetValue(const std::string& key, const std::string& value)
@@ -137,15 +147,21 @@ int Server::SetLastLocation(const std::string& key, const std::string& value)
     return (locations_.back().SetValue(key, value));
 }
 
-void     Server::SetLastLocationStrict(bool value)
+void    Server::SetLastLocationStrict(bool value)
 {
     locations_.back().set_strict(value);
 }
 
-void     Server::PopFirstLocation()
+void    Server::PopFirstLocation()
 {
     if (!locations_.empty())
         locations_.erase(locations_.begin());
+}
+
+void    Server::PopFirstServerNames()
+{
+    if (!server_names_.empty())
+        server_names_.erase(server_names_.begin());
 }
 
 void    Server::Print() const

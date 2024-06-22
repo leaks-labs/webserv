@@ -164,7 +164,7 @@ int Location::SetValue(const std::string& key, const std::string& value)
     it i = set_functions_.find(key);
     if (i == set_functions_.end()) {
         std::cerr << "setting key does not exist: " << key << std::endl;
-        return 1;
+        return -1;
     }
     return (this->*(i->second))(value);
 }

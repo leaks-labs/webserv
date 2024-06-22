@@ -30,11 +30,13 @@ class Server {
         void    set_addr(const struct addrinfo* addr);
 
         size_t  LocationsCount() const;
+        size_t  ServerNamesCount() const;
         int     SetValue(const std::string& key, const std::string& value);
         int     AddLocation(const std::string& value);
         int     SetLastLocation(const std::string& key, const std::string& value);
         void    SetLastLocationStrict(bool value);
         void    PopFirstLocation();
+        void    PopFirstServerNames();
         void    Print() const;
 
     private:

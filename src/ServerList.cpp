@@ -102,7 +102,7 @@ int ServerList::ParseConfigFile(std::ifstream& file)
         }
         std::string value;
         if (sep != std::string::npos)
-            value = line.substr(sep + 1, line.length());
+            value = line.substr(sep + 1, std::string::npos);
         if (key == "#" && (sep == std::string::npos || !value.empty())) {
             servers_.push_back(Server());
             if (!value.empty())
@@ -113,17 +113,21 @@ int ServerList::ParseConfigFile(std::ifstream& file)
         } else if (key == ">" || key == ">=") {
             servers_.back().AddLocation(value);
             servers_.back().SetLastLocationStrict(key == ">=");
-        } else if (servers_.back().SetValue(key, value) == -1 && servers_.back().SetLastLocation(key, value) != 0) {
-            // TODO: if SetValue return > 0 ?? now, it can return -1, 0 or 1. Set>Location return 0 or 1
-            return count;
+        } else {
+            int ret = servers_.back().SetValue(key, value);
+            if (ret > 0 || (ret == -1 && servers_.back().SetLastLocation(key, value)))
+                return count;
         }
     }
     if (file.fail() && !file.eof()) {
         std::cerr << "Error reading file" << std::endl;
         return count;
     }
-    for (std::vector<Server>::iterator it = servers_.begin(); it != servers_.end(); ++it)
+    for (std::vector<Server>::iterator it = servers_.begin(); it != servers_.end(); ++it) {
         if (it->LocationsCount() > 1)
             it->PopFirstLocation();
+        if (it->ServerNamesCount() > 1)
+            it->PopFirstServerNames();
+    }
     return 0;
 }
