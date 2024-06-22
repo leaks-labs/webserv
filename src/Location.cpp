@@ -9,13 +9,13 @@ Location::Location()
     : path_("/"),
       root_("/"), // TODO: change to current directory?
       default_file_("/data/default.html"),
-      cgi_(kCgiPHP),
       proxy_("false"),
-      methods_(kMethodGet | kMethodPost | kMethodDelete),
-      listing_(true),
-      strict_(false),
       errors_("/data/errors"), // TODO: change to a directory inside current directory?
-      bodymax_(0)
+      cgi_(kCgiPHP),
+      methods_(kMethodGet | kMethodPost | kMethodDelete),
+      bodymax_(0),
+      listing_(true),
+      strict_(false)
 {
 }
 
@@ -60,19 +60,29 @@ const std::string&  Location::get_default_file() const
     return default_file_;
 }
 
-int Location::get_cgi() const
-{
-    return cgi_;
-}
-
 const std::string&  Location::get_proxy() const
 {
     return proxy_;
 }
 
+const std::string&  Location::get_errors() const
+{
+    return errors_;
+}
+
+int Location::get_cgi() const
+{
+    return cgi_;
+}
+
 int Location::get_methods() const
 {
     return methods_;
+}
+
+int Location::get_bodymax() const
+{
+    return bodymax_;
 }
 
 bool    Location::get_listing() const
@@ -83,16 +93,6 @@ bool    Location::get_listing() const
 bool    Location::get_strict() const
 {
     return strict_;
-}
-
-const std::string&  Location::get_errors() const
-{
-    return errors_;
-}
-
-int Location::get_bodymax() const
-{
-    return bodymax_;
 }
 
 int Location::set_path(const std::string& value)
@@ -110,6 +110,18 @@ int Location::set_root(const std::string& value)
 int Location::set_default_file(const std::string& value)
 {
     default_file_ = value;
+    return 0;
+}
+
+int Location::set_proxy(const std::string& value)
+{
+    proxy_ = value;
+    return 0;
+}
+
+int Location::set_errors(const std::string& value)
+{
+    errors_ = value;
     return 0;
 }
 
@@ -133,12 +145,6 @@ int Location::set_cgi(const std::string& value)
         }
         start = end + 1;
     } while (end != std::string::npos);
-    return 0;
-}
-
-int Location::set_proxy(const std::string& value)
-{
-    proxy_ = value;
     return 0;
 }
 
@@ -167,6 +173,16 @@ int Location::set_methods(const std::string& value)
     return 0;
 }
 
+int Location::set_bodymax(const std::string& value)
+{
+    std::istringstream  iss(value);
+    iss >> std::noskipws >> bodymax_;
+    if (!iss.fail() && iss.eof() && (value[0] != '0' || bodymax_ == 0))
+        return 0;
+    std::cerr << "bodymax value shoud be a digit" << std::endl;         
+    return 1;
+}
+
 int Location::set_listing(const std::string& value)
 {
     if (value == "true") {
@@ -183,22 +199,6 @@ int Location::set_listing(const std::string& value)
 void    Location::set_strict(bool value)
 {
    strict_ = value;
-}
-
-int Location::set_errors(const std::string& value)
-{
-    errors_ = value;
-    return 0;
-}
-
-int Location::set_bodymax(const std::string& value)
-{
-    std::istringstream  iss(value);
-    iss >> std::noskipws >> bodymax_;
-    if (!iss.fail() && iss.eof() && (value[0] != '0' || bodymax_ == 0))
-        return 0;
-    std::cerr << "bodymax value shoud be a digit" << std::endl;         
-    return 1;
 }
 
 int Location::SetValue(const std::string& key, const std::string& value)

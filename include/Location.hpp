@@ -26,24 +26,24 @@ class Location {
         const std::string&  get_path() const;
         const std::string&  get_root() const;
         const std::string&  get_default_file() const;
-        int                 get_cgi() const;
         const std::string&  get_proxy() const;
+        const std::string&  get_errors() const;
+        int                 get_cgi() const;
         int                 get_methods() const;
+        int                 get_bodymax() const;
         bool                get_listing() const;
         bool                get_strict() const;
-        const std::string&  get_errors() const;
-        int                 get_bodymax() const;
 
         int     set_path(const std::string& value);
         int     set_root(const std::string& value);
         int     set_default_file(const std::string& value);
-        int     set_cgi(const std::string& value);
         int     set_proxy(const std::string& value);
+        int     set_errors(const std::string& value);
+        int     set_cgi(const std::string& value);
         int     set_methods(const std::string& value);
+        int     set_bodymax(const std::string& value);
         int     set_listing(const std::string& value);
         void    set_strict(bool value);
-        int     set_errors(const std::string& value);
-        int     set_bodymax(const std::string& value);
 
         int     SetValue(const std::string& key, const std::string& value);
         void    Print() const;
@@ -56,13 +56,13 @@ class Location {
         std::string     path_;
         std::string     root_;
         std::string     default_file_;
-        int             cgi_;
         std::string     proxy_;
-        unsigned int    methods_;
+        std::string     errors_;
+        int             cgi_;
+        int             methods_;
+        int             bodymax_;
         bool            listing_;
         bool            strict_;
-        std::string     errors_;
-        int             bodymax_;
 };
 
 #endif  // LOCATION_HPP_
