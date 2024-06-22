@@ -1,6 +1,7 @@
 #include "Location.hpp"
 
 #include <iostream>
+#include <sstream>
 
 const std::map<const std::string, int(Location::*)(const std::string&)> Location::set_functions_ = Location::InitSetFunctions();
 
@@ -12,7 +13,9 @@ Location::Location()
       proxy_("false"),
       methods_(7),
       listing_(true),
-      strict_(false)
+      strict_(false),
+      errors_("/data/errors"),
+      bodymax_(0)
 {
 }
 
@@ -32,6 +35,8 @@ Location&   Location::operator=(Location const& rhs)
         methods_ = rhs.get_methods();
         listing_ = rhs.get_listing();
         strict_ = rhs.get_strict();
+        errors_ = rhs.get_errors();
+        bodymax_ = rhs.get_bodymax();
     }
     return *this;
 }
@@ -78,6 +83,16 @@ bool    Location::get_listing() const
 bool    Location::get_strict() const
 {
     return strict_;
+}
+
+const std::string&  Location::get_errors() const
+{
+    return errors_;
+}
+
+int Location::get_bodymax() const
+{
+    return bodymax_;
 }
 
 int Location::set_path(const std::string& value)
@@ -157,6 +172,22 @@ void    Location::set_strict(bool value)
    strict_ = value;
 }
 
+int Location::set_errors(const std::string& value)
+{
+    errors_ = value;
+    return 0;
+}
+
+int Location::set_bodymax(const std::string& value)
+{
+    std::istringstream  iss(value);
+    iss >> std::noskipws >> bodymax_;
+    if (!iss.fail() && iss.eof() && (value[0] != '0' || bodymax_ == 0))
+        return 0;
+    std::cerr << "bodymax value shoud be a digit" << std::endl;         
+    return 1;
+}
+
 int Location::SetValue(const std::string& key, const std::string& value)
 {
     typedef std::map<const std::string, int (Location::*)(const std::string&)>::const_iterator it;
@@ -178,8 +209,9 @@ void    Location::Print() const
                 << "\tmethods: " << methods_ << std::endl
                 << "\tproxy: " << proxy_ << std::endl
                 << "\tlisting: " << listing_ << std::endl
-                << "\tstrict: " << strict_ << std::endl;
-
+                << "\tstrict: " << strict_ << std::endl
+                << "\terrors: " << errors_ << std::endl
+                << "\tbodymax: " << bodymax_ << std::endl;
 }
 
 const std::map<const std::string, int(Location::*)(const std::string&)> Location::InitSetFunctions()
@@ -191,5 +223,7 @@ const std::map<const std::string, int(Location::*)(const std::string&)> Location
     m["methods"] = &Location::set_methods;
     m["proxy"] = &Location::set_proxy;
     m["listing"] = &Location::set_listing;
+    m["errors"] = &Location::set_errors;
+    m["bodymax"] = &Location::set_bodymax;
     return m;
 }

@@ -26,6 +26,8 @@ class Location {
         int                 get_methods() const;
         bool                get_listing() const;
         bool                get_strict() const;
+        const std::string&  get_errors() const;
+        int                 get_bodymax() const;
 
         int     set_path(const std::string& value);
         int     set_root(const std::string& value);
@@ -35,6 +37,8 @@ class Location {
         int     set_methods(const std::string& value);
         int     set_listing(const std::string& value);
         void    set_strict(bool value);
+        int     set_errors(const std::string& value);
+        int     set_bodymax(const std::string& value);
 
         int     SetValue(const std::string& key, const std::string& value);
         void    Print() const;
@@ -52,6 +56,8 @@ class Location {
         unsigned int    methods_;
         bool            listing_;
         bool            strict_;
+        std::string     errors_;
+        int             bodymax_;
 };
 
 #endif  // LOCATION_HPP_

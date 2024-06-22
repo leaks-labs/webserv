@@ -1,6 +1,5 @@
 #include "Server.hpp"
 
-#include <sstream>
 #include <iostream>
 
 const std::map<const std::string, int (Server::*)(const std::string&)>  Server::set_functions_ = Server::InitSetFunctions();
@@ -8,8 +7,6 @@ const std::map<const std::string, int (Server::*)(const std::string&)>  Server::
 Server::Server()
     : host_("0.0.0.0"),
       port_("8080"),
-      errors_("/data/errors"),
-      bodymax_(0),
       server_names_(1, "webserv"),
       addr_(NULL)
 {
@@ -19,8 +16,6 @@ Server::Server()
 Server::Server(const Server& src) : 
     host_(src.get_host()),
     port_(src.get_port()),
-    errors_(src.get_errors()),
-    bodymax_(src.get_bodymax()),
     server_names_(src.get_server_names()),
     locations_(src.get_locations()),
     addr_(NULL)
@@ -39,16 +34,6 @@ const std::string&  Server::get_host() const
 const std::string&  Server::get_port() const
 {
     return port_;
-}
-
-const std::string&  Server::get_errors() const
-{
-    return errors_;
-}
-
-int Server::get_bodymax() const
-{
-    return bodymax_;
 }
 
 const std::vector<std::string>& Server::get_server_names() const 
@@ -71,22 +56,6 @@ int Server::set_port(const std::string& value)
 {
     port_ = value;
     return 0;
-}
-
-int Server::set_errors(const std::string& value)
-{
-    errors_ = value;
-    return 0;
-}
-
-int Server::set_bodymax(const std::string& value)
-{
-    std::istringstream  iss(value);
-    iss >> std::noskipws >> bodymax_;
-    if (!iss.fail() && iss.eof() && (value[0] != '0' || bodymax_ == 0))
-        return 0;
-    std::cerr << "bodymax value shoud be a digit" << std::endl;         
-    return 1;
 }
 
 int Server::set_server_names(const std::string& value)
@@ -167,9 +136,7 @@ void    Server::PopFirstServerNames()
 void    Server::Print() const
 {
     std::cout   << "host: " << host_ << std::endl
-                << "port: " << port_ << std::endl
-                << "errors: " << errors_ << std::endl
-                << "bodymax: " << bodymax_ << std::endl;
+                << "port: " << port_ << std::endl;
     for (std::vector<std::string>::const_iterator it=server_names_.begin(); it != server_names_.end(); ++it)
         std::cout << "server_name: " << *it << std::endl;
     for (std::vector<Location>::const_iterator it=locations_.begin(); it != locations_.end(); ++it) {
@@ -184,7 +151,5 @@ const std::map<const std::string, int (Server::*)(const std::string&)>  Server::
     m["host"] = &Server::set_host;
     m["port"] = &Server::set_port;
     m["server_names"] = &Server::set_server_names;
-    m["errors"] = &Server::set_errors;
-    m["bodymax"] = &Server::set_bodymax;
     return m;
 }
