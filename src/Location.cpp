@@ -132,6 +132,7 @@ int Location::set_proxy(const std::string& value)
 
 int Location::set_methods(const std::string& value)
 {
+    methods_ = 0;
     std::string::size_type  start = 0;
     std::string::size_type  end;
     do {
