@@ -114,6 +114,9 @@ int ServerList::ParseConfigFile(std::ifstream& file)
             servers_.back().AddLocation(value);
             servers_.back().SetLastLocationStrict(key == ">=");
         } else {
+            // If SetValue returns -1, the key is invalid. If it returns > 0, SetValue failed.
+            // So, if SetValue returns -1, we try to set the value in the last location.
+            // And if SetValue or SetLastLocation returns > 0, we return the line number as an error.
             int ret = servers_.back().SetValue(key, value);
             if (ret > 0 || (ret == -1 && servers_.back().SetLastLocation(key, value)))
                 return count;
