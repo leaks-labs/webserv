@@ -109,6 +109,11 @@ void    Server::set_addr(const struct addrinfo* addrinfo)
     addr_ = addrinfo;
 }
 
+size_t  Server::LocationsCount() const
+{
+    return locations_.size();
+}
+
 int Server::SetValue(const std::string& key, const std::string& value)
 {
     typedef std::map<const std::string, int (Server::*)(const std::string&)>::const_iterator it;

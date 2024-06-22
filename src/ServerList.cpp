@@ -123,7 +123,7 @@ int ServerList::ParseConfigFile(std::ifstream& file)
         return count;
     }
     for (std::vector<Server>::iterator it = servers_.begin(); it != servers_.end(); ++it)
-        it->PopFirstLocation();
-    // TODO: for now, it's possible to have a server without a location, but it's behavior is undefined
+        if (it->LocationsCount() > 1)
+            it->PopFirstLocation();
     return 0;
 }

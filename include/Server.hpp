@@ -29,6 +29,7 @@ class Server {
         int     set_server_names(const std::string& value);
         void    set_addr(const struct addrinfo* addr);
 
+        size_t  LocationsCount() const;
         int     SetValue(const std::string& key, const std::string& value);
         int     AddLocation(const std::string& value);
         int     SetLastLocation(const std::string& key, const std::string& value);
@@ -43,13 +44,13 @@ class Server {
 
         static const std::map<const std::string, int (Server::*)(const std::string&)>   InitSetFunctions();
 
-        std::string                     host_;
-        std::string                     port_;
-        std::string                     errors_;
-        int                             bodymax_;
-        std::vector<std::string>  server_names_;
-        std::vector<Location>           locations_;
-        const struct addrinfo*          addr_;
+        std::string                 host_;
+        std::string                 port_;
+        std::string                 errors_;
+        int                         bodymax_;
+        std::vector<std::string>    server_names_;
+        std::vector<Location>       locations_;
+        const struct addrinfo*      addr_;
 };
 
 #endif // SERVER_HPP_
