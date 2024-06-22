@@ -8,9 +8,14 @@
 
 class Location {
     public:
-        static const int    kGet = 1;
-        static const int    kPost = 2;
-        static const int    kDelete = 4;
+        static const int    kMethodNone = 0;
+        static const int    kMethodGet = 1 << 0;
+        static const int    kMethodPost = 1 << 1;
+        static const int    kMethodDelete = 1 << 2;
+
+        static const int    kCgiNone = 0;
+        static const int    kCgiPHP = 1 << 0;
+        static const int    kCgiPython = 1 << 1;
 
         Location();
         Location(const Location& src);
@@ -21,7 +26,7 @@ class Location {
         const std::string&  get_path() const;
         const std::string&  get_root() const;
         const std::string&  get_default_file() const;
-        const std::string&  get_cgi() const;
+        int                 get_cgi() const;
         const std::string&  get_proxy() const;
         int                 get_methods() const;
         bool                get_listing() const;
@@ -51,7 +56,7 @@ class Location {
         std::string     path_;
         std::string     root_;
         std::string     default_file_;
-        std::string     cgi_;
+        int             cgi_;
         std::string     proxy_;
         unsigned int    methods_;
         bool            listing_;

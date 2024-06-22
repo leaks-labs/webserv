@@ -9,9 +9,9 @@ Location::Location()
     : path_("/"),
       root_("/"), // TODO: change to current directory?
       default_file_("/data/default.html"),
-      cgi_("php"),
+      cgi_(kCgiPHP),
       proxy_("false"),
-      methods_(kGet | kPost | kDelete),
+      methods_(kMethodGet | kMethodPost | kMethodDelete),
       listing_(true),
       strict_(false),
       errors_("/data/errors"), // TODO: change to a directory inside current directory?
@@ -60,7 +60,7 @@ const std::string&  Location::get_default_file() const
     return default_file_;
 }
 
-const std::string&  Location::get_cgi() const
+int Location::get_cgi() const
 {
     return cgi_;
 }
@@ -115,12 +115,24 @@ int Location::set_default_file(const std::string& value)
 
 int Location::set_cgi(const std::string& value)
 {
-    // TODO: Maybe do a parsing and accept a list of CGI?
-    if (value != "php" && value != "python" && value != "none") {
-        std::cerr << "cgi value should be php, python or none" << std::endl;
-        return 1;
-    }
-    cgi_ = value;
+    cgi_ = 0;
+    std::string::size_type  start = 0;
+    std::string::size_type  end;
+    do {
+        end = value.find(' ', start);
+        std::string res = value.substr(start, end - start);
+        if (res == "none") {
+            cgi_ = kCgiNone;
+        } else if (res == "php") {
+            cgi_ |= kCgiPHP;
+        } else if (res == "python") {
+            cgi_ |= kCgiPython;
+        } else {
+            std::cerr << "cgi is invalid: it should be php, python or none" << std::endl;
+            return 1;
+        }
+        start = end + 1;
+    } while (end != std::string::npos);
     return 0;
 }
 
@@ -138,14 +150,16 @@ int Location::set_methods(const std::string& value)
     do {
         end = value.find(' ', start);
         std::string res = value.substr(start, end - start);
-        if (res == "GET") {
-            methods_ |= kGet;
+        if (res == "none") {
+            methods_ = kMethodNone;
+        } else if (res == "GET") {
+            methods_ |= kMethodGet;
         } else if (res == "POST") {
-            methods_ |= kPost;
+            methods_ |= kMethodPost;
         } else if (res == "DELETE") {
-            methods_ |= kDelete;
+            methods_ |= kMethodDelete;
         } else {
-            std::cerr << "method is invalid: it should be GET POST or DELETE" << std::endl;
+            std::cerr << "method is invalid: it should be GET POST DELETE or none" << std::endl;
             return 1;
         }
         start = end + 1;
