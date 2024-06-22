@@ -51,8 +51,6 @@ class ListenerList {
         void                    EnableListeners();
 
     private:
-        static const std::string  kDefaultPort;
-
         ListenerList(const ListenerList& src);
         ListenerList&   operator=(const ListenerList& rhs);
 

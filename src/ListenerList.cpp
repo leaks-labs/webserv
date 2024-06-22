@@ -4,8 +4,6 @@
 #include <cstring>
 #include <stdexcept>
 
-const std::string  ListenerList::kDefaultPort = "8080";
-
 ListenerList::ConstIterator::ConstIterator() : it_()
 {
 }
