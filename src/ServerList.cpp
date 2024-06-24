@@ -68,13 +68,7 @@ void    ServerList::InitServerList(const std::string& path)
     std::ifstream   file(path.c_str());
     if (!file.good())
         throw std::runtime_error("opening config_file failed");
-    int err = ParseConfigFile(file);
-    if (err) {
-        std::ostringstream  ss;
-        ss << err;
-        std::string err_str(ss.str());
-        throw std::runtime_error("Config file Error at line: " + err_str);
-    }
+    ParseConfigFile(file);
 }
 
 void    ServerList::Print() const
@@ -88,47 +82,45 @@ const   std::vector<Server>&  ServerList::get_servers() const
     return servers_;
 }
 
-int ServerList::ParseConfigFile(std::ifstream& file)
+void    ServerList::ParseConfigFile(std::ifstream& file)
 {
     int count = 1;
-    for (std::string line; !file.eof() && std::getline(file, line) && !file.fail(); ++count) {
-        if (line.empty())
-            continue;
-        std::string::size_type  sep = line.find(' ');
-        std::string key = line.substr(0, sep);
-        if (key.empty()) {
-            std::cerr << "Key is empty" << std::endl;
-            return count;
-        }
-        std::string value;
-        if (sep != std::string::npos)
-            value = line.substr(sep + 1, std::string::npos);
-        if (key == "#" && (sep == std::string::npos || !value.empty())) {
-            servers_.push_back(Server());
-            if (!value.empty())
-                servers_.back().set_host(value);
-        } else if (value.empty()) {
-            std::cerr << "Value is empty" << std::endl;
-            return count;
-        } else if (key == ">" || key == ">=") {
-            servers_.back().AddLocation(value);
-            servers_.back().SetLastLocationStrict(key == ">=");
-        } else {
-            // If SetValue returns -1, the key is invalid. If it returns > 0, SetValue failed.
-            // So, if SetValue returns -1, we try to set the value in the last location.
-            // And if SetValue or SetLastLocation returns > 0, we return the line number as an error.
-            int ret = servers_.back().SetValue(key, value);
-            if (ret > 0 || (ret == -1 && servers_.back().SetLastLocation(key, value)))
-                return count;
+    try
+    {
+        for (std::string line; !file.eof() && std::getline(file, line) && !file.fail(); ++count) {
+            if (line.empty())
+                continue;
+            std::string::size_type  sep = line.find(' ');
+            std::string key = line.substr(0, sep);
+            if (key.empty())
+                throw std::runtime_error("key is empty");
+            std::string value;
+            if (sep != std::string::npos)
+                value = line.substr(sep + 1, std::string::npos);
+            if (key == "#" && (sep == std::string::npos || !value.empty())) {
+                servers_.push_back(Server());
+                if (!value.empty())
+                    servers_.back().set_host(value);
+            } else if (value.empty()) {
+                throw std::runtime_error("value is empty");
+            } else if (key == ">" || key == ">=") {
+                servers_.back().AddLocation(value);
+                servers_.back().SetLastLocationStrict(key == ">=");
+            } else if (servers_.back().SetValue(key, value) == Server::kInvalidKey) {
+                servers_.back().SetLastLocation(key, value);
+            }
         }
     }
-    if (file.fail() && !file.eof()) {
-        std::cerr << "Error reading file" << std::endl;
-        return count;
+    catch(const std::exception& e)
+    {
+        std::ostringstream  ss;
+        ss << count;
+        std::string err_str(ss.str());
+        throw std::runtime_error("config file at line " + err_str + ": " + e.what());
     }
-    for (std::vector<Server>::iterator it = servers_.begin(); it != servers_.end(); ++it) {
+    if (file.fail() && !file.eof())
+        throw std::runtime_error("while reading config file");
+    for (std::vector<Server>::iterator it = servers_.begin(); it != servers_.end(); ++it)
         if (it->ServerNamesCount() > 1)
             it->PopDefaultServerName();
-    }
-    return 0;
 }

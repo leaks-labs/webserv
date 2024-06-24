@@ -10,6 +10,9 @@
 
 class Server {
     public:
+        static const int    kInvalidKey = -1;
+        static const int    kValiddKey = 0;
+
         Server();
         Server(const Server& src);
 
@@ -20,15 +23,15 @@ class Server {
         const std::vector<std::string>& get_server_names() const;
         const std::vector<Location>&    get_locations() const;
 
-        int     set_host(const std::string& value);
-        int     set_port(const std::string& value);
-        int     set_server_names(const std::string& value);
+        void    set_host(const std::string& value);
+        void    set_port(const std::string& value);
+        void    set_server_names(const std::string& value);
         void    set_addr(const struct addrinfo* addr);
 
         size_t  ServerNamesCount() const;
         int     SetValue(const std::string& key, const std::string& value);
-        int     AddLocation(const std::string& value);
-        int     SetLastLocation(const std::string& key, const std::string& value);
+        void    AddLocation(const std::string& value);
+        void    SetLastLocation(const std::string& key, const std::string& value);
         void    SetLastLocationStrict(bool value);
         void    PopDefaultServerName();
         void    Print() const;
@@ -36,9 +39,9 @@ class Server {
     private:
         Server& operator=(const Server& rhs);
 
-        static const std::map<const std::string, int (Server::*)(const std::string&)>   set_functions_;
+        static const std::map<const std::string, void (Server::*)(const std::string&)>  set_functions_;
 
-        static const std::map<const std::string, int (Server::*)(const std::string&)>   InitSetFunctions();
+        static const std::map<const std::string, void (Server::*)(const std::string&)>  InitSetFunctions();
 
         std::string                 host_;
         std::string                 port_;

@@ -34,39 +34,39 @@ class Location {
         bool                get_listing() const;
         bool                get_strict() const;
 
-        int     set_path(const std::string& value);
-        int     set_root(const std::string& value);
-        int     set_default_file(const std::string& value);
-        int     set_proxy(const std::string& value);
-        int     set_errors(const std::string& value);
-        int     set_cgi(const std::string& value);
-        int     set_methods(const std::string& value);
-        int     set_bodymax(const std::string& value);
-        int     set_listing(const std::string& value);
+        void    set_path(const std::string& value);
+        void    set_root(const std::string& value);
+        void    set_default_file(const std::string& value);
+        void    set_proxy(const std::string& value);
+        void    set_errors(const std::string& value);
+        void    set_cgi(const std::string& value);
+        void    set_methods(const std::string& value);
+        void    set_bodymax(const std::string& value);
+        void    set_listing(const std::string& value);
         void    set_strict(bool value);
 
-        int     SetValue(const std::string& key, const std::string& value);
+        void    SetValue(const std::string& key, const std::string& value);
         void    Print() const;
 
     private:
-        static const std::map<const std::string, int(Location::*)(const std::string&)>  set_functions_;
-        static const std::map<const std::string, int>                                   methods_ref_;
-        static const std::map<const std::string, int>                                   cgi_ref_;
+        static const std::map<const std::string, void (Location::*)(const std::string&)>    set_functions_;
+        static const std::map<const std::string, int>                                       methods_ref_;
+        static const std::map<const std::string, int>                                       cgi_ref_;
 
-        static const std::map<const std::string, int(Location::*)(const std::string&)>  InitSetFunctions();
-        static const std::map<const std::string, int>                                   InitMethodsRef();
-        static const std::map<const std::string, int>                                   InitCgiRef();
+        static const std::map<const std::string, void (Location::*)(const std::string&)>    InitSetFunctions();
+        static const std::map<const std::string, int>                                       InitMethodsRef();
+        static const std::map<const std::string, int>                                       InitCgiRef();
 
-        std::string     path_;
-        std::string     root_;
-        std::string     default_file_;
-        std::string     proxy_;
-        std::string     errors_;
-        int             cgi_;
-        int             methods_;
-        int             bodymax_;
-        bool            listing_;
-        bool            strict_;
+        std::string path_;
+        std::string root_;
+        std::string default_file_;
+        std::string proxy_;
+        std::string errors_;
+        int         cgi_;
+        int         methods_;
+        int         bodymax_;
+        bool        listing_;
+        bool        strict_;
 };
 
 #endif  // LOCATION_HPP_

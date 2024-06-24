@@ -37,7 +37,7 @@ class ServerList {
         ServerList(const ServerList& src);
         ServerList&   operator=(const ServerList& rhs);
 
-        int ParseConfigFile(std::ifstream& file);
+        void    ParseConfigFile(std::ifstream& file);
 
         std::vector<Server> servers_;
 };

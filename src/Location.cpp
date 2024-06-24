@@ -2,10 +2,11 @@
 
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 
-const std::map<const std::string, int(Location::*)(const std::string&)> Location::set_functions_ = Location::InitSetFunctions();
-const std::map<const std::string, int>                                  Location::methods_ref_ = Location::InitMethodsRef();
-const std::map<const std::string, int>                                  Location::cgi_ref_ = Location::InitCgiRef();
+const std::map<const std::string, void (Location::*)(const std::string&)>   Location::set_functions_ = Location::InitSetFunctions();
+const std::map<const std::string, int>                                      Location::methods_ref_ = Location::InitMethodsRef();
+const std::map<const std::string, int>                                      Location::cgi_ref_ = Location::InitCgiRef();
 
 Location::Location()
     : path_("/"),
@@ -97,37 +98,32 @@ bool    Location::get_strict() const
     return strict_;
 }
 
-int Location::set_path(const std::string& value)
+void    Location::set_path(const std::string& value)
 {
     path_ = value;
-    return 0;
 }
 
-int Location::set_root(const std::string& value)
+void    Location::set_root(const std::string& value)
 {
     root_ = value;
-    return 0;
 }
 
-int Location::set_default_file(const std::string& value)
+void    Location::set_default_file(const std::string& value)
 {
     default_file_ = value;
-    return 0;
 }
 
-int Location::set_proxy(const std::string& value)
+void    Location::set_proxy(const std::string& value)
 {
     proxy_ = value;
-    return 0;
 }
 
-int Location::set_errors(const std::string& value)
+void    Location::set_errors(const std::string& value)
 {
     errors_ = value;
-    return 0;
 }
 
-int Location::set_cgi(const std::string& value)
+void    Location::set_cgi(const std::string& value)
 {
     cgi_ = 0;
     std::string::size_type  start = 0;
@@ -136,20 +132,17 @@ int Location::set_cgi(const std::string& value)
         end = value.find(' ', start);
         std::string res = value.substr(start, end - start);
         std::map<const std::string, int>::const_iterator    i = cgi_ref_.find(res);
-        if (i == cgi_ref_.end()) {
-            std::cerr << "cgi is invalid: it should be php, python or none" << std::endl;
-            return 1;
-        } else if (i->second == kCgiNone) {
+        if (i == cgi_ref_.end())
+            throw std::runtime_error("cgi is invalid: it should be php, python or none");
+        else if (i->second == kCgiNone)
             cgi_ = kCgiNone;
-        } else {
+        else
             cgi_ |= i->second;
-        }
         start = end + 1;
     } while (end != std::string::npos);
-    return 0;
 }
 
-int Location::set_methods(const std::string& value)
+void    Location::set_methods(const std::string& value)
 {
     methods_ = 0;
     std::string::size_type  start = 0;
@@ -158,40 +151,32 @@ int Location::set_methods(const std::string& value)
         end = value.find(' ', start);
         std::string res = value.substr(start, end - start);
         std::map<const std::string, int>::const_iterator    i = methods_ref_.find(res);
-        if (i == methods_ref_.end()) {
-            std::cerr << "method is invalid: it should be GET POST DELETE or none" << std::endl;
-            return 1;
-        } else if (i->second == kMethodNone) {
+        if (i == methods_ref_.end())
+            throw std::runtime_error("method is invalid: it should be GET POST DELETE or none");
+        else if (i->second == kMethodNone)
             methods_ = kMethodNone;
-        } else {
+        else
             methods_ |= i->second;
-        }
         start = end + 1;
     } while (end != std::string::npos);
-    return 0;
 }
 
-int Location::set_bodymax(const std::string& value)
+void    Location::set_bodymax(const std::string& value)
 {
     std::istringstream  iss(value);
     iss >> std::noskipws >> bodymax_;
-    if (!iss.fail() && iss.eof() && (value[0] != '0' || bodymax_ == 0))
-        return 0;
-    std::cerr << "bodymax value shoud be a digit" << std::endl;         
-    return 1;
+    if (iss.fail() || !iss.eof() || (value[0] == '0' && bodymax_ != 0))
+        throw std::runtime_error("bodymax value shoud be a digit");
 }
 
-int Location::set_listing(const std::string& value)
+void    Location::set_listing(const std::string& value)
 {
-    if (value == "true") {
+    if (value == "true")
         listing_ = true;
-    } else if (value =="false") {
+    else if (value =="false")
         listing_ = false;
-    } else {
-        std::cerr << "Listing value should be true or false" << std::endl;
-        return 1;
-    }
-    return 0;
+    else
+        throw std::runtime_error("listing value should be true or false");
 }
 
 void    Location::set_strict(bool value)
@@ -199,16 +184,14 @@ void    Location::set_strict(bool value)
    strict_ = value;
 }
 
-int Location::SetValue(const std::string& key, const std::string& value)
+void    Location::SetValue(const std::string& key, const std::string& value)
 {
-    typedef std::map<const std::string, int (Location::*)(const std::string&)>::const_iterator it;
+    typedef std::map<const std::string, void (Location::*)(const std::string&)>::const_iterator it;
 
     it i = set_functions_.find(key);
-    if (i == set_functions_.end()) {
-        std::cerr << "setting key does not exist: " << key << std::endl;
-        return -1;
-    }
-    return (this->*(i->second))(value);
+    if (i == set_functions_.end())
+        throw std::runtime_error("setting key does not exist: " + key);
+    (this->*(i->second))(value);
 }
 
 void    Location::Print() const
@@ -225,9 +208,9 @@ void    Location::Print() const
                 << "\tbodymax: " << bodymax_ << std::endl;
 }
 
-const std::map<const std::string, int(Location::*)(const std::string&)> Location::InitSetFunctions()
+const std::map<const std::string, void (Location::*)(const std::string&)>   Location::InitSetFunctions()
 {
-    std::map<const std::string, int(Location::*)(const std::string&)>   m;
+    std::map<const std::string, void (Location::*)(const std::string&)> m;
     m["root"] = &Location::set_root;
     m["default_file"] = &Location::set_default_file;
     m["proxy"] = &Location::set_proxy;

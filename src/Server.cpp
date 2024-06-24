@@ -1,8 +1,9 @@
 #include "Server.hpp"
 
 #include <iostream>
+#include <stdexcept>
 
-const std::map<const std::string, int (Server::*)(const std::string&)>  Server::set_functions_ = Server::InitSetFunctions();
+const std::map<const std::string, void (Server::*)(const std::string&)> Server::set_functions_ = Server::InitSetFunctions();
 
 Server::Server()
     : host_("0.0.0.0"),
@@ -46,19 +47,17 @@ const std::vector<Location>&    Server::get_locations() const
     return locations_;   
 }
 
-int Server::set_host(const std::string& value)
+void    Server::set_host(const std::string& value)
 {
     host_ = value;
-    return 0;
 }
 
-int Server::set_port(const std::string& value)
+void    Server::set_port(const std::string& value)
 {
     port_ = value;
-    return 0;
 }
 
-int Server::set_server_names(const std::string& value)
+void    Server::set_server_names(const std::string& value)
 {
     std::string::size_type  start = 0;
     std::string::size_type  end;
@@ -71,11 +70,8 @@ int Server::set_server_names(const std::string& value)
         server_names_.push_back(res);
         start = end + 1;
     } while (end != std::string::npos);
-    if (end != std::string::npos || res.empty()) {
-        std::cerr << "server_names is invalid" << std::endl;         
-        return 1;
-    }
-    return 0;
+    if (end != std::string::npos || res.empty())
+        throw std::runtime_error("server_names is invalid");
 }
 
 void    Server::set_addr(const struct addrinfo* addrinfo)
@@ -90,25 +86,27 @@ size_t  Server::ServerNamesCount() const
 
 int Server::SetValue(const std::string& key, const std::string& value)
 {
-    typedef std::map<const std::string, int (Server::*)(const std::string&)>::const_iterator it;
+    typedef std::map<const std::string, void (Server::*)(const std::string&)>::const_iterator it;
 
     it i = set_functions_.find(key);
-    return i == set_functions_.end() ? -1 : (this->*(i->second))(value);
+    if (set_functions_.find(key) == set_functions_.end())
+        return kInvalidKey;
+    (this->*(i->second))(value);
+    return kValiddKey;
 }
 
-int Server::AddLocation(const std::string& value)
+void    Server::AddLocation(const std::string& value)
 {
     if (locations_.empty())
         locations_.push_back(Location());
     else
         locations_.push_back(Location(locations_.front()));
     locations_.back().set_path(value);
-    return 0;
 }
 
-int Server::SetLastLocation(const std::string& key, const std::string& value)
+void    Server::SetLastLocation(const std::string& key, const std::string& value)
 {
-    return (locations_.back().SetValue(key, value));
+    locations_.back().SetValue(key, value);
 }
 
 void    Server::SetLastLocationStrict(bool value)
@@ -134,9 +132,9 @@ void    Server::Print() const
     }
 }
 
-const std::map<const std::string, int (Server::*)(const std::string&)>  Server::InitSetFunctions()
+const std::map<const std::string, void (Server::*)(const std::string&)> Server::InitSetFunctions()
 {
-    std::map<const std::string, int (Server::*)(const std::string&)>    m;
+    std::map<const std::string, void (Server::*)(const std::string&)>   m;
     m["host"] = &Server::set_host;
     m["port"] = &Server::set_port;
     m["server_names"] = &Server::set_server_names;
