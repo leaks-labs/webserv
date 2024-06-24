@@ -1,4 +1,3 @@
-port 8080
 # 0.0.0.0
 port 8080
 server_names abc.com xyz.fr

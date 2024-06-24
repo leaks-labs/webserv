@@ -15,7 +15,7 @@ class WebServ {
 
         ~WebServ();
 
-        int Run() const;
+        void    Run() const;
 
     private:
         WebServ();

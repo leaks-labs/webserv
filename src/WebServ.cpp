@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 
 #include "EventBroker.hpp"
 
@@ -18,9 +19,10 @@ WebServ::~WebServ()
 {
 }
 
-int WebServ::Run() const
+void    WebServ::Run() const
 {
+   if (server_list_.Size() < 1)
+        throw std::runtime_error("no servers to run");
     EventBroker event_broker(listener_list_);
-
-    return event_broker.Run();
+    event_broker.Run();
 }

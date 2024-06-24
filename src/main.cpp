@@ -1,5 +1,5 @@
-#include <csignal>
-#include <exception>
+#include <cstring>
+#include <stdexcept>
 #include <iostream>
 #include <string>
 
@@ -8,21 +8,15 @@
 
 int main(int argc, char **argv)
 {
-    if (signal(SIGINT, SIG_IGN) == SIG_ERR) {
-        std::cerr << "ERROR: signal() failed" << std::endl;
-        return 1;
-    }
-
-    if (argc > 2) {
-        std::cerr << "Usage: " << argv[0] << " [config_file]" << std::endl;
-        return 1;
-    }
-
 	try
 	{
+        if (argc > 2)
+            throw std::runtime_error("only one config file can be specified");
+        if (signal(SIGINT, SIG_IGN) == SIG_ERR)
+            throw std::runtime_error("signal() failed: " + std::string(strerror(errno)));
         WebServ server(argc == 2 ? argv[1] : WebServ::kDefaultConfigFile);
-        int ret = server.Run();
-        return ret < 0 ;
+        server.Run();
+        return 0;
 	}
 	catch(const std::exception& e)
 	{
