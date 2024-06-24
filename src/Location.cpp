@@ -184,14 +184,15 @@ void    Location::set_strict(bool value)
    strict_ = value;
 }
 
-void    Location::SetValue(const std::string& key, const std::string& value)
+int Location::SetValue(const std::string& key, const std::string& value)
 {
     typedef std::map<const std::string, void (Location::*)(const std::string&)>::const_iterator it;
 
     it i = set_functions_.find(key);
     if (i == set_functions_.end())
-        throw std::runtime_error("setting key does not exist: " + key);
+        return kInvalidKey;
     (this->*(i->second))(value);
+    return kValidKey;
 }
 
 void    Location::Print() const

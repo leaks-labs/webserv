@@ -87,6 +87,7 @@ void    ServerList::ParseConfigFile(std::ifstream& file)
     int count = 1;
     try
     {
+        bool    inside_location_block = false;
         for (std::string line; !file.eof() && std::getline(file, line) && !file.fail(); ++count) {
             if (line.empty())
                 continue;
@@ -98,16 +99,23 @@ void    ServerList::ParseConfigFile(std::ifstream& file)
             if (sep != std::string::npos)
                 value = line.substr(sep + 1, std::string::npos);
             if (key == "#" && (sep == std::string::npos || !value.empty())) {
+                inside_location_block = false;
                 servers_.push_back(Server());
                 if (!value.empty())
                     servers_.back().set_host(value);
+            } else if (servers_.empty()) {
+                throw std::runtime_error("setting a value outside a server block is invalid");
             } else if (value.empty()) {
                 throw std::runtime_error("value is empty");
             } else if (key == ">" || key == ">=") {
+                inside_location_block = true;
                 servers_.back().AddLocation(value);
                 servers_.back().SetLastLocationStrict(key == ">=");
-            } else if (servers_.back().SetValue(key, value) == Server::kInvalidKey) {
-                servers_.back().SetLastLocation(key, value);
+            } else if (servers_.back().SetValue(key, value) == Server::kValidKey) {
+                if (inside_location_block)
+                    throw std::runtime_error("this key is invalid inside a location block");
+            } else if (servers_.back().SetLastLocation(key, value) == Server::kInvalidKey) {
+                throw std::runtime_error("this key is invalid");
             }
         }
     }

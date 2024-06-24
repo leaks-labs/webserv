@@ -8,6 +8,9 @@
 
 class Location {
     public:
+        static const int    kInvalidKey = -1;
+        static const int    kValidKey = 0;
+
         static const int    kMethodNone = 0;
         static const int    kMethodGet = 1 << 0;
         static const int    kMethodPost = 1 << 1;
@@ -45,7 +48,7 @@ class Location {
         void    set_listing(const std::string& value);
         void    set_strict(bool value);
 
-        void    SetValue(const std::string& key, const std::string& value);
+        int     SetValue(const std::string& key, const std::string& value);
         void    Print() const;
 
     private:

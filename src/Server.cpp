@@ -92,7 +92,7 @@ int Server::SetValue(const std::string& key, const std::string& value)
     if (set_functions_.find(key) == set_functions_.end())
         return kInvalidKey;
     (this->*(i->second))(value);
-    return kValiddKey;
+    return kValidKey;
 }
 
 void    Server::AddLocation(const std::string& value)
@@ -104,9 +104,9 @@ void    Server::AddLocation(const std::string& value)
     locations_.back().set_path(value);
 }
 
-void    Server::SetLastLocation(const std::string& key, const std::string& value)
+int Server::SetLastLocation(const std::string& key, const std::string& value)
 {
-    locations_.back().SetValue(key, value);
+    return locations_.back().SetValue(key, value);
 }
 
 void    Server::SetLastLocationStrict(bool value)
@@ -135,7 +135,6 @@ void    Server::Print() const
 const std::map<const std::string, void (Server::*)(const std::string&)> Server::InitSetFunctions()
 {
     std::map<const std::string, void (Server::*)(const std::string&)>   m;
-    m["host"] = &Server::set_host;
     m["port"] = &Server::set_port;
     m["server_names"] = &Server::set_server_names;
     return m;

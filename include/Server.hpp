@@ -11,7 +11,7 @@
 class Server {
     public:
         static const int    kInvalidKey = -1;
-        static const int    kValiddKey = 0;
+        static const int    kValidKey = 0;
 
         Server();
         Server(const Server& src);
@@ -31,7 +31,7 @@ class Server {
         size_t  ServerNamesCount() const;
         int     SetValue(const std::string& key, const std::string& value);
         void    AddLocation(const std::string& value);
-        void    SetLastLocation(const std::string& key, const std::string& value);
+        int     SetLastLocation(const std::string& key, const std::string& value);
         void    SetLastLocationStrict(bool value);
         void    PopDefaultServerName();
         void    Print() const;
