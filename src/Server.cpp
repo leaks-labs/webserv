@@ -116,7 +116,7 @@ void    Server::SetLastLocationStrict(bool value)
     locations_.back().set_strict(value);
 }
 
-void    Server::PopFirstServerNames()
+void    Server::PopDefaultServerName()
 {
     if (!server_names_.empty())
         server_names_.erase(server_names_.begin());

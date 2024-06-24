@@ -30,7 +30,7 @@ class Server {
         int     AddLocation(const std::string& value);
         int     SetLastLocation(const std::string& key, const std::string& value);
         void    SetLastLocationStrict(bool value);
-        void    PopFirstServerNames();
+        void    PopDefaultServerName();
         void    Print() const;
 
     private:
