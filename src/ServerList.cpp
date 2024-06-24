@@ -94,7 +94,7 @@ int ServerList::ParseConfigFile(std::ifstream& file)
     for (std::string line; !file.eof() && std::getline(file, line) && !file.fail(); ++count) {
         if (line.empty())
             continue;
-        size_t  sep = line.find(' ');
+        std::string::size_type  sep = line.find(' ');
         std::string key = line.substr(0, sep);
         if (key.empty()) {
             std::cerr << "Key is empty" << std::endl;
