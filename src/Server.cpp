@@ -83,11 +83,6 @@ void    Server::set_addr(const struct addrinfo* addrinfo)
     addr_ = addrinfo;
 }
 
-size_t  Server::LocationsCount() const
-{
-    return locations_.size();
-}
-
 size_t  Server::ServerNamesCount() const
 {
     return server_names_.size();
@@ -119,12 +114,6 @@ int Server::SetLastLocation(const std::string& key, const std::string& value)
 void    Server::SetLastLocationStrict(bool value)
 {
     locations_.back().set_strict(value);
-}
-
-void    Server::PopFirstLocation()
-{
-    if (!locations_.empty())
-        locations_.erase(locations_.begin());
 }
 
 void    Server::PopFirstServerNames()

@@ -127,8 +127,6 @@ int ServerList::ParseConfigFile(std::ifstream& file)
         return count;
     }
     for (std::vector<Server>::iterator it = servers_.begin(); it != servers_.end(); ++it) {
-        if (it->LocationsCount() > 1)
-            it->PopFirstLocation();
         if (it->ServerNamesCount() > 1)
             it->PopFirstServerNames();
     }
