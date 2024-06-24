@@ -230,12 +230,12 @@ const std::map<const std::string, int(Location::*)(const std::string&)> Location
     std::map<const std::string, int(Location::*)(const std::string&)>   m;
     m["root"] = &Location::set_root;
     m["default_file"] = &Location::set_default_file;
+    m["proxy"] = &Location::set_proxy;
+    m["errors"] = &Location::set_errors;
     m["cgi"] = &Location::set_cgi;
     m["methods"] = &Location::set_methods;
-    m["proxy"] = &Location::set_proxy;
-    m["listing"] = &Location::set_listing;
-    m["errors"] = &Location::set_errors;
     m["bodymax"] = &Location::set_bodymax;
+    m["listing"] = &Location::set_listing;
     return m;
 }
 
