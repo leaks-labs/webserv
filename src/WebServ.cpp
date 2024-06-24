@@ -2,35 +2,27 @@
 
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 
 #include "EventBroker.hpp"
 
-WebServ::WebServ()
-{
-    server_list_.AddServer();
-    server_list_.begin()->set_addr(listener_list_.AddDefaultListenerRecords());
-    server_list_.Print();
-    // listener_list_info_.PrintListenerRecords();
-    listener_list_.EnableListeners();
-}
+const std::string   WebServ::kDefaultConfigFile = "config.txt";
 
 WebServ::WebServ(const std::string& config_file)
 {
-    server_list_.OpenFile(config_file);
-    for (ServerList::Iterator it = server_list_.begin(); it != server_list_.end(); ++it)
-        it->set_addr(listener_list_.AddListenerRecord(it->get_host().c_str(), it->get_port()));
+    server_list_.InitServerList(config_file);
+    listener_list_.InitListenerList(server_list_);
     server_list_.Print();
-    // listener_list_info_.PrintListenerRecords();
-    listener_list_.EnableListeners();
 }
 
 WebServ::~WebServ()
 {
 }
 
-int WebServ::Run() const
+void    WebServ::Run() const
 {
+   if (server_list_.Size() < 1)
+        throw std::runtime_error("no servers to run");
     EventBroker event_broker(listener_list_);
-
-    return event_broker.Run();
+    event_broker.Run();
 }

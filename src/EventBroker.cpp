@@ -2,13 +2,13 @@
 
 #include <algorithm>
 #include <csignal>
+#include <cstring>
 #include <stdexcept>
 
 #include <unistd.h>
 
 // to remove
 #include <iostream>
-#include <cstdio>
 // to remove
 
 namespace 
@@ -28,7 +28,8 @@ void    signal_handler(int signal)
 #ifdef __APPLE__
 
 EventBroker::EventBroker(const ListenerList& listeners)
-    : listeners_(listeners), queue_(kqueue())
+    : listeners_(listeners),
+      queue_(kqueue())
 {
     if (queue_ == -1)
         throw std::runtime_error("kqueue() failed to create the queue");
@@ -41,7 +42,8 @@ EventBroker::EventBroker(const ListenerList& listeners)
 #elif __linux__
 
 EventBroker::EventBroker(const ListenerList& listeners)
-    : listeners_(listeners), queue_(epoll_create(1))
+    : listeners_(listeners),
+      queue_(epoll_create(1))
 {
     if (queue_ == -1)
         throw std::runtime_error("kqueue() failed to create the queue");
@@ -61,14 +63,11 @@ EventBroker::~EventBroker()
     close(queue_);
 }
 
-int EventBroker::Run()
+void    EventBroker::Run()
 {
-    if (signal(SIGINT, signal_handler) == SIG_ERR) {
-        perror("ERROR: signal() failed");
-        return -1;
-    }
+    if (signal(SIGINT, signal_handler) == SIG_ERR)
+        throw std::runtime_error("signal() failed: " + std::string(strerror(errno)));
     WaitingLoop();
-    return 0;
 }
 
 #ifdef __APPLE__

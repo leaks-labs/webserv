@@ -4,8 +4,6 @@
 #include <cstring>
 #include <stdexcept>
 
-const std::string  ListenerList::kDefaultPort = "8080";
-
 ListenerList::ConstIterator::ConstIterator() : it_()
 {
 }
@@ -107,14 +105,16 @@ ListenerList::ConstIterator ListenerList::end() const {
     return EnabledListeners_.end();
 }
 
+void    ListenerList::InitListenerList(ServerList& server_list)
+{
+    for (ServerList::Iterator it = server_list.begin(); it != server_list.end(); ++it)
+        it->set_addr(AddListenerRecord(it->get_host().c_str(), it->get_port()));
+    EnableListeners();
+}
+
 size_t  ListenerList::EnabledListenerCount() const
 {
     return EnabledListeners_.size();
-}
-
-const struct addrinfo*  ListenerList::AddDefaultListenerRecords()
-{
-    return AddListenerRecord(NULL, kDefaultPort);
 }
 
 const struct addrinfo*  ListenerList::AddListenerRecord(const char* ip, const std::string& port)

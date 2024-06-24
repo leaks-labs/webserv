@@ -9,14 +9,16 @@
 
 class WebServ {
     public:
-        WebServ();
+        static const std::string    kDefaultConfigFile;
+
         WebServ(const std::string& config_file);
 
         ~WebServ();
 
-        int Run() const;
+        void    Run() const;
 
     private:
+        WebServ();
         WebServ(const WebServ& src);
         WebServ&    operator=(const WebServ& rhs);
 

@@ -17,7 +17,7 @@ class EventBroker {
 
         ~EventBroker();
 
-        int Run();
+        void    Run();
 
     private:
 # ifdef __APPLE__

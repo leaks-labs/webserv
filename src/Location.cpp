@@ -1,17 +1,24 @@
 #include "Location.hpp"
 
 #include <iostream>
+#include <sstream>
+#include <stdexcept>
 
-const std::map<const std::string, int(Location::*)(const std::string&)> Location::set_functions_ = Location::InitSetFunctions();
+const std::map<const std::string, void (Location::*)(const std::string&)>   Location::set_functions_ = Location::InitSetFunctions();
+const std::map<const std::string, int>                                      Location::methods_ref_ = Location::InitMethodsRef();
+const std::map<const std::string, int>                                      Location::cgi_ref_ = Location::InitCgiRef();
 
 Location::Location()
     : path_("/"),
-      root_("/"),
+      root_("/"), // TODO: change to current directory?
       default_file_("/data/default.html"),
-      cgi_("php"),
       proxy_("false"),
-      methods_(7),
-      listing_(true)
+      errors_("/data/errors"), // TODO: change to a directory inside current directory?
+      cgi_(kCgiPHP),
+      methods_(kMethodGet | kMethodPost | kMethodDelete),
+      bodymax_(0),
+      listing_(true),
+      strict_(false)
 {
 }
 
@@ -30,6 +37,9 @@ Location&   Location::operator=(Location const& rhs)
         proxy_ = rhs.get_proxy();
         methods_ = rhs.get_methods();
         listing_ = rhs.get_listing();
+        strict_ = rhs.get_strict();
+        errors_ = rhs.get_errors();
+        bodymax_ = rhs.get_bodymax();
     }
     return *this;
 }
@@ -53,14 +63,19 @@ const std::string&  Location::get_default_file() const
     return default_file_;
 }
 
-const std::string&  Location::get_cgi() const
-{
-    return cgi_;
-}
-
 const std::string&  Location::get_proxy() const
 {
     return proxy_;
+}
+
+const std::string&  Location::get_errors() const
+{
+    return errors_;
+}
+
+int Location::get_cgi() const
+{
+    return cgi_;
 }
 
 int Location::get_methods() const
@@ -68,93 +83,116 @@ int Location::get_methods() const
     return methods_;
 }
 
+int Location::get_bodymax() const
+{
+    return bodymax_;
+}
+
 bool    Location::get_listing() const
 {
     return listing_;
 }
 
-int Location::set_path(const std::string& value)
+bool    Location::get_strict() const
+{
+    return strict_;
+}
+
+void    Location::set_path(const std::string& value)
 {
     path_ = value;
-    return 0;
 }
 
-int Location::set_root(const std::string& value)
+void    Location::set_root(const std::string& value)
 {
     root_ = value;
-    return 0;
 }
 
-int Location::set_default_file(const std::string& value)
+void    Location::set_default_file(const std::string& value)
 {
     default_file_ = value;
-    return 0;
 }
 
-int Location::set_cgi(const std::string& value)
-{
-    if (value != "php" && value != "python" && value != "none") {
-        std::cerr << "cgi value should be php, python or none" << std::endl;
-        return 1;
-    }
-    cgi_ = value;
-    return 0;
-}
-
-int Location::set_proxy(const std::string& value)
+void    Location::set_proxy(const std::string& value)
 {
     proxy_ = value;
-    return 0;
 }
 
-int Location::set_methods(const std::string& value)
+void    Location::set_errors(const std::string& value)
 {
-    std::string::size_type  beg = 0;
-    std::string::size_type  end = value.find(' ');
+    errors_ = value;
+}
+
+void    Location::set_cgi(const std::string& value)
+{
+    cgi_ = 0;
+    std::string::size_type  start = 0;
+    std::string::size_type  end;
+    do {
+        end = value.find(' ', start);
+        std::string res = value.substr(start, end - start);
+        std::map<const std::string, int>::const_iterator    i = cgi_ref_.find(res);
+        if (i == cgi_ref_.end())
+            throw std::runtime_error("cgi is invalid: it should be php, python or none");
+        else if (i->second == kCgiNone)
+            cgi_ = kCgiNone;
+        else
+            cgi_ |= i->second;
+        start = end + 1;
+    } while (end != std::string::npos);
+}
+
+void    Location::set_methods(const std::string& value)
+{
     methods_ = 0;
-    while (true) {
-        std::string str = value.substr(beg, end - beg);
-        if (str == "GET" && (methods_ & kGet) == 0) {
-            methods_ |= kGet;
-        } else if (str == "POST" && (methods_ & kPost) == 0) {
-            methods_ |= kPost;
-        } else if (str == "DELETE" && (methods_ & kDelete) == 0) {
-            methods_ |= kDelete;
-        } else {
-            std::cerr << "method should be GET POST or DELETE" << std::endl;
-            return 1;
-        }
-        if (end == std::string::npos)
-            break;
-        beg = end + 1;
-        end = value.find(' ', beg);
-    }
-    return 0;
+    std::string::size_type  start = 0;
+    std::string::size_type  end;
+    do {
+        end = value.find(' ', start);
+        std::string res = value.substr(start, end - start);
+        std::map<const std::string, int>::const_iterator    i = methods_ref_.find(res);
+        if (i == methods_ref_.end())
+            throw std::runtime_error("method is invalid: it should be GET POST DELETE or none");
+        else if (i->second == kMethodNone)
+            methods_ = kMethodNone;
+        else
+            methods_ |= i->second;
+        start = end + 1;
+    } while (end != std::string::npos);
 }
 
-int Location::set_listing(const std::string& value)
+void    Location::set_bodymax(const std::string& value)
 {
-    if (value == "true") {
+    std::istringstream  iss(value);
+    iss >> std::noskipws >> bodymax_;
+    if (iss.fail() || !iss.eof() || (value[0] == '0' && bodymax_ != 0))
+        throw std::runtime_error("bodymax value shoud be a digit");
+}
+
+void    Location::set_listing(const std::string& value)
+{
+    if (value == "true")
         listing_ = true;
-    } else if (value =="false") {
+    else if (value =="false")
         listing_ = false;
-    } else {
-        std::cerr << "Listing value should be true or false" << std::endl;
-        return 1;
-    }
-    return 0;
+    else
+        throw std::runtime_error("listing value should be true or false");
+}
+
+void    Location::set_strict(bool value)
+{
+   strict_ = value;
 }
 
 int Location::SetValue(const std::string& key, const std::string& value)
 {
-    typedef std::map<const std::string, int (Location::*)(const std::string&)>::const_iterator it;
+    typedef std::map<const std::string, void (Location::*)(const std::string&)>::const_iterator it;
 
     it i = set_functions_.find(key);
-    if (i == set_functions_.end()) {
-        std::cerr << "setting key does not exist: " << key << std::endl;
-        return 1;
-    }
-    return (this->*(i->second))(value);
+    if (i == set_functions_.end())
+        return kInvalidKey;
+    (this->*(i->second))(value);
+    return kValidKey;
 }
 
 void    Location::Print() const
@@ -165,17 +203,41 @@ void    Location::Print() const
                 << "\tcgi: " << cgi_ << std::endl
                 << "\tmethods: " << methods_ << std::endl
                 << "\tproxy: " << proxy_ << std::endl
-                << "\tlisting: " << listing_ << std::endl;
+                << "\tlisting: " << listing_ << std::endl
+                << "\tstrict: " << strict_ << std::endl
+                << "\terrors: " << errors_ << std::endl
+                << "\tbodymax: " << bodymax_ << std::endl;
 }
 
-const std::map<const std::string, int(Location::*)(const std::string&)> Location::InitSetFunctions()
+const std::map<const std::string, void (Location::*)(const std::string&)>   Location::InitSetFunctions()
 {
-    std::map<const std::string, int(Location::*)(const std::string&)>   m;
+    std::map<const std::string, void (Location::*)(const std::string&)> m;
     m["root"] = &Location::set_root;
     m["default_file"] = &Location::set_default_file;
+    m["proxy"] = &Location::set_proxy;
+    m["errors"] = &Location::set_errors;
     m["cgi"] = &Location::set_cgi;
     m["methods"] = &Location::set_methods;
-    m["proxy"] = &Location::set_proxy;
+    m["bodymax"] = &Location::set_bodymax;
     m["listing"] = &Location::set_listing;
+    return m;
+}
+
+const std::map<const std::string, int>  Location::InitMethodsRef()
+{
+    std::map<const std::string, int>    m;
+    m["none"] = kMethodNone;
+    m["GET"] = kMethodGet;
+    m["POST"] = kMethodPost;
+    m["DELETE"] = kMethodDelete;
+    return m;
+}
+
+const std::map<const std::string, int>  Location::InitCgiRef()
+{
+    std::map<const std::string, int>    m;
+    m["none"] = kCgiNone;
+    m["php"] = kCgiPHP;
+    m["python"] = kCgiPython;
     return m;
 }

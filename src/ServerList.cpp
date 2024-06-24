@@ -1,5 +1,6 @@
 #include "ServerList.hpp"
 
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -62,23 +63,12 @@ size_t  ServerList::Size() const
     return servers_.size();
 }
 
-void    ServerList::AddServer()
+void    ServerList::InitServerList(const std::string& path)
 {
-    servers_.push_back(Server());
-}
-
-void    ServerList::OpenFile(const std::string& path)
-{
-    file_.open(path.c_str());
-    if (file_.good() == false)
+    std::ifstream   file(path.c_str());
+    if (!file.good())
         throw std::runtime_error("opening config_file failed");
-    int err = LoadFile();
-    if (err) {
-        std::ostringstream  ss;
-        ss << err;
-        std::string err_str(ss.str());
-        throw std::runtime_error("Config file Error at line: " + err_str);
-    }
+    ParseConfigFile(file);
 }
 
 void    ServerList::Print() const
@@ -92,41 +82,53 @@ const   std::vector<Server>&  ServerList::get_servers() const
     return servers_;
 }
 
-int ServerList::LoadFile()
+void    ServerList::ParseConfigFile(std::ifstream& file)
 {
     int count = 1;
-    for (std::string line; !file_.eof() && std::getline(file_, line) && !file_.fail(); ++count) {
-        if (line.empty())
-            continue;
-        size_t  sep = line.find(' ');
-        std::string key = line.substr(0, sep);
-        if (key.empty()) {
-            std::cerr << "Key is empty" << std::endl;
-            return count;
-        }
-        std::string value;
-        if (sep != std::string::npos)
-            line.substr(sep + 1, line.length());
-        if (key == "#" && (sep == std::string::npos || !value.empty())) {
-            servers_.push_back(Server());
-            if (!value.empty())
-                servers_.back().set_host(value);
-        } else if (value.empty()) {
-            std::cerr << "Value is empty" << std::endl;
-            return count;
-        } else if (key == ">") {
-            servers_.back().AddLocation(value);
-        } else {
-            int err = servers_.back().SetValue(key, value);
-            if (err == -1)
-                err = servers_.back().SetLastLocation(key, value);
-            if (err)
-                return count;
+    try
+    {
+        bool    inside_location_block = false;
+        for (std::string line; !file.eof() && std::getline(file, line) && !file.fail(); ++count) {
+            if (line.empty())
+                continue;
+            std::string::size_type  sep = line.find(' ');
+            std::string key = line.substr(0, sep);
+            if (key.empty())
+                throw std::runtime_error("key is empty");
+            std::string value;
+            if (sep != std::string::npos)
+                value = line.substr(sep + 1, std::string::npos);
+            if (key == "#" && (sep == std::string::npos || !value.empty())) {
+                inside_location_block = false;
+                servers_.push_back(Server());
+                if (!value.empty())
+                    servers_.back().set_host(value);
+            } else if (servers_.empty()) {
+                throw std::runtime_error("setting a value outside a server block is invalid");
+            } else if (value.empty()) {
+                throw std::runtime_error("value is empty");
+            } else if (key == ">" || key == ">=") {
+                inside_location_block = true;
+                servers_.back().AddLocation(value);
+                servers_.back().SetLastLocationStrict(key == ">=");
+            } else if (servers_.back().SetValue(key, value) == Server::kValidKey) {
+                if (inside_location_block)
+                    throw std::runtime_error("this key is invalid inside a location block");
+            } else if (servers_.back().SetLastLocation(key, value) == Server::kInvalidKey) {
+                throw std::runtime_error("this key is invalid");
+            }
         }
     }
-    if (file_.fail() && !file_.eof()) {
-        std::cerr << "Error reading file" << std::endl;
-        return count;
+    catch(const std::exception& e)
+    {
+        std::ostringstream  ss;
+        ss << count;
+        std::string err_str(ss.str());
+        throw std::runtime_error("config file at line " + err_str + ": " + e.what());
     }
-    return 0;
+    if (file.fail() && !file.eof())
+        throw std::runtime_error("while reading config file");
+    for (std::vector<Server>::iterator it = servers_.begin(); it != servers_.end(); ++it)
+        if (it->ServerNamesCount() > 1)
+            it->PopDefaultServerName();
 }
