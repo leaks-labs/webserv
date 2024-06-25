@@ -11,6 +11,10 @@
 
 # include "ListenerList.hpp"
 
+// TODO: to remove
+# include <map>
+//
+
 class EventBroker {
     public:
         EventBroker(const ListenerList& listeners);
@@ -27,6 +31,7 @@ class EventBroker {
 # endif
 
         static const int    kMaxEvents = 32;
+        static const size_t kBufSize = 1024;
 
         EventBroker();
         EventBroker(const EventBroker& src);
@@ -44,16 +49,17 @@ class EventBroker {
         bool    IsEventWrite(const Event& event) const;
         int     WaitForEvents(std::vector<Event>& event_list, int event_list_size) const;
         void    WaitingLoop();
-        void    HandleEvents(const std::vector<Event>& event_list, int number_events, char* buf);
+        void    HandleEvents(const std::vector<Event>& event_list, int number_events);
         bool    IsListener(int ident) const;
-        int     AcceptConnection(int ident);
+        void    AcceptConnection(int ident);
         void    DeleteConnection(int ident);
-        void    SendData(const Event& event, char* buf /* replace with future request and response queue */);
-        void    ReceiveData(const Event& event, char* buf /* replace with future request and response queue */);
+        void    SendData(const Event& event);
+        void    ReceiveData(const Event& event);
 
         const ListenerList& listeners_;
         const int           queue_;
-        std::vector<int>    accepted_sfd_list_;
+        // TODO: to replace with the future ClientList
+        std::map<int, int> accepted_sfd_list_;
 };
 
 #endif  // EVENT_BROKER_HPP_
