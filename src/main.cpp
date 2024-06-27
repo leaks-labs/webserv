@@ -4,7 +4,8 @@
 #include <stdexcept>
 #include <iostream>
 #include <string>
-
+#include <signal.h>
+#include <errno.h>
 #include "WebServ.hpp"
 #include "Server.hpp"
 

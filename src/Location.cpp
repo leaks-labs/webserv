@@ -7,19 +7,21 @@
 const std::map<const std::string, void (Location::*)(const std::string&)>   Location::set_functions_ = Location::InitSetFunctions();
 const std::map<const std::string, int>                                      Location::methods_ref_ = Location::InitMethodsRef();
 const std::map<const std::string, int>                                      Location::cgi_ref_ = Location::InitCgiRef();
+int    errorList[] = {400, 404};
 
 Location::Location()
     : path_("/"),
       root_("/"), // TODO: change to current directory?
       default_file_("/data/default.html"),
       proxy_("false"),
-      errors_("/data/errors"), // TODO: change to a directory inside current directory?
       cgi_(kCgiPHP),
       methods_(kMethodGet | kMethodPost | kMethodDelete),
       bodymax_(0),
       listing_(true),
       strict_(false)
 {
+    for (unsigned long int i = 0; i < sizeof(errorList) / sizeof(errorList[0]); i++)
+        errors_[errorList[i]] = "index.html";
 }
 
 Location::Location(const Location& src)
@@ -68,7 +70,7 @@ const std::string&  Location::get_proxy() const
     return proxy_;
 }
 
-const std::string&  Location::get_errors() const
+const std::map<int, std::string>&  Location::get_errors() const
 {
     return errors_;
 }
@@ -100,16 +102,23 @@ bool    Location::get_strict() const
 
 void    Location::set_path(const std::string& value)
 {
+    if (value.size() == 0 || value[0] != '/')
+        throw std::runtime_error("path should start with /");
     path_ = value;
+
 }
 
 void    Location::set_root(const std::string& value)
 {
+    if (value.size() == 0 || value[0] != '/')
+        throw std::runtime_error("root should start with /");
     root_ = value;
 }
 
 void    Location::set_default_file(const std::string& value)
 {
+    if (value.find("/") != value.npos)
+        throw std::runtime_error("default file should not contain a /");
     default_file_ = value;
 }
 
@@ -120,7 +129,30 @@ void    Location::set_proxy(const std::string& value)
 
 void    Location::set_errors(const std::string& value)
 {
-    errors_ = value;
+    std::string::size_type      start = 0;
+    std::string::size_type      end;
+    std::string                 res;
+    std::vector<std::string>    lst;
+    int                         code;
+
+    do {
+        end = value.find(' ', start);
+        res = value.substr(start, end - start);
+        if (res.empty())
+            break;
+        lst.push_back(res);
+        start = end + 1;
+    } while (end != std::string::npos);
+    if (end != std::string::npos || res.empty() || lst.size() < 2)
+        throw std::runtime_error("errors are invalid");
+    for (long unsigned int i = 0; i < lst.size() - 1; i++)
+    {
+        std::istringstream  iss(lst[i]);
+        iss >> std::noskipws >> code;
+        if (iss.fail() || !iss.eof() || code < 0)
+            throw std::runtime_error("error code should be a positive integer");
+        errors_[code] = lst.back();
+    }
 }
 
 void    Location::set_cgi(const std::string& value)
@@ -197,6 +229,8 @@ int Location::SetValue(const std::string& key, const std::string& value)
 
 void    Location::Print() const
 {
+    typedef std::map<int, std::string>::const_iterator iterator;
+
     std::cout   << "\tlocation: " << path_ << std::endl
                 << "\troot: " << root_ << std::endl
                 << "\tdefault_file: " << default_file_ << std::endl
@@ -205,8 +239,13 @@ void    Location::Print() const
                 << "\tproxy: " << proxy_ << std::endl
                 << "\tlisting: " << listing_ << std::endl
                 << "\tstrict: " << strict_ << std::endl
-                << "\terrors: " << errors_ << std::endl
-                << "\tbodymax: " << bodymax_ << std::endl;
+                << "\tbodymax: " << bodymax_ << std::endl
+                << "\terrors: " << std::endl;
+
+    for (iterator i = errors_.begin(); i != errors_.end(); i++)
+    {
+        std::cout << "\t\t" << i->first << ": " << i->second << std::endl;
+    }
 }
 
 const std::map<const std::string, void (Location::*)(const std::string&)>   Location::InitSetFunctions()

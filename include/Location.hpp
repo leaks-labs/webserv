@@ -3,8 +3,9 @@
 
 # include <map>
 # include <string>
-
+# include <vector>
 # include <unistd.h>
+
 
 class Location {
     public:
@@ -30,7 +31,7 @@ class Location {
         const std::string&  get_root() const;
         const std::string&  get_default_file() const;
         const std::string&  get_proxy() const;
-        const std::string&  get_errors() const;
+        const std::map<int, std::string>&  get_errors() const;
         int                 get_cgi() const;
         int                 get_methods() const;
         int                 get_bodymax() const;
@@ -64,7 +65,7 @@ class Location {
         std::string root_;
         std::string default_file_;
         std::string proxy_;
-        std::string errors_;
+        std::map<int, std::string> errors_;
         int         cgi_;
         int         methods_;
         int         bodymax_;
