@@ -100,16 +100,23 @@ bool    Location::get_strict() const
 
 void    Location::set_path(const std::string& value)
 {
+    if (value.size() == 0 || value[0] != '/')
+        throw std::runtime_error("path should start with /");
     path_ = value;
+
 }
 
 void    Location::set_root(const std::string& value)
 {
+    if (value.size() == 0 || value[0] != '/')
+        throw std::runtime_error("root should start with /");
     root_ = value;
 }
 
 void    Location::set_default_file(const std::string& value)
 {
+    if (value.find("/") != value.npos)
+        throw std::runtime_error("default file should not contain a /");
     default_file_ = value;
 }
 
