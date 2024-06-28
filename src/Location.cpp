@@ -102,15 +102,14 @@ bool    Location::get_strict() const
 
 void    Location::set_path(const std::string& value)
 {
-    if (value.size() == 0 || value[0] != '/')
+    if (value.empty() || value[0] != '/')
         throw std::runtime_error("path should start with /");
     path_ = value;
-
 }
 
 void    Location::set_root(const std::string& value)
 {
-    if (value.size() == 0 || value[0] != '/')
+    if (value.empty() || value[0] != '/')
         throw std::runtime_error("root should start with /");
     root_ = value;
 }
@@ -143,6 +142,8 @@ void    Location::set_errors(const std::string& value)
         lst.push_back(res);
         start = end + 1;
     } while (end != std::string::npos);
+    if (lst.back().empty() || lst.back()[0] != '/')
+        throw std::runtime_error("errors path should start with /");
     if (end != std::string::npos || res.empty() || lst.size() < 2)
         throw std::runtime_error("errors are invalid");
     for (long unsigned int i = 0; i < lst.size() - 1; i++)
@@ -243,9 +244,7 @@ void    Location::Print() const
                 << "\terrors: " << std::endl;
 
     for (iterator i = errors_.begin(); i != errors_.end(); i++)
-    {
         std::cout << "\t\t" << i->first << ": " << i->second << std::endl;
-    }
 }
 
 const std::map<const std::string, void (Location::*)(const std::string&)>   Location::InitSetFunctions()

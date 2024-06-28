@@ -7,8 +7,6 @@
 #  include <sys/event.h>
 # elif __linux__
 #  include <sys/epoll.h>
-#  include <stdio.h>
-#  include <errno.h>
 # endif
 
 # include "ListenerList.hpp"
