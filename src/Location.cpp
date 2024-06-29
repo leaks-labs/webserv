@@ -100,14 +100,14 @@ bool    Location::get_strict() const
 
 void    Location::set_path(const std::string& value)
 {
-    if (value.empty() || value[0] != '/')
+    if (!IsAbsolutePath(value))
         throw std::runtime_error("path should start with /");
     path_ = value;
 }
 
 void    Location::set_root(const std::string& value)
 {
-    if (value.empty() || value[0] != '/')
+    if (!IsAbsolutePath(value))
         throw std::runtime_error("root should start with /");
     root_ = value;
 }
@@ -136,7 +136,7 @@ void    Location::set_errors(const std::string& value)
     if(end == std::string::npos)
         throw std::runtime_error("errors should contain at least a path and a value");
     path = value.substr(start, end - start);
-    if (path.empty() || path[0] != '/')
+    if (!IsAbsolutePath(path))
         throw std::runtime_error("errors path should start with /");
     start = end + 1;
     do {
@@ -146,9 +146,7 @@ void    Location::set_errors(const std::string& value)
             throw std::runtime_error("error code : one value is empty");
         std::istringstream  iss(res);
         iss >> std::noskipws >> code;
-        if (iss.fail() || !iss.eof() || code < 0)
-            throw std::runtime_error("error code should be a positive integer");
-        if(!errors_.count(code))
+        if (iss.fail() || !iss.eof() || !errors_.count(code) || (res[0] == '0' && code != 0) || code < 0)
             throw std::runtime_error("error code is not valid");
         errors_[code] = path;
         start = end + 1;
@@ -287,4 +285,11 @@ const std::map<const int, std::string>  Location::InitErrorListRef()
     m[402] = path;
     m[404] = path;
     return m;
+}
+
+bool Location::IsAbsolutePath(const std::string& value)const
+{
+    if(value.empty() || value[0] != '/')
+        return false;
+    return true;
 }

@@ -60,7 +60,7 @@ class Location {
         static const std::map<const std::string, int>                                       InitMethodsRef();
         static const std::map<const std::string, int>                                       InitCgiRef();
         static const std::map<const int, std::string>                                       InitErrorListRef();
-
+        bool                                IsAbsolutePath(const std::string&)const;
         std::string                         path_;
         std::string                         root_;
         std::string                         default_file_;
