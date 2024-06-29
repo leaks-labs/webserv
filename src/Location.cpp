@@ -7,13 +7,14 @@
 const std::map<const std::string, void (Location::*)(const std::string&)>   Location::set_functions_ = Location::InitSetFunctions();
 const std::map<const std::string, int>                                      Location::methods_ref_ = Location::InitMethodsRef();
 const std::map<const std::string, int>                                      Location::cgi_ref_ = Location::InitCgiRef();
+const std::map<const int, std::string>                                      Location::errors_ref_ = Location::InitErrorListRef();
 
 Location::Location()
     : path_("/"),
       root_("/"), // TODO: change to current directory?
       default_file_("/data/default.html"),
       proxy_("false"),
-      errors_("/data/errors"), // TODO: change to a directory inside current directory?
+      errors_(errors_ref_),
       cgi_(kCgiPHP),
       methods_(kMethodGet | kMethodPost | kMethodDelete),
       bodymax_(0),
@@ -68,7 +69,7 @@ const std::string&  Location::get_proxy() const
     return proxy_;
 }
 
-const std::string&  Location::get_errors() const
+const std::map<const int, std::string>& Location::get_errors() const
 {
     return errors_;
 }
@@ -100,16 +101,22 @@ bool    Location::get_strict() const
 
 void    Location::set_path(const std::string& value)
 {
+    if (!IsAbsolutePath(value))
+        throw std::runtime_error("path should start with /");
     path_ = value;
 }
 
 void    Location::set_root(const std::string& value)
 {
+    if (!IsAbsolutePath(value))
+        throw std::runtime_error("root should start with /");
     root_ = value;
 }
 
 void    Location::set_default_file(const std::string& value)
 {
+    if (value.find("/") != value.npos)
+        throw std::runtime_error("default file should not contain a /");
     default_file_ = value;
 }
 
@@ -120,7 +127,31 @@ void    Location::set_proxy(const std::string& value)
 
 void    Location::set_errors(const std::string& value)
 {
-    errors_ = value;
+    std::string::size_type      start = 0;
+    std::string::size_type      end;
+    std::string                 path;
+    std::string                 res;
+    int                         code;
+
+    end = value.find(' ', start);
+    if (end == std::string::npos)
+        throw std::runtime_error("errors should contain at least a path and a value");
+    path = value.substr(start, end - start);
+    if (!IsAbsolutePath(path))
+        throw std::runtime_error("errors path should start with /");
+    start = end + 1;
+    do {
+        end = value.find(' ', start);
+        res = value.substr(start, end - start);
+        if (res.empty())
+            throw std::runtime_error("error code : one value is empty");
+        std::istringstream  iss(res);
+        iss >> std::noskipws >> code;
+        if (iss.fail() || !iss.eof() || !errors_.count(code) || (res[0] == '0' && code != 0) || code < 0)
+            throw std::runtime_error("error code is not valid");
+        errors_[code] = path;
+        start = end + 1;
+    } while (end != std::string::npos);
 }
 
 void    Location::set_cgi(const std::string& value)
@@ -197,6 +228,8 @@ int Location::SetValue(const std::string& key, const std::string& value)
 
 void    Location::Print() const
 {
+    typedef std::map<const int, std::string>::const_iterator iterator;
+
     std::cout   << "\tlocation: " << path_ << std::endl
                 << "\troot: " << root_ << std::endl
                 << "\tdefault_file: " << default_file_ << std::endl
@@ -205,8 +238,11 @@ void    Location::Print() const
                 << "\tproxy: " << proxy_ << std::endl
                 << "\tlisting: " << listing_ << std::endl
                 << "\tstrict: " << strict_ << std::endl
-                << "\terrors: " << errors_ << std::endl
-                << "\tbodymax: " << bodymax_ << std::endl;
+                << "\tbodymax: " << bodymax_ << std::endl
+                << "\terrors: " << std::endl;
+
+    for (iterator i = errors_.begin(); i != errors_.end(); ++i)
+        std::cout << "\t\t" << i->first << ": " << i->second << std::endl;
 }
 
 const std::map<const std::string, void (Location::*)(const std::string&)>   Location::InitSetFunctions()
@@ -240,4 +276,21 @@ const std::map<const std::string, int>  Location::InitCgiRef()
     m["php"] = kCgiPHP;
     m["python"] = kCgiPython;
     return m;
+}
+
+const std::map<const int, std::string>  Location::InitErrorListRef()
+{
+    std::map<const int, std::string>    m;
+    std::string path = "/errors/defaulterror.html";
+    m[400] = path;
+    m[402] = path;
+    m[404] = path;
+    return m;
+}
+
+bool Location::IsAbsolutePath(const std::string& value)const
+{
+    if(value.empty() || value[0] != '/')
+        return false;
+    return true;
 }

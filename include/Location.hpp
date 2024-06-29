@@ -4,8 +4,6 @@
 # include <map>
 # include <string>
 
-# include <unistd.h>
-
 class Location {
     public:
         static const int    kInvalidKey = -1;
@@ -26,16 +24,16 @@ class Location {
 
         ~Location();
 
-        const std::string&  get_path() const;
-        const std::string&  get_root() const;
-        const std::string&  get_default_file() const;
-        const std::string&  get_proxy() const;
-        const std::string&  get_errors() const;
-        int                 get_cgi() const;
-        int                 get_methods() const;
-        int                 get_bodymax() const;
-        bool                get_listing() const;
-        bool                get_strict() const;
+        const std::string&                      get_path() const;
+        const std::string&                      get_root() const;
+        const std::string&                      get_default_file() const;
+        const std::string&                      get_proxy() const;
+        const std::map<const int, std::string>& get_errors() const;
+        int                                     get_cgi() const;
+        int                                     get_methods() const;
+        int                                     get_bodymax() const;
+        bool                                    get_listing() const;
+        bool                                    get_strict() const;
 
         void    set_path(const std::string& value);
         void    set_root(const std::string& value);
@@ -55,21 +53,23 @@ class Location {
         static const std::map<const std::string, void (Location::*)(const std::string&)>    set_functions_;
         static const std::map<const std::string, int>                                       methods_ref_;
         static const std::map<const std::string, int>                                       cgi_ref_;
+        static const std::map<const int, std::string>                                       errors_ref_;
 
         static const std::map<const std::string, void (Location::*)(const std::string&)>    InitSetFunctions();
         static const std::map<const std::string, int>                                       InitMethodsRef();
         static const std::map<const std::string, int>                                       InitCgiRef();
-
-        std::string path_;
-        std::string root_;
-        std::string default_file_;
-        std::string proxy_;
-        std::string errors_;
-        int         cgi_;
-        int         methods_;
-        int         bodymax_;
-        bool        listing_;
-        bool        strict_;
+        static const std::map<const int, std::string>                                       InitErrorListRef();
+        bool                                IsAbsolutePath(const std::string&)const;
+        std::string                         path_;
+        std::string                         root_;
+        std::string                         default_file_;
+        std::string                         proxy_;
+        std::map<const int, std::string>    errors_;
+        int                                 cgi_;
+        int                                 methods_;
+        int                                 bodymax_;
+        bool                                listing_;
+        bool                                strict_;
 };
 
 #endif  // LOCATION_HPP_
