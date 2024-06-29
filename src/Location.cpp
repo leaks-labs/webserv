@@ -20,7 +20,8 @@ Location::Location()
       bodymax_(0),
       listing_(true),
       strict_(false)
-{}
+{
+}
 
 Location::Location(const Location& src)
 {
@@ -68,7 +69,7 @@ const std::string&  Location::get_proxy() const
     return proxy_;
 }
 
-const std::map<const int, std::string>&  Location::get_errors() const
+const std::map<const int, std::string>& Location::get_errors() const
 {
     return errors_;
 }
@@ -133,7 +134,7 @@ void    Location::set_errors(const std::string& value)
     int                         code;
 
     end = value.find(' ', start);
-    if(end == std::string::npos)
+    if (end == std::string::npos)
         throw std::runtime_error("errors should contain at least a path and a value");
     path = value.substr(start, end - start);
     if (!IsAbsolutePath(path))
@@ -227,7 +228,7 @@ int Location::SetValue(const std::string& key, const std::string& value)
 
 void    Location::Print() const
 {
-    typedef std::map<int, std::string>::const_iterator iterator;
+    typedef std::map<const int, std::string>::const_iterator iterator;
 
     std::cout   << "\tlocation: " << path_ << std::endl
                 << "\troot: " << root_ << std::endl
@@ -240,7 +241,7 @@ void    Location::Print() const
                 << "\tbodymax: " << bodymax_ << std::endl
                 << "\terrors: " << std::endl;
 
-    for (iterator i = errors_.begin(); i != errors_.end(); i++)
+    for (iterator i = errors_.begin(); i != errors_.end(); ++i)
         std::cout << "\t\t" << i->first << ": " << i->second << std::endl;
 }
 
