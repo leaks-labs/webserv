@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 
-const std::map<const std::string, void (Server::*)(const std::string&)> Server::set_functions_ = Server::InitSetFunctions();
+const std::map<std::string, void (Server::*)(const std::string&)>   Server::set_functions_ = Server::InitSetFunctions();
 
 Server::Server()
     : host_("0.0.0.0"),
@@ -86,7 +86,7 @@ size_t  Server::ServerNamesCount() const
 
 int Server::SetValue(const std::string& key, const std::string& value)
 {
-    typedef std::map<const std::string, void (Server::*)(const std::string&)>::const_iterator it;
+    typedef std::map<std::string, void (Server::*)(const std::string&)>::const_iterator it;
 
     it i = set_functions_.find(key);
     if (set_functions_.find(key) == set_functions_.end())
@@ -132,9 +132,9 @@ void    Server::Print() const
     }
 }
 
-const std::map<const std::string, void (Server::*)(const std::string&)> Server::InitSetFunctions()
+const std::map<std::string, void (Server::*)(const std::string&)>   Server::InitSetFunctions()
 {
-    std::map<const std::string, void (Server::*)(const std::string&)>   m;
+    std::map<std::string, void (Server::*)(const std::string&)> m;
     m["port"] = &Server::set_port;
     m["server_names"] = &Server::set_server_names;
     return m;

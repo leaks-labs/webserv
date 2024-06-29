@@ -5,12 +5,10 @@
 #include <sstream>
 #include <stdexcept>
 
-ServerList::ServerList()
+ServerList& ServerList::Instance()
 {
-}
-
-ServerList::~ServerList()
-{
+    static ServerList   instance;
+    return instance;
 }
 
 Server& ServerList::operator[](size_t index)
@@ -58,6 +56,11 @@ ServerList::ConstReverseIterator    ServerList::rend() const
     return servers_.rend();
 }
 
+const   std::vector<Server>&  ServerList::get_servers() const
+{
+    return servers_;
+}
+
 size_t  ServerList::Size() const
 {
     return servers_.size();
@@ -77,9 +80,12 @@ void    ServerList::Print() const
         it->Print();
 }
 
-const   std::vector<Server>&  ServerList::get_servers() const
+ServerList::ServerList()
 {
-    return servers_;
+}
+
+ServerList::~ServerList()
+{
 }
 
 void    ServerList::ParseConfigFile(std::ifstream& file)

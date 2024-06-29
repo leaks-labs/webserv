@@ -23,7 +23,7 @@ getsockname : renvoi le nom d'une socket
 getprotobyname : renvoi une structure en fonction du nom du protocole trouvé
 getaddrinfo : renvoie une ou plusieurs structures addrinfo
 freeaddrinfo : free une ou plusieurs addrinfo
-gai_strerror : information decrivant le nom et d'addresse d'une erreur
+gai_strerror : information decrivant le nom event_type d'addresse d'une erreur
 
 fcntl : permet de manipuler des fds
 
