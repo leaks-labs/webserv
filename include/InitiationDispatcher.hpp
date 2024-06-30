@@ -1,6 +1,7 @@
 #ifndef INITIATION_DISPATCHER_HPP_
 # define INITIATION_DISPATCHER_HPP_
 
+# include <csignal>
 # include <map>
 # include <vector>
 
@@ -33,7 +34,11 @@ class InitiationDispatcher {
         typedef struct epoll_event  Event;
 # endif
 
-        static const int    kMaxEvents = 32;
+        static const int                kMaxEvents = 32;
+
+        static volatile sig_atomic_t    g_signal_received;
+
+        static void SignalHandler(int signal);
 
         InitiationDispatcher();
 

@@ -115,7 +115,7 @@ void    Location::set_root(const std::string& value)
 
 void    Location::set_default_file(const std::string& value)
 {
-    if (value.find("/") != value.npos)
+    if (value.find('/') != std::string::npos)
         throw std::runtime_error("default file should not contain a /");
     default_file_ = value;
 }

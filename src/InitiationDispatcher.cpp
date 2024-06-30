@@ -1,7 +1,6 @@
 #include "InitiationDispatcher.hpp"
 
 #include <cerrno>
-#include <csignal>
 #include <cstdio>
 #include <cstring>
 #include <stdexcept>
@@ -13,19 +12,7 @@
 #include <iostream>
 // to remove
 
-namespace 
-{
-
-volatile sig_atomic_t   g_signal_received = 0;
-
-void    signal_handler(int signal)
-{
-    std::cout << std::endl;
-    std::cout << "Signal " << signal << " received" << std::endl;
-    g_signal_received = signal;
-}
-
-}
+volatile sig_atomic_t   InitiationDispatcher::g_signal_received = 0;
 
 InitiationDispatcher&   InitiationDispatcher::Instance()
 {
@@ -35,7 +22,7 @@ InitiationDispatcher&   InitiationDispatcher::Instance()
 
 void    InitiationDispatcher::HandleEvents()
 {
-    if (signal(SIGINT, signal_handler) == SIG_ERR)
+    if (signal(SIGINT, SignalHandler) == SIG_ERR)
         throw std::runtime_error("signal() failed: " + std::string(strerror(errno)));
     std::vector<Event>  event_list(kMaxEvents);
     while (!g_signal_received) {
@@ -168,6 +155,13 @@ void    InitiationDispatcher::Clear()
     for (std::map<EventHandler::Handle, EventHandler*>::const_iterator it = event_handler_table_.begin(); it != event_handler_table_.end(); ++it)
         delete it->second;
     event_handler_table_.clear();
+}
+
+void    InitiationDispatcher::SignalHandler(int signal)
+{
+    std::cout << std::endl;
+    std::cout << "Signal " << signal << " received" << std::endl;
+    g_signal_received = signal;
 }
 
 InitiationDispatcher::InitiationDispatcher()
