@@ -72,8 +72,6 @@ void    AcceptorRecords::RegisterAcceptors()
         try
         {
             new_acceptor = new ConnectionAcceptor(**it);
-            if (InitiationDispatcher::Instance().RegisterHandler(new_acceptor, EventTypes::kReadEvent) == -1)
-                throw std::runtime_error("failed to register ConnectionAcceptor with InitiationDispatcher");
         }
         catch(const std::exception& e)
         {
