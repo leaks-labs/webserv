@@ -12,7 +12,7 @@ WebServ::WebServ(const std::string& config_file)
 {
     server_list_.InitServerList(config_file);
     listener_list_.InitListenerList(server_list_);
-    server_list_.Print();
+    //server_list_.Print();
 }
 
 WebServ::~WebServ()

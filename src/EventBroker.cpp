@@ -266,10 +266,13 @@ void    EventBroker::SendData(const Event& event)
 {
     try
     {
+        
         std::cout << "ENTER: SendData " << std::endl;
         // TODO: send the response
         // TODO: for now, just echo back;
-        const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello World!";
+        Response res;
+        const std::string response = res.GetText();
+        //const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello World!";
         ssize_t bytes_sent;
         if ((bytes_sent = send(GetIdent(event), response.c_str(), response.size(), 0)) == -1)
             throw std::runtime_error("recv() failed:" + std::string(strerror(errno)));
@@ -303,7 +306,7 @@ void    EventBroker::ReceiveData(const Event& event)
         if ((bytes_read = recv(GetIdent(event), &buf[0], kBufSize - 1, 0)) == -1)
             throw std::runtime_error("recv() failed:" + std::string(strerror(errno)));
         buf[bytes_read] = '\0';
-
+        std::cout << buf << std::endl;
         // TODO: add buf to the request queue
 
         // TODO: the future ClientList will add the count of VALID requests only if the request is complete

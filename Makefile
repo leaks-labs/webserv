@@ -66,7 +66,10 @@ SRCS_FILES:=	WebServ				\
 				EventBroker			\
 				ServerList			\
 				Server				\
-				Location
+				Location			\
+				Directory			\
+				HTMLPage			\
+				Response
 
 ################################################################################
 #                                 SRC's FORMATING                              #
