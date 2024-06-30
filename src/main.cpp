@@ -8,7 +8,7 @@
 #include "WebServ.hpp"
 #include "Server.hpp"
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
 	try
 	{
