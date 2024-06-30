@@ -5,8 +5,8 @@
 #include <iostream>
 #include <string>
 
-#include "WebServ.hpp"
 #include "Server.hpp"
+#include "WebServ.hpp"
 
 int main(int argc, char** argv)
 {
