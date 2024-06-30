@@ -25,7 +25,7 @@ void    InitiationDispatcher::HandleEvents()
     if (signal(SIGINT, SignalHandler) == SIG_ERR)
         throw std::runtime_error("signal() failed: " + std::string(strerror(errno)));
     std::vector<Event>  event_list(kMaxEvents);
-    while (!g_signal_received) {
+    while (g_signal_received == 0) {
         std::cout << "Waiting for events..." << std::endl;
         int number_events = WaitForEvents(event_list, kMaxEvents);
         if (number_events == -1) {
@@ -192,7 +192,7 @@ int InitiationDispatcher::WaitForEvents(std::vector<Event>& event_list, int even
 
 void    InitiationDispatcher::IterateEventList(const std::vector<Event>& event_list, int number_events)
 {
-    for (std::vector<Event>::const_iterator it = event_list.begin(); number_events > 0 && !g_signal_received; ++it, --number_events) {
+    for (std::vector<Event>::const_iterator it = event_list.begin(); number_events > 0 && g_signal_received == 0; ++it, --number_events) {
         std::cout << "socket: " << GetHandleFromEvent(*it) << std::endl;
         try
         {

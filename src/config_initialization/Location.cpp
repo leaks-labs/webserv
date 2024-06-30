@@ -147,7 +147,7 @@ void    Location::set_errors(const std::string& value)
             throw std::runtime_error("error code : one value is empty");
         std::istringstream  iss(res);
         iss >> std::noskipws >> code;
-        if (iss.fail() || !iss.eof() || !errors_.count(code) || (res[0] == '0' && code != 0) || code < 0)
+        if (iss.fail() || !iss.eof() || errors_.count(code) == 0 || (res[0] == '0' && code != 0) || code < 0)
             throw std::runtime_error("error code is not valid");
         errors_[code] = path;
         start = end + 1;
