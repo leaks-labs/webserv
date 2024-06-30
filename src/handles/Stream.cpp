@@ -14,7 +14,8 @@
 
 Stream::Stream(int sfd)
     : sfd_(sfd),
-      request_count(0)
+      request_count(0),
+      buffer_(kBufSize)
 {
 }
 
@@ -56,7 +57,6 @@ void    Stream::Send()
 void    Stream::Read()
 {
     std::cout << "ENTER: Read " << std::endl;
-    char   buf[kBufSize];
     ssize_t bytes_read;
     // TODO: prepare the request or append to complete an incomplete request
     // for now, just consume data
@@ -65,11 +65,12 @@ void    Stream::Read()
 #elif __linux__
     int recv_flags = MSG_DONTWAIT;
 #endif
-    if ((bytes_read = recv(sfd_, &buf[0], kBufSize - 1, recv_flags)) == -1)
+    if ((bytes_read = recv(sfd_, buffer_.data(), buffer_.size(), recv_flags)) == -1)
         throw std::runtime_error("recv() failed:" + std::string(strerror(errno)));
-    buf[bytes_read] = '\0';
-
-    // TODO: add buf to the request queue
+    else if (bytes_read == 0)
+        throw std::runtime_error("recv() failed: connection closed by peer");
+    std::string str(buffer_.data(), bytes_read);
+    // TODO: add string to the request queue
 
     // TODO: the future ClientList will add the count of VALID requests only if the request is complete
     // For now, just add the request in the map.
