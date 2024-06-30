@@ -233,7 +233,7 @@ bool    InitiationDispatcher::IsEventRead(const Event& event) const
 #ifdef __APPLE__
     return (event.filter == EVFILT_READ);
 #elif __linux__
-    return (event.events & EPOLLIN);
+    return ((event.events & EPOLLIN) != 0);
 #endif
 }
 
@@ -242,7 +242,7 @@ bool    InitiationDispatcher::IsEventWrite(const Event& event) const
 #ifdef __APPLE__
     return (event.filter == EVFILT_WRITE);
 #elif __linux__
-    return (event.events & EPOLLOUT);
+    return ((event.events & EPOLLOUT) != 0);
 #endif
 }
 
@@ -251,6 +251,6 @@ bool    InitiationDispatcher::IsEventClose(const Event& event) const
 #ifdef __APPLE__
     return (event.flags & EV_EOF);
 #elif __linux__
-    return (event.events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR));
+    return ((event.events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) != 0);
 #endif
 }
