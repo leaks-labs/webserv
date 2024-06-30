@@ -27,7 +27,7 @@ void HTMLPage::CloseTag(const std::string & tag)
 
 void HTMLPage::AddLinkTag(const std::string & href, const::std::string & text)
 {
-    page_ += "<a href=\"" + href + "\" target=\"_blank\">" + text + "</a>";
+    page_ += "<a href=\"" + href + "\">" + text + "</a>";
 }
 
 void HTMLPage::Print () const
