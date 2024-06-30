@@ -32,14 +32,14 @@ EventHandler::Handle    StreamHandler::get_handle() const
 void    StreamHandler::HandleEvent(EventTypes::Type event_type)
 {
     std::cout << "ENTER StreamHandler: event " << event_type << std::endl;
-    if (event_type & EventTypes::kCloseEvent) {
+    if (EventTypes::IsCloseEvent(event_type)) {
         std::cout << "closing stream" << std::endl;
         InitiationDispatcher::Instance().RemoveHandler(this);
         return; // Do NOT remove this return. It is important to be sure to return here.
     } else {
         try
         {
-            if (event_type & EventTypes::kWriteEvent && stream_.get_request_count() > 0) {
+            if (EventTypes::IsWriteEvent(event_type) && stream_.get_request_count() > 0) {
                 stream_.Send();
 
                 // modify the filter to remove write filter
@@ -47,7 +47,7 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
                 // TODO: check if the response queue is empty (COMPLETE or NOT COMPLETE) for this fd. For now, just check the size_t
                 if (stream_.get_request_count() == 0 && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
                     throw std::runtime_error("Failed to delete write filter for a socket");
-            } else if (event_type & EventTypes::kReadEvent) {
+            } else if (EventTypes::IsReadEvent(event_type)) {
                 stream_.Read();
 
                 // modify the filter to add EVFILT_WRITE

@@ -4,12 +4,16 @@
 namespace EventTypes
 {
 
-    typedef int Type;
+typedef int Type;
 
-    static int  kNoEvent = 0;
-    static int  kReadEvent = 1 << 0;
-    static int  kWriteEvent = 1 << 1;
-    static int  kCloseEvent = 1 << 2;
+static int  kNoEvent = 0;
+static int  kReadEvent = 1 << 0;
+static int  kWriteEvent = 1 << 1;
+static int  kCloseEvent = 1 << 2;
+
+bool    IsReadEvent(Type type);
+bool    IsWriteEvent(Type type);
+bool    IsCloseEvent(Type type);
 
 }
 

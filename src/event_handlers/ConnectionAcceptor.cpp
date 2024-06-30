@@ -29,7 +29,7 @@ EventHandler::Handle    ConnectionAcceptor::get_handle() const
 
 void    ConnectionAcceptor::HandleEvent(EventTypes::Type event_type)
 {
-    if (!(event_type & EventTypes::kReadEvent))
+    if (!EventTypes::IsReadEvent(event_type))
         return;
     std::cout << "ENTER ConnectionAcceptor: event " << event_type << std::endl;
     int new_sfd = -1;

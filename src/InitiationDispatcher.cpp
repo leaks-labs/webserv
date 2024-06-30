@@ -55,8 +55,8 @@ int InitiationDispatcher::RegisterHandler(EventHandler* event_handler, EventType
 {
     try
     {
-        if ((event_type & EventTypes::kReadEvent && AddReadFilter(*event_handler) == -1)
-            || (event_type & EventTypes::kWriteEvent && AddWriteFilter(*event_handler) == -1))
+        if ((EventTypes::IsReadEvent(event_type) && AddReadFilter(*event_handler) == -1)
+            || (EventTypes::IsWriteEvent(event_type) && AddWriteFilter(*event_handler) == -1))
             return -1;
         event_handler_table_[event_handler->get_handle()] = event_handler;
         return 0;
@@ -84,7 +84,7 @@ int InitiationDispatcher::AddReadFilter(EventHandler& event_handler)
     }
 #elif __linux__
     event.events = (EPOLLIN | EPOLLRDHUP);
-    if (event_handler.get_event_types_registred() & EventTypes::kWriteEvent)
+    if (EventTypes::IsWriteEvent(event_handler.get_event_types_registred()))
         event.events |= EPOLLOUT;
     event.data.fd = event_handler.get_handle();
     if (epoll_ctl(demultiplexer_, EPOLL_CTL_ADD, event.data.fd, &event) == 0
@@ -107,7 +107,7 @@ int InitiationDispatcher::AddWriteFilter(EventHandler& event_handler)
     }
 #elif __linux__
     event.events = (EPOLLOUT | EPOLLRDHUP);
-    if (event_handler.get_event_types_registred() & EventTypes::kReadEvent)
+    if (EventTypes::IsReadEvent(event_handler.get_event_types_registred()))
         event.events |= EPOLLIN;
     event.data.fd = event_handler.get_handle();
     if (epoll_ctl(demultiplexer_, EPOLL_CTL_ADD, event.data.fd, &event) == 0
@@ -130,7 +130,7 @@ int InitiationDispatcher::DelReadFilter(EventHandler& event_handler)
     }
 #elif __linux__
     event.events = EPOLLRDHUP;
-    if (event_handler.get_event_types_registred() & EventTypes::kWriteEvent)
+    if (EventTypes::IsWriteEvent(event_handler.get_event_types_registred()))
         event.events |= EPOLLOUT;
     event.data.fd = event_handler.get_handle();
     if (epoll_ctl(demultiplexer_, EPOLL_CTL_MOD, event.data.fd, &event) == 0) {
@@ -152,7 +152,7 @@ int InitiationDispatcher::DelWriteFilter(EventHandler& event_handler)
     }
 #elif __linux__
     event.events = EPOLLRDHUP;
-    if (event_handler.get_event_types_registred() & EventTypes::kReadEvent)
+    if (EventTypes::IsReadEvent(event_handler.get_event_types_registred()))
         event.events |= EPOLLIN;
     event.data.fd = event_handler.get_handle();
     if (epoll_ctl(demultiplexer_, EPOLL_CTL_MOD, event.data.fd, &event) == 0) {
