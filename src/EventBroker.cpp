@@ -1,5 +1,6 @@
 #include "EventBroker.hpp"
 
+#include "RequestQueue.hpp"
 #include "Request.hpp"
 
 #include <algorithm>
@@ -20,7 +21,7 @@
 // to remove
 
 
-namespace 
+namespace
 {
 
 volatile sig_atomic_t   g_signal_received = 0;

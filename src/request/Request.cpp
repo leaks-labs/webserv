@@ -12,6 +12,17 @@ Request::Request()
 /* Destructor for Request class */
 Request::~Request()
 {
+    std::string value("true");
+    bool listing_;
+    if (value != "true" && value != "false")
+        throw std::runtime_error("listing value should be true or false");
+    std::istringstream(value) >> std::boolalpha >> listing_;
+    if (value == "true")
+        listing_ = true;
+    else if (value =="false")
+        listing_ = false;
+    else
+
 }
 
 /* Copy constructor for Request class */

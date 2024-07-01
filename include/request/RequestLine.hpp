@@ -4,7 +4,7 @@
 # include <string>
 
 /* default HTTP version for the webserver */
-# define HTTP_VERSION "1.1"
+# define HTTP_VERSION "1.1" //enum
 
 /* Enum to represent request target type */
 enum RequestTargetType {
@@ -55,13 +55,13 @@ class RequestLine
         RequestLine& operator=(const RequestLine& request_line);
 
         /* Getter for request_target_ attribute */
-        const RequestTarget& GetRequestTarget() const;
+        const RequestTarget& get_request_target() const;
 
         /* Getter for request_method_ attribute */
-        const std::string& GetRequestMethod() const;
+        const std::string& get_request_method() const;
 
         /* Getter for request_http_version_ attribute */
-        const std::string& GetRequestHttpVersion() const;
+        const std::string& get_request_http_version() const;
 
         /* Find matching request type and return true if a match is found
          * and available for use, otherwise return false */
@@ -75,14 +75,14 @@ class RequestLine
 
     private:
         /* Setter for request_target_ attribute (only accessible by definition) */
-        void SetRequestTarget(const RequestTarget& request_target);
+        void set_request_target(const RequestTarget& request_target);
 
         /* Setter for request_method_ attribute (only accessible by definition) */
-        void SetRequestMethod(const std::string& request_method);
+        void set_request_method(const std::string& request_method);
 
         /* Setter for request_http_version_ attribute
          * (only accessible by definition) */
-        void SetRequestHttpVersion(const std::string& request_http_version);
+        void set_request_http_version(const std::string& request_http_version);
 
         /* Class RequestLine private attribute */
         RequestTarget   request_target_;
