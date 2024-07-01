@@ -26,11 +26,11 @@ class ServerList {
         ConstReverseIterator    rbegin() const;
         ConstReverseIterator    rend() const;
 
-        const std::vector<Server>&  get_servers() const;
-
-        size_t  Size() const;
-        void    InitServerList(const std::string& path);
-        void    Print() const;
+        size_t                      Size() const;
+        void                        InitServerList(const std::string& path);
+        void                        Print() const;
+        const std::vector<Server>&  GetServers() const;
+        const                       Server& FindServer(const int listener_sfd, const std::string& name) const;
 
     private:
         ServerList();

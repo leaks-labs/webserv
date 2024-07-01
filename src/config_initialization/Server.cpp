@@ -46,6 +46,10 @@ const std::vector<Location>&    Server::get_locations() const
 {
     return locations_;   
 }
+const struct addrinfo*          Server::get_addr() const
+{
+    return addr_;
+}
 
 void    Server::set_host(const std::string& value)
 {
@@ -138,4 +142,12 @@ const std::map<std::string, void (Server::*)(const std::string&)>   Server::Init
     m["port"] = &Server::set_port;
     m["server_names"] = &Server::set_server_names;
     return m;
+}
+
+bool Server::HasServerName(std::string name) const
+{
+    for (std::vector<std::string>::const_iterator it = server_names_.begin(); it != server_names_.end(); it++)
+        if (*it == name)
+            return true;
+    return false;
 }
