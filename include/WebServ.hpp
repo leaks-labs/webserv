@@ -6,6 +6,7 @@
 
 # include "ListenerList.hpp"
 # include "ServerList.hpp"
+# include "EventBroker.hpp"
 
 class WebServ {
     public:
@@ -20,8 +21,8 @@ class WebServ {
     private:
         WebServ();
         WebServ(const WebServ& src);
-        WebServ&    operator=(const WebServ& rhs);
-
+        WebServ&        operator=(const WebServ& rhs);
+        Server          FindServer(const int client_sfd, const std::string& name) const;
         ListenerList    listener_list_;
         ServerList      server_list_;
 };

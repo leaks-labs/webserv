@@ -6,6 +6,7 @@ Directory::Directory(const char *path) :
 {
     if(!dir_)
         throw std::runtime_error("can't open directory");
+    WriteHTML();
 }
 
 Directory::Directory(const Directory &src)
@@ -31,14 +32,7 @@ void Directory::WriteHTML()
     std::string name;
     std::string href;
 
-    html_.OpenTag("head");
-    html_.Write("<meta charset=\"UTF-8\">");
-    html_.CloseTag("head");
-    html_.NewLine();
-    html_.OpenTag("html");
-    html_.NewLine();
-    html_.OpenTag("body");
-    html_.NewLine();
+    html_.AddHeader();
     while((file = readdir(dir_)))
     {
         if(file->d_name[0] == '.')
@@ -52,10 +46,7 @@ void Directory::WriteHTML()
         html_.CloseTag("p");
         html_.NewLine();
     }
-    html_.CloseTag("body");
-    html_.NewLine();
-    html_.CloseTag("html");
-    html_.NewLine();
+    html_.AddButtom();
 }
 
 std::string Directory::GetHtml() const

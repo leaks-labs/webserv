@@ -77,7 +77,7 @@ void    ServerList::Print() const
         it->Print();
 }
 
-const   std::vector<Server>&  ServerList::get_servers() const
+const   std::vector<Server>&  ServerList::GetServers() const
 {
     return servers_;
 }

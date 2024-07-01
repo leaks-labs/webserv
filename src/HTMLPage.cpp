@@ -30,6 +30,27 @@ void HTMLPage::AddLinkTag(const std::string & href, const::std::string & text)
     page_ += "<a href=\"" + href + "\">" + text + "</a>";
 }
 
+void HTMLPage::AddHeader()
+{
+    OpenTag("head");
+    Write("<meta charset=\"UTF-8\">");
+    CloseTag("head");
+    NewLine();
+    OpenTag("html");
+    NewLine();
+    OpenTag("body");
+    NewLine();
+}
+
+void HTMLPage::AddButtom()
+{
+    CloseTag("body");
+    NewLine();
+    CloseTag("html");
+    NewLine();
+}
+
+
 void HTMLPage::Print () const
 {
     std::cout << page_;
