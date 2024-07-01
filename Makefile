@@ -60,13 +60,18 @@ EXT:=	.cpp
 
 MAIN:=	main
 
-SRCS_FILES:=	WebServ				\
-				Listener			\
-				ListenerList		\
-				EventBroker			\
-				ServerList			\
-				Server				\
-				Location
+SRCS_FILES:=	config_initialization/AcceptorRecords	\
+				config_initialization/Location			\
+				config_initialization/Server			\
+				config_initialization/ServerList		\
+				event_handlers/ConnectionAcceptor		\
+				event_handlers/EventHandler				\
+				event_handlers/EventTypes				\
+				event_handlers/StreamHandler			\
+				handles/Acceptor						\
+				handles/Stream							\
+				InitiationDispatcher					\
+				WebServ
 
 ################################################################################
 #                                 SRC's FORMATING                              #

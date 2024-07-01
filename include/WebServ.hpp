@@ -4,8 +4,7 @@
 # include <string>
 # include <vector>
 
-# include "ListenerList.hpp"
-# include "ServerList.hpp"
+# include "AcceptorRecords.hpp"
 
 class WebServ {
     public:
@@ -22,8 +21,7 @@ class WebServ {
         WebServ(const WebServ& src);
         WebServ&    operator=(const WebServ& rhs);
 
-        ListenerList    listener_list_;
-        ServerList      server_list_;
+        AcceptorRecords acceptor_records_;
 };
 
 #endif  // WEBSERV_HPP_

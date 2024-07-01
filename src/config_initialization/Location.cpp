@@ -4,10 +4,10 @@
 #include <sstream>
 #include <stdexcept>
 
-const std::map<const std::string, void (Location::*)(const std::string&)>   Location::set_functions_ = Location::InitSetFunctions();
-const std::map<const std::string, int>                                      Location::methods_ref_ = Location::InitMethodsRef();
-const std::map<const std::string, int>                                      Location::cgi_ref_ = Location::InitCgiRef();
-const std::map<const int, std::string>                                      Location::errors_ref_ = Location::InitErrorListRef();
+const std::map<std::string, void (Location::*)(const std::string&)> Location::set_functions_ = Location::InitSetFunctions();
+const std::map<std::string, int>                                    Location::methods_ref_ = Location::InitMethodsRef();
+const std::map<std::string, int>                                    Location::cgi_ref_ = Location::InitCgiRef();
+const std::map<int, std::string>                                    Location::errors_ref_ = Location::InitErrorListRef();
 
 Location::Location()
     : path_("/"),
@@ -69,7 +69,7 @@ const std::string&  Location::get_proxy() const
     return proxy_;
 }
 
-const std::map<const int, std::string>& Location::get_errors() const
+const std::map<int, std::string>&   Location::get_errors() const
 {
     return errors_;
 }
@@ -115,7 +115,7 @@ void    Location::set_root(const std::string& value)
 
 void    Location::set_default_file(const std::string& value)
 {
-    if (value.find("/") != value.npos)
+    if (value.find('/') != std::string::npos)
         throw std::runtime_error("default file should not contain a /");
     default_file_ = value;
 }
@@ -147,7 +147,7 @@ void    Location::set_errors(const std::string& value)
             throw std::runtime_error("error code : one value is empty");
         std::istringstream  iss(res);
         iss >> std::noskipws >> code;
-        if (iss.fail() || !iss.eof() || !errors_.count(code) || (res[0] == '0' && code != 0) || code < 0)
+        if (iss.fail() || !iss.eof() || errors_.count(code) == 0 || (res[0] == '0' && code != 0) || code < 0)
             throw std::runtime_error("error code is not valid");
         errors_[code] = path;
         start = end + 1;
@@ -162,7 +162,7 @@ void    Location::set_cgi(const std::string& value)
     do {
         end = value.find(' ', start);
         std::string res = value.substr(start, end - start);
-        std::map<const std::string, int>::const_iterator    i = cgi_ref_.find(res);
+        std::map<std::string, int>::const_iterator  i = cgi_ref_.find(res);
         if (i == cgi_ref_.end())
             throw std::runtime_error("cgi is invalid: it should be php, python or none");
         else if (i->second == kCgiNone)
@@ -181,7 +181,7 @@ void    Location::set_methods(const std::string& value)
     do {
         end = value.find(' ', start);
         std::string res = value.substr(start, end - start);
-        std::map<const std::string, int>::const_iterator    i = methods_ref_.find(res);
+        std::map<std::string, int>::const_iterator  i = methods_ref_.find(res);
         if (i == methods_ref_.end())
             throw std::runtime_error("method is invalid: it should be GET POST DELETE or none");
         else if (i->second == kMethodNone)
@@ -217,7 +217,7 @@ void    Location::set_strict(bool value)
 
 int Location::SetValue(const std::string& key, const std::string& value)
 {
-    typedef std::map<const std::string, void (Location::*)(const std::string&)>::const_iterator it;
+    typedef std::map<std::string, void (Location::*)(const std::string&)>::const_iterator it;
 
     it i = set_functions_.find(key);
     if (i == set_functions_.end())
@@ -228,7 +228,7 @@ int Location::SetValue(const std::string& key, const std::string& value)
 
 void    Location::Print() const
 {
-    typedef std::map<const int, std::string>::const_iterator iterator;
+    typedef std::map<int, std::string>::const_iterator  iterator;
 
     std::cout   << "\tlocation: " << path_ << std::endl
                 << "\troot: " << root_ << std::endl
@@ -245,9 +245,9 @@ void    Location::Print() const
         std::cout << "\t\t" << i->first << ": " << i->second << std::endl;
 }
 
-const std::map<const std::string, void (Location::*)(const std::string&)>   Location::InitSetFunctions()
+const std::map<std::string, void (Location::*)(const std::string&)> Location::InitSetFunctions()
 {
-    std::map<const std::string, void (Location::*)(const std::string&)> m;
+    std::map<std::string, void (Location::*)(const std::string&)>   m;
     m["root"] = &Location::set_root;
     m["default_file"] = &Location::set_default_file;
     m["proxy"] = &Location::set_proxy;
@@ -259,9 +259,9 @@ const std::map<const std::string, void (Location::*)(const std::string&)>   Loca
     return m;
 }
 
-const std::map<const std::string, int>  Location::InitMethodsRef()
+const std::map<std::string, int>    Location::InitMethodsRef()
 {
-    std::map<const std::string, int>    m;
+    std::map<std::string, int>  m;
     m["none"] = kMethodNone;
     m["GET"] = kMethodGet;
     m["POST"] = kMethodPost;
@@ -269,18 +269,18 @@ const std::map<const std::string, int>  Location::InitMethodsRef()
     return m;
 }
 
-const std::map<const std::string, int>  Location::InitCgiRef()
+const std::map<std::string, int>    Location::InitCgiRef()
 {
-    std::map<const std::string, int>    m;
+    std::map<std::string, int>  m;
     m["none"] = kCgiNone;
     m["php"] = kCgiPHP;
     m["python"] = kCgiPython;
     return m;
 }
 
-const std::map<const int, std::string>  Location::InitErrorListRef()
+const std::map<int, std::string>    Location::InitErrorListRef()
 {
-    std::map<const int, std::string>    m;
+    std::map<int, std::string>  m;
     std::string path = "/errors/defaulterror.html";
     m[400] = path;
     m[402] = path;
@@ -288,9 +288,7 @@ const std::map<const int, std::string>  Location::InitErrorListRef()
     return m;
 }
 
-bool Location::IsAbsolutePath(const std::string& value)const
+bool Location::IsAbsolutePath(const std::string& value) const
 {
-    if(value.empty() || value[0] != '/')
-        return false;
-    return true;
+    return (!value.empty() && value[0] == '/');
 }

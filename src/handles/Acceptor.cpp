@@ -1,4 +1,4 @@
-#include "Listener.hpp"
+#include "Acceptor.hpp"
 
 #include <cerrno>
 #include <cstring>
@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-Listener::Listener(const struct addrinfo& address)
+Acceptor::Acceptor(const struct addrinfo& address)
 #ifdef __APPLE__
     : sfd_(socket(address.ai_family, address.ai_socktype, address.ai_protocol))
 #elif __linux__
@@ -45,12 +45,36 @@ Listener::Listener(const struct addrinfo& address)
     
 }
 
-Listener::~Listener()
+Acceptor::~Acceptor()
 {
     close(sfd_);
 }
 
-int Listener::get_sfd() const
+int Acceptor::get_sfd() const
 {
     return sfd_;
+}
+
+int Acceptor::Accept() const
+{
+    int new_sfd;
+    try
+    {
+        struct sockaddr_storage addr;
+        socklen_t               addr_len = sizeof(addr);
+        new_sfd = accept(sfd_, reinterpret_cast<struct sockaddr*>(&addr), &addr_len);
+        if (new_sfd == -1)
+            throw std::runtime_error("acceptor failed to accept a new connection: " + std::string(strerror(errno)));
+#ifdef __APPLE__
+        if (fcntl(new_sfd, F_SETFD, FD_CLOEXEC) == -1 || fcntl(new_sfd, F_SETFL, O_NONBLOCK) == -1)
+            throw std::runtime_error("fcntl() failed");
+#endif
+        return new_sfd;
+    }
+    catch(const std::exception& e)
+    {
+        if (new_sfd != -1)
+            close(new_sfd);
+        throw;
+    }
 }

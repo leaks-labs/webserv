@@ -4,15 +4,16 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "EventBroker.hpp"
+#include "InitiationDispatcher.hpp"
+# include "ServerList.hpp"
 
 const std::string   WebServ::kDefaultConfigFile = "config.txt";
 
 WebServ::WebServ(const std::string& config_file)
 {
-    server_list_.InitServerList(config_file);
-    listener_list_.InitListenerList(server_list_);
-    server_list_.Print();
+    ServerList::Instance().InitServerList(config_file);
+    acceptor_records_.InitAcceptors(ServerList::Instance());
+    ServerList::Instance().Print();
 }
 
 WebServ::~WebServ()
@@ -21,8 +22,8 @@ WebServ::~WebServ()
 
 void    WebServ::Run() const
 {
-   if (server_list_.Size() < 1)
+   if (ServerList::Instance().Size() < 1)
         throw std::runtime_error("no servers to run");
-    EventBroker event_broker(listener_list_);
-    event_broker.Run();
+    InitiationDispatcher::Instance().HandleEvents();
+    InitiationDispatcher::Instance().Clear();
 }
