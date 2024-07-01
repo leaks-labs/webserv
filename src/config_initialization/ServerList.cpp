@@ -56,11 +56,6 @@ ServerList::ConstReverseIterator    ServerList::rend() const
     return servers_.rend();
 }
 
-const   std::vector<Server>&  ServerList::get_servers() const
-{
-    return servers_;
-}
-
 size_t  ServerList::Size() const
 {
     return servers_.size();

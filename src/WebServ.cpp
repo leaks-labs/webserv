@@ -28,6 +28,8 @@ void    WebServ::Run() const
     InitiationDispatcher::Instance().Clear();
 }
 
+/*
+
 Server WebServ::FindServer(const int client_sfd, const std::string& name) const
 {
     typedef std::vector<const Server&>::const_iterator Iterator;
@@ -41,4 +43,4 @@ Server WebServ::FindServer(const int client_sfd, const std::string& name) const
             return *it;
     }
     return matched[0];
-}
+}*/
