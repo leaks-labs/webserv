@@ -23,9 +23,9 @@ class Stream {
         Stream(const Stream& src);
         Stream& operator=(const Stream& rhs);
     
-    const int           sfd_;
-    std::size_t         request_count;
-    std::vector<char>   buffer_;
+        const int           sfd_;
+        std::size_t         request_count;
+        std::vector<char>   buffer_;
 };
 
 #endif  // STREAM_HPP_
