@@ -65,3 +65,4 @@ class EventBroker {
 };
 
 #endif  // EVENT_BROKER_HPP_
+

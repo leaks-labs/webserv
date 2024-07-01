@@ -39,9 +39,9 @@ class Server {
     private:
         Server& operator=(const Server& rhs);
 
-        static const std::map<const std::string, void (Server::*)(const std::string&)>  set_functions_;
+        static const std::map<std::string, void (Server::*)(const std::string&)>    set_functions_;
 
-        static const std::map<const std::string, void (Server::*)(const std::string&)>  InitSetFunctions();
+        static const std::map<std::string, void (Server::*)(const std::string&)>    InitSetFunctions();
 
         std::string                 host_;
         std::string                 port_;

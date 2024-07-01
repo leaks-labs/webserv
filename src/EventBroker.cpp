@@ -325,3 +325,4 @@ void    EventBroker::ReceiveData(const Event& event)
         DeleteConnection(GetIdent(event));
     }
 }
+

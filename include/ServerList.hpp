@@ -13,9 +13,7 @@ class ServerList {
         typedef std::vector<Server>::reverse_iterator       ReverseIterator;
         typedef std::vector<Server>::const_reverse_iterator ConstReverseIterator;
 
-        ServerList();
-
-        ~ServerList();
+        static ServerList&  Instance();
 
         Server& operator[](size_t index);
 
@@ -35,8 +33,12 @@ class ServerList {
         const                       Server& FindServer(const int listener_sfd, const std::string& name) const;
 
     private:
+        ServerList();
+
         ServerList(const ServerList& src);
         ServerList&   operator=(const ServerList& rhs);
+
+        ~ServerList();
 
         void    ParseConfigFile(std::ifstream& file);
 
