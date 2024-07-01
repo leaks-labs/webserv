@@ -62,6 +62,8 @@ void    InitiationDispatcher::RemoveHandler(EventHandler* event_handler)
 
 int InitiationDispatcher::AddReadFilter(EventHandler& event_handler)
 {
+    if (EventTypes::IsReadEvent(event_handler.get_event_types_registred()))
+        return 0;
     Event   event = {};
 #ifdef __APPLE__
     EV_SET(&event, event_handler.get_handle(), EVFILT_READ, EV_ADD, 0, 0, NULL);
@@ -85,6 +87,8 @@ int InitiationDispatcher::AddReadFilter(EventHandler& event_handler)
 
 int InitiationDispatcher::AddWriteFilter(EventHandler& event_handler)
 {
+    if (EventTypes::IsWriteEvent(event_handler.get_event_types_registred()))
+        return 0;
     Event   event = {};
 #ifdef __APPLE__
     EV_SET(&event, event_handler.get_handle(), EVFILT_WRITE, EV_ADD, 0, 0, NULL);
@@ -108,6 +112,8 @@ int InitiationDispatcher::AddWriteFilter(EventHandler& event_handler)
 
 int InitiationDispatcher::DelReadFilter(EventHandler& event_handler)
 {
+    if (!EventTypes::IsReadEvent(event_handler.get_event_types_registred()))
+        return 0;
     Event   event = {};
 #ifdef __APPLE__
     EV_SET(&event, event_handler.get_handle(), EVFILT_READ, EV_DELETE, 0, 0, NULL);
@@ -130,6 +136,8 @@ int InitiationDispatcher::DelReadFilter(EventHandler& event_handler)
 
 int InitiationDispatcher::DelWriteFilter(EventHandler& event_handler)
 {
+    if (!EventTypes::IsWriteEvent(event_handler.get_event_types_registred()))
+        return 0;
     Event   event = {};
 #ifdef __APPLE__
     EV_SET(&event, event_handler.get_handle(), EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
