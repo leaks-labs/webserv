@@ -25,14 +25,14 @@ std::string Response::GetText() const
     return text_;
 }
 
-const Server& Response::FindServer(const int client_sfd, const std::string& name) const
+const Server& Response::FindServer(const int acceptor_sfd, const std::string& name) const
 {
     typedef std::vector<const Server *>::iterator Iterator;
     std::vector<const Server *> matched;
     ServerList& server_list = ServerList::Instance();
-    std::cout << "client_sfd: " << client_sfd << matched.size() << std::endl;
+    std::cout << "client_sfd: " << acceptor_sfd << matched.size() << std::endl;
     for (size_t i = 0; i < server_list.Size(); i++)
-        //if(AcceptorRecords::IsSameAddr(client_sfd, server_list[i].get_addr()))
+        if(AcceptorRecords::IsSameAddr(acceptor_sfd, server_list[i].get_addr()))
             matched.push_back(&server_list[i]);
     for (Iterator it = matched.begin(); it != matched.end(); it++)
     {

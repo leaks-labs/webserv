@@ -6,7 +6,7 @@
 
 class StreamHandler : public EventHandler {
     public:
-        StreamHandler(int sfd);
+        StreamHandler(int acceptor_sfd, int sfd);
 
         virtual ~StreamHandler();
 

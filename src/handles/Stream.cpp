@@ -14,8 +14,9 @@
 #include <Server.hpp>
 // TODO: to remove
 
-Stream::Stream(int sfd)
-    : sfd_(sfd),
+Stream::Stream(int acceptor_sfd, int sfd)
+    : acceptor_sfd_(acceptor_sfd),
+      sfd_(sfd),
       request_count(0),
       buffer_(kBufSize)
 {
@@ -74,7 +75,7 @@ void    Stream::Read()
         throw std::runtime_error("recv() failed: connection closed by peer");
     std::string str(buffer_.data(), bytes_read);
     //std::cout << buffer_.data() << std::endl;
-    Response response(sfd_, "abc.com", "/buro/");
+    Response response(acceptor_sfd_, "abc.com", "/buro/");
     std::cout << response.GetText() << std::endl;
     // TODO: add string to the request queue
 
