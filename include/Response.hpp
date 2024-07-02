@@ -19,6 +19,8 @@ public:
     ~Response();
     std::string GetText() const;
     const Server& FindServer(const int listener_sfd, const std::string& name) const;
+    std::string GetError();
+
 };
 
 #endif

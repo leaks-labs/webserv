@@ -19,6 +19,7 @@ public:
     void Print() const;
     std::string GetPage() const;
     void Write(std::string);
+    static std::string GetErrorPage();
 };
 
 #endif

@@ -61,6 +61,19 @@ std::string HTMLPage::GetPage() const
     return page_;
 }
 
+std::string HTMLPage::GetErrorPage()
+{
+    HTMLPage page;
+
+    page.AddHeader();
+    page.OpenTag("h1");
+    page.Write("Error 404");
+    page.CloseTag("h1");
+    page.NewLine();
+    page.AddButtom();
+    return(page.GetPage());
+}
+
 HTMLPage::~HTMLPage()
 {
 }

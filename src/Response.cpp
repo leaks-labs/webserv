@@ -4,11 +4,18 @@ Response::Response(int client_sfd, std::string const & server_name, std::string 
 server_(FindServer(client_sfd, server_name)),
 location_(server_.FindLocation(path))
 {
-
     std::stringstream ss;
     std::string content;
-    Directory dir(location_->get_root().c_str());
-    content = dir.GetHtml();
+    try
+    {
+        Directory dir(location_->get_root().c_str());
+        content = dir.GetHtml();
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        content = HTMLPage::GetErrorPage();
+    }
     ss << content.size();
     text_ = "HTTP/1.1 200 OK\r\nContent-Length: " + ss.str() + "\r\n\r\n";
     text_ += content;
