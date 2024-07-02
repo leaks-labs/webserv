@@ -69,13 +69,13 @@ std::string Response::BuildPath(std::string path) const
     return location_->get_root() + path.substr(location_->get_path().size(), path.size());
 }
 
-std::string Response::ReadFile(std::string path)
+std::string Response::ReadFile(std::string path) const
 {
     std::ifstream ifs (path.c_str());
     if(!ifs)
         return HTMLPage::GetErrorPage();
     std::filebuf* pbuf = ifs.rdbuf();
-    std::size_t size = pbuf->pubseekoff (0,ifs.end,ifs.in);
+    std::size_t size = pbuf->pubseekoff(0,ifs.end,ifs.in);
     pbuf->pubseekpos (0,ifs.in);
     char* buf = new char[size];
     pbuf->sgetn (buf, size);
