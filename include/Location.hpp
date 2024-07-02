@@ -77,6 +77,8 @@ class Location {
         int                         bodymax_;
         bool                        listing_;
         bool                        strict_;
+
+        typedef std::map<std::string, int>::const_iterator const_methods_iterator;
 };
 
 #endif  // LOCATION_HPP_

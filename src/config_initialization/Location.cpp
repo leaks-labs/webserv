@@ -101,17 +101,10 @@ bool    Location::get_strict() const
 
 bool    Location::has_method(std::string const & value) const
 {
-    std::string Methods[] = {"GET", "POST", "DELETE"};
-    int MethodsBytes[] = {kMethodGet, kMethodPost, kMethodDelete};
-    for (int i = 0; i < 3; i++)
+    for (const_methods_iterator it = methods_ref_.begin(); it!= methods_ref_.end(); it++)
     {
-        if(value == Methods[i])
-        {
-            if(methods_ & MethodsBytes[i])
-                return true;
-            else    
-                return false;
-        }
+        if(value == it->first)
+            return methods_ & it->second;
     }
     return false;
 }
