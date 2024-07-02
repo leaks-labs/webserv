@@ -3,8 +3,11 @@
 
 #include <iostream>
 #include "Directory.hpp"
-#include <sstream>
 # include "AcceptorRecords.hpp"
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 class Response
 {
@@ -19,8 +22,8 @@ public:
     ~Response();
     std::string GetText() const;
     const Server& FindServer(const int listener_sfd, const std::string& name) const;
-    std::string GetError();
-
+    std::string BuildPath(std::string) const;
+    std::string ReadFile(std::string path);
 };
 
 #endif

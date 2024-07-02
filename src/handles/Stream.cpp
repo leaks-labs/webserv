@@ -74,7 +74,7 @@ void    Stream::Read()
         throw std::runtime_error("recv() failed: connection closed by peer");
     std::string str(buffer_.data(), bytes_read);
     //std::cout << buffer_.data() << std::endl;
-    Response response(sfd_, "abc.com", "/images");
+    Response response(sfd_, "abc.com", "/buro/");
     std::cout << response.GetText() << std::endl;
     // TODO: add string to the request queue
 

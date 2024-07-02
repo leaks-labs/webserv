@@ -13,10 +13,10 @@ proxy false
 >= /
 methods GET
 root /
-listing true
-> /images
+listing false
+> /buro
 methods GET POST
-root /home/
-default_file defaultimg.html
+root /home/toto/Bureau
+default_file webserv_todo.txt
 > /other
 proxy otherwebsite.com

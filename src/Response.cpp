@@ -6,10 +6,25 @@ location_(server_.FindLocation(path))
 {
     std::stringstream ss;
     std::string content;
+    std::string realpath;
     try
     {
-        Directory dir(location_->get_root().c_str());
-        content = dir.GetHtml();
+        if(location_->get_strict())
+            realpath =  location_->get_root();
+        else
+            realpath = BuildPath(path);
+        if(realpath[realpath.size() - 1] != '/')
+            content = ReadFile(realpath);
+        else
+        {
+            if(location_->get_listing())
+            {
+                Directory dir(realpath.c_str());
+                content = dir.GetHtml();
+            }
+            else
+                content = ReadFile(location_->get_root() + "/" + location_->get_default_file());
+        }
     }
     catch(const std::exception& e)
     {
@@ -45,4 +60,27 @@ const Server& Response::FindServer(const int client_sfd, const std::string& name
             return **it;
     }
     return *matched[0];
+}
+
+std::string Response::BuildPath(std::string path) const
+{
+    if(!location_)
+        return "";
+    return location_->get_root() + path.substr(location_->get_path().size(), path.size());
+}
+
+std::string Response::ReadFile(std::string path)
+{
+    std::ifstream ifs (path.c_str());
+    if(!ifs)
+        return HTMLPage::GetErrorPage();
+    std::filebuf* pbuf = ifs.rdbuf();
+    std::size_t size = pbuf->pubseekoff (0,ifs.end,ifs.in);
+    pbuf->pubseekpos (0,ifs.in);
+    char* buf = new char[size];
+    pbuf->sgetn (buf, size);
+    ifs.close();
+    std::string res = std::string(buf);
+    delete [] buf;
+    return res;
 }
