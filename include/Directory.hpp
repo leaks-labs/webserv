@@ -8,12 +8,6 @@
 
 class Directory
 {
-private:
-    std::string path_;
-    std::string root_;
-    DIR* dir_;
-    HTMLPage html_;
-    Directory();
 public:
     Directory(std::string const & path, std::string const & root);
     Directory(const Directory &src);
@@ -21,6 +15,12 @@ public:
     ~Directory();
     void WriteHTML();
     std::string GetHtml()const;
+private:
+    std::string path_;
+    std::string root_;
+    DIR* dir_;
+    HTMLPage html_;
+    Directory();
 };
 
 

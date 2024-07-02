@@ -313,8 +313,6 @@ bool Location::IsAbsolutePath(const std::string& value) const
 
  bool    Location::StrictCompare(const std::string & path) const
  {
-    if(strict_ && path == path_)
-        return true;
-    return false;
+    return (strict_ && path == path_);
  }
 
