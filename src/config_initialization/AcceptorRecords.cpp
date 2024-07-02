@@ -12,7 +12,7 @@
 int AcceptorRecords::IsSameAddr(const int acceptor_sfd, const struct addrinfo* addr_list)
 {
     struct sockaddr_storage addr_buf;
-    socklen_t               len_buf;
+    socklen_t               len_buf = sizeof(addr_buf);
     if (getsockname(acceptor_sfd, reinterpret_cast<struct sockaddr*>(&addr_buf), &len_buf) == -1) {
         perror("ERROR: getsockname()");
         return -1;

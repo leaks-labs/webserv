@@ -1,8 +1,8 @@
 #include "Response.hpp"
 
 Response::Response(int client_sfd, int client_pfd[2], std::string const & server_name, std::string const & path) :
-server_(FindServer(client_sfd, server_name)),
-location_(server_.FindLocation(path))
+    server_(FindServer(client_sfd, server_name)),
+    location_(server_.FindLocation(path))
 {
     std::string content;
     std::string args = "arg1=toto";
@@ -26,7 +26,6 @@ const Server& Response::FindServer(const int acceptor_sfd, const std::string& na
     typedef std::vector<const Server *>::iterator Iterator;
     std::vector<const Server *> matched;
     ServerList& server_list = ServerList::Instance();
-    std::cout << "client_sfd: " << acceptor_sfd << matched.size() << std::endl;
     for (size_t i = 0; i < server_list.Size(); i++)
         if(AcceptorRecords::IsSameAddr(acceptor_sfd, server_list[i].get_addr()))
             matched.push_back(&server_list[i]);
