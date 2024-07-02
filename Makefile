@@ -71,12 +71,12 @@ SRCS_FILES:=	config_initialization/AcceptorRecords	\
 				event_handlers/StreamHandler			\
 				handles/Acceptor						\
 				handles/Stream							\
+				response/Directory						\
+				response/HTMLPage						\
+				response/Response						\
 				InitiationDispatcher					\
-				WebServ									\
-				Directory								\
-				HTMLPage								\
-				Response								
-				
+				WebServ									
+
 ################################################################################
 #                                 SRC's FORMATING                              #
 ################################################################################
