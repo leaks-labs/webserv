@@ -49,6 +49,9 @@ class Location {
         int     SetValue(const std::string& key, const std::string& value);
         void    Print() const;
 
+        bool    StrictCompare(std::string const & path) const;
+        size_t  Compare(std::string const & path) const;
+
     private:
         static const std::map<std::string, void (Location::*)(const std::string&)>  set_functions_;
         static const std::map<std::string, int>                                     methods_ref_;

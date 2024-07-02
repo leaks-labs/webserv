@@ -292,3 +292,21 @@ bool Location::IsAbsolutePath(const std::string& value) const
 {
     return (!value.empty() && value[0] == '/');
 }
+
+ size_t    Location::Compare(const std::string & path) const
+ {
+    size_t path_size;
+
+    path_size = path_.size();
+    if(path.size() >= path_size && path.substr(0, path_size) == path_)
+        return(path_size);
+    return(0);
+ }
+
+ bool    Location::StrictCompare(const std::string & path) const
+ {
+    if(strict_ && path == path_)
+        return true;
+    return false;
+ }
+

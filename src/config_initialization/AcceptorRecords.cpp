@@ -7,6 +7,8 @@
 #include "ConnectionAcceptor.hpp"
 #include "InitiationDispatcher.hpp"
 
+#include <iostream>
+
 int AcceptorRecords::IsSameAddr(const int acceptor_sfd, const struct addrinfo* addr_list)
 {
     struct sockaddr_storage addr_buf;
@@ -16,8 +18,11 @@ int AcceptorRecords::IsSameAddr(const int acceptor_sfd, const struct addrinfo* a
         return -1;
     }
     for (const struct addrinfo *tmp = addr_list; tmp != NULL; tmp = tmp->ai_next)
+    {
         if (tmp->ai_addrlen == len_buf && memcmp(tmp->ai_addr, &addr_buf, len_buf) == 0)
             return 1;
+    }
+    std::cout << "IS NOT SAME ADDR" << std::endl;
     return 0;
 }
 

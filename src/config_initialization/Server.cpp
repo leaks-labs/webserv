@@ -147,7 +147,37 @@ const std::map<std::string, void (Server::*)(const std::string&)>   Server::Init
 bool Server::HasServerName(std::string name) const
 {
     for (std::vector<std::string>::const_iterator it = server_names_.begin(); it != server_names_.end(); it++)
+    {
         if (*it == name)
             return true;
+    }
     return false;
+}
+
+const Location* Server::FindLocation(std::string const &path) const
+{
+    size_t  longest = 0;
+    size_t  size;
+    Location const *location;
+    Location const *res = NULL;
+    
+    for (size_t i = 0; i < locations_.size(); i++)
+    {
+        location  = &locations_[i];
+        if(location->get_strict())
+        {
+            if(location->StrictCompare(path))
+                return location;
+        }
+        else
+        {
+            size = location->Compare(path);
+            if (size > longest)
+            {
+                res = location;
+                longest = size;
+            }
+        }
+    }
+    return res;
 }

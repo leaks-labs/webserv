@@ -5,8 +5,9 @@ Directory::Directory(const char *path) :
     dir_(opendir(path))
 {
     if(!dir_)
-        throw std::runtime_error("can't open directory");
-    WriteHTML();
+        WriteError();
+    else
+        WriteHTML();
 }
 
 Directory::Directory(const Directory &src)
@@ -47,6 +48,16 @@ void Directory::WriteHTML()
         html_.NewLine();
     }
     html_.AddButtom();
+}
+
+void Directory::WriteError()
+{
+    html_.AddHeader();
+    html_.OpenTag("h1");
+    html_.Write("Error 404");
+    html_.CloseTag("h1");
+    html_.AddButtom();
+    html_.NewLine();
 }
 
 std::string Directory::GetHtml() const

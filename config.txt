@@ -12,11 +12,11 @@ proxy false
 
 >= /
 methods GET
-root /data/folder1
+root /home/toto/
 listing true
 > /images
 methods GET POST
-root /data/images
+root /home/toto/Bureau/
 default_file defaultimg.html
 > /other
 proxy otherwebsite.com

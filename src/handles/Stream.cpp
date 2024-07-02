@@ -10,6 +10,8 @@
 
 // TODO: to remove
 #include <iostream>
+#include <Response.hpp>
+#include <Server.hpp>
 // TODO: to remove
 
 Stream::Stream(int sfd)
@@ -39,6 +41,7 @@ void    Stream::Send()
     std::cout << "ENTER: Send" << std::endl;
     // TODO: send the response
     // TODO: for now, just echo back;
+
     const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello World!";
     ssize_t bytes_sent;
 #ifdef __APPLE__
@@ -70,6 +73,9 @@ void    Stream::Read()
     else if (bytes_read == 0)
         throw std::runtime_error("recv() failed: connection closed by peer");
     std::string str(buffer_.data(), bytes_read);
+    //std::cout << buffer_.data() << std::endl;
+    Response response(sfd_, "abc.com", "/images");
+    std::cout << response.GetText() << std::endl;
     // TODO: add string to the request queue
 
     // TODO: the future ClientList will add the count of VALID requests only if the request is complete

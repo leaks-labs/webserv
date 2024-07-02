@@ -36,6 +36,7 @@ class Server {
         void    PopDefaultServerName();
         void    Print() const;
         bool    HasServerName(std::string) const;
+        const   Location* FindLocation(std::string const &) const; 
     private:
         Server& operator=(const Server& rhs);
 

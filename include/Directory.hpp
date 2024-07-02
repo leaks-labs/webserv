@@ -19,6 +19,7 @@ public:
     Directory& operator=(const Directory& src);
     ~Directory();
     void WriteHTML();
+    void WriteError();
     std::string GetHtml()const;
 };
 

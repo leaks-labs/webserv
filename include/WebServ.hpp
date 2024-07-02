@@ -20,8 +20,8 @@ class WebServ {
         WebServ();
         WebServ(const WebServ& src);
         WebServ&    operator=(const WebServ& rhs);
-
         AcceptorRecords acceptor_records_;
+
 };
 
 #endif  // WEBSERV_HPP_

@@ -29,7 +29,6 @@ class ServerList {
         size_t                      Size() const;
         void                        InitServerList(const std::string& path);
         void                        Print() const;
-        const                       Server& FindServer(const int listener_sfd, const std::string& name) const;
 
     private:
         ServerList();
