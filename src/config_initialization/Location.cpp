@@ -99,6 +99,23 @@ bool    Location::get_strict() const
     return strict_;
 }
 
+bool    Location::has_method(std::string const & value) const
+{
+    std::string Methods[] = {"GET", "POST", "DELETE"};
+    int MethodsBytes[] = {kMethodGet, kMethodPost, kMethodDelete};
+    for (int i = 0; i < 3; i++)
+    {
+        if(value == Methods[i])
+        {
+            if(methods_ & MethodsBytes[i])
+                return true;
+            else    
+                return false;
+        }
+    }
+    return false;
+}
+
 void    Location::set_path(const std::string& value)
 {
     if (!IsAbsolutePath(value))
