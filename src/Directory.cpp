@@ -1,8 +1,9 @@
 #include "Directory.hpp"
 
-Directory::Directory(const char *path) :
+Directory::Directory(std::string const &path, std::string const & root) :
     path_(path),
-    dir_(opendir(path))
+    root_(root),
+    dir_(opendir(path.c_str()))
 {
     if(!dir_)
         throw std::runtime_error("Can't open directory");
@@ -41,7 +42,7 @@ void Directory::WriteHTML()
         if(file->d_type == DT_DIR)
             name += "/";
         html_.OpenTag("p");
-        href = path_ + name;
+        href = root_ + "/" + name;
         html_.AddLinkTag(href, name);
         html_.CloseTag("p");
         html_.NewLine();

@@ -67,7 +67,7 @@ std::string HTMLPage::GetErrorPage()
 
     page.AddHeader();
     page.OpenTag("h1");
-    page.Write("Error 404");
+    page.Write("Error 404 : Oops page introuvable :\\/");
     page.CloseTag("h1");
     page.NewLine();
     page.AddButtom();

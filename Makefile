@@ -64,6 +64,7 @@ SRCS_FILES:=	config_initialization/AcceptorRecords	\
 				config_initialization/Location			\
 				config_initialization/Server			\
 				config_initialization/ServerList		\
+				config_initialization/CgiPathFinder		\
 				event_handlers/ConnectionAcceptor		\
 				event_handlers/EventHandler				\
 				event_handlers/EventTypes				\
@@ -74,7 +75,8 @@ SRCS_FILES:=	config_initialization/AcceptorRecords	\
 				WebServ									\
 				Directory								\
 				HTMLPage								\
-				Response
+				Response								
+				
 ################################################################################
 #                                 SRC's FORMATING                              #
 ################################################################################

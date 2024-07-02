@@ -36,7 +36,6 @@ class Location {
         bool                                    get_strict() const;
         bool                                    has_method(std::string const &) const;
 
-
         void    set_path(const std::string& value);
         void    set_root(const std::string& value);
         void    set_default_file(const std::string& value);

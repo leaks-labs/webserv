@@ -6,17 +6,17 @@ errors /errors/error400.html 404
 default_file default.html
 bodymax 10000
 root /data/server1
-listing false
-cgi php
+listing true
+cgi php-cgi
 proxy false
 
 >= /
 methods GET
 root /
-listing false
-> /buro
+listing true
+> /test
 methods GET POST
-root /home/toto/Bureau
-default_file webserv_todo.txt
+root /home/toto/Bureau/19/git_webserv/data
+default_file file.html
 > /other
 proxy otherwebsite.com

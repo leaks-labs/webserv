@@ -3,6 +3,7 @@
 
 # include <cstddef>
 # include <vector>
+# include <string>
 
 class Stream {
     public:
@@ -15,6 +16,7 @@ class Stream {
 
         void    Send();
         void    Read();
+        std::string AddHeader(std::string const & str) const;
 
     private:
         static const int    kBufSize = 1024;
@@ -25,6 +27,7 @@ class Stream {
     
         const int           acceptor_sfd_;
         const int           sfd_;
+        int                 pfd_[2];
         std::size_t         request_count;
         std::vector<char>   buffer_;
 };

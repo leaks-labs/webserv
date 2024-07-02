@@ -102,10 +102,8 @@ bool    Location::get_strict() const
 bool    Location::has_method(std::string const & value) const
 {
     for (const_methods_iterator it = methods_ref_.begin(); it!= methods_ref_.end(); it++)
-    {
         if(value == it->first)
             return methods_ & it->second;
-    }
     return false;
 }
 
@@ -174,7 +172,7 @@ void    Location::set_cgi(const std::string& value)
         std::string res = value.substr(start, end - start);
         std::map<std::string, int>::const_iterator  i = cgi_ref_.find(res);
         if (i == cgi_ref_.end())
-            throw std::runtime_error("cgi is invalid: it should be php, python or none");
+            throw std::runtime_error("cgi is invalid: it should be php-cgi, python or none");
         else if (i->second == kCgiNone)
             cgi_ = kCgiNone;
         else
@@ -283,7 +281,7 @@ const std::map<std::string, int>    Location::InitCgiRef()
 {
     std::map<std::string, int>  m;
     m["none"] = kCgiNone;
-    m["php"] = kCgiPHP;
+    m["php-cgi"] = kCgiPHP;
     m["python"] = kCgiPython;
     return m;
 }

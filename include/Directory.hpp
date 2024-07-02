@@ -10,16 +10,16 @@ class Directory
 {
 private:
     std::string path_;
+    std::string root_;
     DIR* dir_;
     HTMLPage html_;
     Directory();
 public:
-    Directory(const char *path);
+    Directory(std::string const & path, std::string const & root);
     Directory(const Directory &src);
     Directory& operator=(const Directory& src);
     ~Directory();
     void WriteHTML();
-    void WriteError();
     std::string GetHtml()const;
 };
 
