@@ -13,6 +13,12 @@
 
 class Response
 {
+public:
+    Response(int client_sfd, int client_pfd[2], std::string const & server_name, std::string const & path);
+    ~Response();
+
+    void Get(std::string const &path, std::string const &args) const;
+    
 private:
     Response();
     Response &operator=(const Response &);
@@ -31,12 +37,6 @@ private:
     const Server & server_;
     Location const * location_;
     int pfd_[2];
-
-public:
-    Response(int client_sfd, int client_pfd[2], std::string const & server_name, std::string const & path);
-    ~Response();
-
-    void Get(std::string const &path, std::string const &args) const;
 
 };
 
