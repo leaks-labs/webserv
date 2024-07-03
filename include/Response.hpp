@@ -1,9 +1,8 @@
 #ifndef RESPONSE_HPP_
 #define RESPONSE_HPP_
 
-#include <iostream>
+#include <ServerList.hpp>
 #include "Directory.hpp"
-# include "AcceptorRecords.hpp"
 #include "PathFinder.hpp"
 #include <iostream>
 #include <fstream>

@@ -1,7 +1,6 @@
 #ifndef DIRECTORY_HPP_
 #define DIRECTORY_HPP_
 
-#include <sys/types.h>
 #include <dirent.h>
 #include <iostream>
 #include <HTMLPage.hpp>

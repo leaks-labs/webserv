@@ -4,8 +4,6 @@
 #include <iostream>
 #include <cstdlib>
 #include <fstream>
-#include <sstream>
-#include <vector>
 
 class PathFinder
 {
