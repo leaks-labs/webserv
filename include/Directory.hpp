@@ -13,14 +13,16 @@ public:
     Directory(const Directory &src);
     Directory& operator=(const Directory& src);
     ~Directory();
-    void WriteHTML();
-    std::string GetHtml()const;
+    std::string GetHTML() const;
+    bool IsOpen() const;
+
+
 private:
+    Directory();
     std::string path_;
     std::string root_;
     DIR* dir_;
-    HTMLPage html_;
-    Directory();
+
 };
 
 

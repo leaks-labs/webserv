@@ -1,80 +1,26 @@
 #include "Response.hpp"
 
-Response::Response(int client_sfd, int client_pfd[2], std::string const & server_name, std::string const & path) :
-    server_(FindServer(client_sfd, server_name)),
+Response::Response(int client_sfd, int pfd[2], std::string const & server_name, std::string const & path) :
+    server_(ServerList::Instance().FindServer(client_sfd, server_name)),
     location_(server_.FindLocation(path))
 {
-    std::string content;
+    std::memcpy(pfd_, pfd, sizeof(int) * 2);
     std::string args = "arg1=toto";
     if(!location_->has_method("GET"))
-        WriteError(client_pfd[1]);
+        GetError(400);
     else
-        Write(client_pfd, path, args);
+        Get(path, args);
 }
 
 Response::~Response()
 {
 }
 
-std::string Response::GetText() const
-{
-    return text_;
-}
-
-const Server& Response::FindServer(const int acceptor_sfd, const std::string& name) const
-{
-    typedef std::vector<const Server *>::iterator Iterator;
-    std::vector<const Server *> matched;
-    ServerList& server_list = ServerList::Instance();
-    for (size_t i = 0; i < server_list.Size(); i++)
-        if(AcceptorRecords::IsSameAddr(acceptor_sfd, server_list[i].get_addr()))
-            matched.push_back(&server_list[i]);
-    for (Iterator it = matched.begin(); it != matched.end(); it++)
-    {
-        if((*it)->HasServerName(name))
-            return **it;
-    }
-    return *matched[0];
-}
-
-void Response::Write(const int client_pfd[2], std::string const & path, std::string const & args) const
-{
-    std::string realpath;
-    std::string res;
-
-    try
-    {
-        if(location_->get_strict())
-            realpath =  location_->get_root();
-        else
-            realpath = BuildPath(path);
-        if(realpath[realpath.size() - 1] != '/')
-            CreateFile(client_pfd, realpath, args);
-        else
-        {
-            if(location_->get_listing())
-            {
-                Directory dir(realpath, location_->get_path());
-                res = dir.GetHtml();
-            }
-            else
-                res = ReadFile(location_->get_root() + "/" + location_->get_default_file());
-            WriteFile(client_pfd[1], res);
-        }
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << "Response error: " << e.what() << '\n';
-        WriteError(client_pfd[1]);
-    }
-}
-
-
 std::string Response::BuildPath(std::string const &path) const
 {
     if(!location_)
         return "";
-    return location_->get_root() + "/" +path.substr(location_->get_path().size(), path.size());
+    return location_->get_root() + path.substr(location_->get_path().size(), path.size());
 }
 
 std::string Response::FindExtension(std::string const & str) const
@@ -85,41 +31,72 @@ std::string Response::FindExtension(std::string const & str) const
     return str.substr(pos + 1, str.size() - pos);
 }
 
-void Response::CreateFile(const int client_pfd[2], std::string const & path, std::string const & arg) const
+bool Response::IsCgiFile(std::string const & path) const
 {
-    //size_t size  = path.size();
-    std::string cgi_path;
     std::string extension = FindExtension(path);
-    CgiPathFinder& finder = CgiPathFinder::Instance();
-    std::string res;
-    if (extension == "php")
-        cgi_path = finder.GetPhp();
-    else if (extension == "py")
-        cgi_path = finder.GetPython();
-    else
-    {
-        WriteFile(client_pfd[1], ReadFile(path));
-        return;
-    }
-    try
-    {
-        ExecCgi(client_pfd, path, arg, cgi_path);
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-        WriteError(client_pfd[1]);
-    }
+    if (extension == "php" || extension == "py")
+        return true;
+    return false;
 }
 
-void Response::ExecCgi(const int client_pfd[2], std::string const & path, std::string const & arg, std::string const & cgi_path) const
+std::string Response::GetCgiPath(std::string const & ext) const
 {
-    int pid;
+    PathFinder& finder = PathFinder::Instance();
+    if (ext == "php")
+        return finder.GetPhp();
+    else if (ext == "py")
+        return finder.GetPython();
+    return "none";
+}
+
+void Response::Get(std::string const & path, std::string const & args) const
+{
+    std::string realpath;
+    std::string res;
+
+    if(location_->get_strict())
+    {
+        realpath =  location_->get_root();
+        if(path != realpath)
+        {
+            GetError(404);
+            return;
+        }
+    }
+    else
+        realpath = BuildPath(path);
+    if (IsCgiFile(path))
+    {
+        GetCgi(realpath, args);
+        return;
+    }
+    Directory dir(realpath, location_->get_path());
+    if(dir.IsOpen())
+        GetDirectory(dir, args);
+    else
+        GetFile(realpath);
+}
+
+
+void Response::GetError(const int error) const
+{
+    std::string const & path = location_->get_errors().find(error)->second;
+    std::ifstream ifs (path.c_str());
+    if(ifs)
+        GetFile(path);
+}
+
+void Response::GetCgi(std::string const & path, std::string const & args) const
+{
+    std::string cgi_path;
     std::vector<char *> cmd;
     char **c_cmd;
+    int pid;
+
+    cgi_path = GetCgiPath(FindExtension(path));
     cmd.push_back(const_cast<char*>(cgi_path.c_str()));
     cmd.push_back(const_cast<char*>(path.c_str()));
-    cmd.push_back(const_cast<char*>(arg.c_str()));
+    cmd.push_back(const_cast<char*>(args.c_str()));
     cmd.push_back(NULL);
     c_cmd = &cmd[0];
     pid = fork();
@@ -127,18 +104,37 @@ void Response::ExecCgi(const int client_pfd[2], std::string const & path, std::s
         throw std::runtime_error("failed fork for cgi");
     else if(pid == 0)
     {
-        dup2(client_pfd[1], 1);
-        close(client_pfd[0]);
-        close(client_pfd[1]);
+        dup2(pfd_[1], 1);
+        close(pfd_[0]);
+        close(pfd_[1]);
         execve(c_cmd[0], c_cmd, NULL);
     }
 }
 
-std::string Response::ReadFile(std::string const & path) const
+void Response::GetDirectory(Directory & dir, std::string const & args) const
+{
+    std::string path;
+
+    if(location_->get_listing())
+    {
+        Write(dir.GetHTML());
+        return;
+    }
+    path = location_->get_root() + "/" + location_->get_default_file();
+    if(IsCgiFile(path))
+        GetCgi(path, args);
+    else
+        GetFile(path);
+}
+
+void Response::GetFile(std::string const & path) const
 {
     std::ifstream ifs (path.c_str());
     if(!ifs)
-        return HTMLPage::GetErrorPage();
+    {
+        GetError(404);
+        return;
+    }
     std::filebuf* pbuf = ifs.rdbuf();
     std::size_t size = pbuf->pubseekoff(0,ifs.end,ifs.in);
     pbuf->pubseekpos (0,ifs.in);
@@ -147,16 +143,10 @@ std::string Response::ReadFile(std::string const & path) const
     ifs.close();
     std::string res = std::string(buf);
     delete [] buf;
-    return res;
+    Write(res);
 }
 
-void Response::WriteError(const int client_pfd) const
+void Response::Write(std::string const & body) const
 {
-    std::string body = HTMLPage::GetErrorPage();
-    write(client_pfd, body.c_str(), body.size());
-}
-
-void Response::WriteFile(const int client_pfd, std::string const & body) const
-{
-    write(client_pfd, body.c_str(), body.size());
+    write(pfd_[1], body.c_str(), body.size());
 }

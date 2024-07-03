@@ -1,9 +1,5 @@
 #include "ServerList.hpp"
 
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
 
 ServerList& ServerList::Instance()
 {
@@ -132,4 +128,36 @@ void    ServerList::ParseConfigFile(std::ifstream& file)
     for (std::vector<Server>::iterator it = servers_.begin(); it != servers_.end(); ++it)
         if (it->ServerNamesCount() > 1)
             it->PopDefaultServerName();
+}
+
+bool ServerList::IsSameAddr(const int acceptor_sfd, const struct addrinfo* addr_list) const
+{
+    struct sockaddr_storage addr_buf;
+    socklen_t               len_buf = sizeof(addr_buf);
+    if (getsockname(acceptor_sfd, reinterpret_cast<struct sockaddr*>(&addr_buf), &len_buf) == -1) {
+        perror("ERROR: getsockname()");
+        return -1;
+    }
+    for (const struct addrinfo *tmp = addr_list; tmp != NULL; tmp = tmp->ai_next)
+    {
+        if (tmp->ai_addrlen == len_buf && memcmp(tmp->ai_addr, &addr_buf, len_buf) == 0)
+            return 1;
+    }
+    std::cout << "IS NOT SAME ADDR" << std::endl;
+    return 0;
+}
+
+const Server& ServerList::FindServer(const int acceptor_sfd, const std::string& name) const
+{
+    typedef std::vector<const Server *>::iterator Iterator;
+    std::vector<const Server *> matched;
+    for (size_t i = 0; i < Size(); i++)
+        if(IsSameAddr(acceptor_sfd, servers_[i].get_addr()))
+            matched.push_back(&servers_[i]);
+    for (Iterator it = matched.begin(); it != matched.end(); it++)
+    {
+        if((*it)->HasServerName(name))
+            return **it;
+    }
+    return *matched[0];
 }

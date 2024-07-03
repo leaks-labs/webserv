@@ -1,6 +1,6 @@
-#include "CgiPathFinder.hpp"
+#include "PathFinder.hpp"
 
-CgiPathFinder::CgiPathFinder()
+PathFinder::PathFinder()
 {        
     const std::string value = std::string(std::getenv("PATH"));
     std::string folder;
@@ -22,28 +22,28 @@ CgiPathFinder::CgiPathFinder()
     
 }
 
-CgiPathFinder::~CgiPathFinder()
+PathFinder::~PathFinder()
 {
 }
 
-CgiPathFinder &CgiPathFinder::Instance()
+PathFinder &PathFinder::Instance()
 {
-    static CgiPathFinder instance;
+    static PathFinder instance;
     return instance;
 }
 
-bool CgiPathFinder::FileExist(std::string const & path) const
+bool PathFinder::FileExist(std::string const & path) const
 {
     std::ifstream file(path.c_str());
     return file.good();
 }
 
-std::string const & CgiPathFinder::GetPhp()const
+std::string const & PathFinder::GetPhp()const
 {
     return php_;
 }
 
-std::string const & CgiPathFinder::GetPython()const
+std::string const & PathFinder::GetPython()const
 {
     return python_;
 }

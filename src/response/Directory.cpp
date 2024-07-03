@@ -5,9 +5,6 @@ Directory::Directory(std::string const &path, std::string const & root) :
     root_(root),
     dir_(opendir(path.c_str()))
 {
-    if(!dir_)
-        throw std::runtime_error("Can't open directory");
-    WriteHTML();
 }
 
 Directory::Directory(const Directory &src)
@@ -24,16 +21,25 @@ Directory& Directory::operator=(const Directory& src)
 
 Directory::~Directory()
 {
-    closedir(dir_);
+    if(dir_)
+        closedir(dir_);
 }
 
-void Directory::WriteHTML()
+bool Directory::IsOpen() const
+{
+    if(dir_)
+        return true;
+    return false;
+}
+
+std::string Directory::GetHTML() const
 {
     struct dirent *file;
     std::string name;
     std::string href;
+    HTMLPage html;
 
-    html_.AddHeader();
+    html.AddHeader();
     while((file = readdir(dir_)))
     {
         if(file->d_name[0] == '.')
@@ -41,16 +47,12 @@ void Directory::WriteHTML()
         name = file->d_name;
         if(file->d_type == DT_DIR)
             name += "/";
-        html_.OpenTag("p");
+        html.OpenTag("p");
         href = root_ + "/" + name;
-        html_.AddLinkTag(href, name);
-        html_.CloseTag("p");
-        html_.NewLine();
+        html.AddLinkTag(href, name);
+        html.CloseTag("p");
+        html.NewLine();
     }
-    html_.AddButtom();
-}
-
-std::string Directory::GetHtml() const
-{
-    return html_.GetPage();
+    html.AddButtom();
+    return html.GetPage();
 }

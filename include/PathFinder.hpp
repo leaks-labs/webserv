@@ -1,23 +1,25 @@
-#ifndef CGI_PATH_FINDER_
-#define CGI_PATH_FINDER_
+#ifndef PATH_FINDER_
+#define PATH_FINDER_
 
 #include <iostream>
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
 #include <vector>
-class CgiPathFinder
+
+class PathFinder
 {
 private:
-    CgiPathFinder();
-    CgiPathFinder(CgiPathFinder const & src);
-    CgiPathFinder& operator=(CgiPathFinder const & src);
+    PathFinder();
+    PathFinder(PathFinder const & src);
+    PathFinder& operator=(PathFinder const & src);
     bool FileExist(std::string const & path) const;
+
     std::string php_;
     std::string python_;
 public:
-    static CgiPathFinder& Instance();
-    ~CgiPathFinder();
+    static PathFinder& Instance();
+    ~PathFinder();
     std::string const & GetPhp()const;
     std::string const & GetPython()const;
 };
