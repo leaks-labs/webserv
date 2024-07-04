@@ -5,26 +5,34 @@
 # include <vector>
 # include <string>
 
-# define kDefaultDictionary "header_dictionary.json"
+# define N_HEADERS 10
+# define N_HEADERS_ARGS 3
+
+struct HttpHeaderList
+{
+    std::string header;
+    std::string args[N_HEADERS_ARGS];
+};
+
+extern const HttpHeaderList header_dictionary[N_HEADERS];
 
 class HttpHeader
 {
     public:
-        HttpHeader(const std::string& dictionary);
+        HttpHeader();
         ~HttpHeader();
 
-        const std::map<std::string, std::vector<std::string> >&
-        BuildDictionary(const std::string& dictionary);
-
         const std::map<std::string, std::string>& get_header_map() const;
+        static size_t FindHeader(
+                const HttpHeaderList* dictionary,
+                const std::string& header
+        );
 
     private:
-        HttpHeader();
         HttpHeader(const HttpHeader& http_header);
         HttpHeader& operator=(const HttpHeader& http_header);
 
-        const std::map<std::string, std::vector<std::string> >  header_dictionary_;
-        std::map<std::string, std::string>                      header_map_;
+        std::map<std::string, std::string>  header_map_;
 };
 
 #endif

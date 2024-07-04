@@ -4,7 +4,7 @@
 # include <string>
 
 # define HTTP_VERSION "HTTP/1.1"
-# define N_METHOD 8
+# define N_METHODS 8
 
 enum RequestTargetType {
     ORIGIN_FORM,
@@ -25,7 +25,7 @@ struct RequestMethod {
     bool        is_used;
 };
 
-extern const RequestMethod method_dictionary[N_METHOD];
+extern const RequestMethod method_dictionary[N_METHODS];
 
 class HttpRequestLine
 {
@@ -39,9 +39,8 @@ class HttpRequestLine
         void Parse(const std::string& request_line);
         static size_t FindMethod(
                     const RequestMethod* dictionary,
-                    const std::string& request_method
+                    const std::string& method
         );
-        static
 
     private:
         void set_request_method(const RequestMethod& request_method);

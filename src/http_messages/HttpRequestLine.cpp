@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 
-const RequestMethod method_dictionary[N_METHOD] = {
+const RequestMethod method_dictionary[N_METHODS] = {
         {"OPTIONS", 7, false},
         {"GET", 3, true},
         {"HEAD", 4, false},
@@ -70,7 +70,7 @@ void HttpRequestLine::Parse(const std::string &request_line)
     std::string method(tokens.at(1));
     std::transform(method.begin(), method.end(), method.begin(), ::toupper);
     size_t dictionary = FindMethod(method_dictionary, method);
-    if (dictionary == N_METHOD || !method_dictionary[dictionary].is_used)
+    if (dictionary == N_METHODS || !method_dictionary[dictionary].is_used)
         throw std::runtime_error("bad request"); //todo improve
     set_request_method(method_dictionary[dictionary]);
     std::string target(tokens.at(2));
@@ -83,11 +83,11 @@ void HttpRequestLine::Parse(const std::string &request_line)
 
 size_t HttpRequestLine::FindMethod(
         const RequestMethod* dictionary,
-        const std::string &request_method)
+        const std::string &method)
 {
     size_t i;
-    for (i = 0; i < N_METHOD; ++i) {
-        if (dictionary[i].method == request_method)
+    for (i = 0; i < N_METHODS; ++i) {
+        if (dictionary[i].method == method)
             break;
     }
     return i;

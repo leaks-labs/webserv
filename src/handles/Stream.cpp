@@ -14,7 +14,7 @@
 
 Stream::Stream(int sfd)
     : sfd_(sfd),
-      request_count(0),
+      request_count_(0),
       buffer_(kBufSize)
 {
 }
@@ -31,27 +31,7 @@ int Stream::get_sfd() const
 
 std::size_t Stream::get_request_count() const
 {
-    return request_count;
-}
-
-void    Stream::Send()
-{
-    std::cout << "ENTER: Send" << std::endl;
-    // TODO: send the response
-    // TODO: for now, just echo back;
-    const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello World!";
-    ssize_t bytes_sent;
-#ifdef __APPLE__
-    int send_flags = 0;
-#elif __linux__
-    int send_flags = MSG_DONTWAIT;
-#endif
-    if ((bytes_sent = send(sfd_, response.c_str(), response.size(), send_flags)) == -1)
-        throw std::runtime_error("recv() failed:" + std::string(strerror(errno)));
-    // TODO: if bytes_sent < response.size(), we need to keep the response in the response queue with the remaining data.
-    // or if bytes_sent == response.size(), we need to remove the response from the response queue in the future ClientList.
-    // For now, just remove the response from the map.
-    --request_count;
+    return request_count_;
 }
 
 void    Stream::Read()
@@ -75,5 +55,49 @@ void    Stream::Read()
     // TODO: the future ClientList will add the count of VALID requests only if the request is complete
     // For now, just add the request in the map.
     //request_count;
-    ++request_count;
+    ++request_count_;
+}
+
+void Stream::Decode(const std::vector<char>& buffer)
+{
+    std::string buff(buffer.begin(), buffer.end());
+    size_t j;
+    size_t i = 0;
+    size_t len = buff.length();
+
+    try {
+        while (i > len) {
+            j = HttpRequest::FindRequest(buff, i);
+            HttpMessage* request = new HttpRequest(); // todo check empty
+            if (j != i) {
+                std::string message(buff.substr(i, j));
+
+                request->set_message(message);
+                request->Parse();
+            }
+            i = j;
+        }
+    } catch (std::exception& e){
+        throw e;
+    }
+}
+
+void    Stream::Send()
+{
+    std::cout << "ENTER: Send" << std::endl;
+    // TODO: send the response
+    // TODO: for now, just echo back;
+    const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello World!";
+    ssize_t bytes_sent;
+#ifdef __APPLE__
+    int send_flags = 0;
+#elif __linux__
+    int send_flags = MSG_DONTWAIT;
+#endif
+    if ((bytes_sent = send(sfd_, response.c_str(), response.size(), send_flags)) == -1)
+        throw std::runtime_error("recv() failed:" + std::string(strerror(errno)));
+    // TODO: if bytes_sent < response.size(), we need to keep the response in the response queue with the remaining data.
+    // or if bytes_sent == response.size(), we need to remove the response from the response queue in the future ClientList.
+    // For now, just remove the response from the map.
+    --request_count_;
 }
