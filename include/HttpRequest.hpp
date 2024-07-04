@@ -9,9 +9,9 @@ class HttpRequest : public HttpMessage
         HttpRequest();
         ~HttpRequest();
 
-        static size_t FindRequest(const std::string& buff, size_t pos);
+        static size_t   FindRequest(const std::string& buff, size_t pos);
 
-        void Parse();
+        void            Parse();
     private:
         HttpRequest(const HttpRequest& http_request);
         HttpRequest& operator=(const HttpRequest& http_request);

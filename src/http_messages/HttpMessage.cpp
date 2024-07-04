@@ -47,7 +47,7 @@ const MessageStatus& HttpMessage::get_message_status() const
     return message_status_;
 }
 
-void HttpMessage::set_message_status(MessageStatus &message_status)
+void HttpMessage::set_message_status(const MessageStatus &message_status)
 {
     message_status_ = message_status;
 }
@@ -72,7 +72,7 @@ void HttpMessage::set_body(const std::string& body)
     body_ = body;
 }
 
-bool HttpMessage::get_is_chunck() const
+bool HttpMessage::get_is_chunk() const
 {
     return is_chunk_;
 }

@@ -22,11 +22,12 @@ class HttpHeader
         HttpHeader();
         ~HttpHeader();
 
-        const std::map<std::string, std::string>& get_header_map() const;
-        static size_t FindHeader(
+        static size_t                               FindHeader(
                 const HttpHeaderList* dictionary,
                 const std::string& header
         );
+
+        const std::map<std::string, std::string>&   get_header_map() const;
 
     private:
         HttpHeader(const HttpHeader& http_header);

@@ -22,6 +22,6 @@ void HttpRequest::Parse()
         throw std::runtime_error("failed to create stream");
     std::vector<std::string> tokens;
     std::string token;
-    while (std::getline(stream, token, "\r\n\r\n"))
+    while (std::getline(stream, token, "\r\n"))
         tokens.push_back(token);
 }

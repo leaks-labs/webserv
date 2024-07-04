@@ -23,25 +23,25 @@ class HttpMessage
         HttpMessage();
         virtual ~HttpMessage();
 
-        const HttpRequestLine& get_request_line() const;
-        const HttpHeader& get_message_header() const;
-
-        const MessageStatus& get_message_status() const;
-        void set_message_status(MessageStatus& message_status);
-        const std::string& get_message() const;
-        void set_message(const std::string& message);
-        const std::string& get_body() const;
-        void set_body(const std::string& body);
-        bool get_is_chunck() const;
-        void set_is_chunk(bool is_chunk);
-        bool get_is_complete() const;
-        void set_is_complete(bool is_complete);
-
         static size_t FindStatus(const MessageStatus* dictionary, int status);
 
+        const HttpRequestLine&  get_request_line() const;
+        const HttpHeader&       get_message_header() const;
+
+        const MessageStatus&    get_message_status() const;
+        void                    set_message_status(const MessageStatus& message_status);
+        const std::string&      get_message() const;
+        void                    set_message(const std::string& message);
+        const std::string&      get_body() const;
+        void                    set_body(const std::string& body);
+        bool                    get_is_chunk() const;
+        void                    set_is_chunk(bool is_chunk);
+        bool                    get_is_complete() const;
+        void                    set_is_complete(bool is_complete);
+
     protected:
-        HttpRequestLine& get_protected_request_line();
-        HttpHeader& get_protected_message_header();
+        HttpRequestLine&    get_protected_request_line();
+        HttpHeader&         get_protected_message_header();
 
     private:
         HttpMessage(const HttpMessage& http_message);

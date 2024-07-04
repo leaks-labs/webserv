@@ -14,7 +14,7 @@ enum RequestTargetType {
     UNKNOWN_FORM
 };
 
-struct RequestTarget {
+struct RequestTarget { // is CGI ?
     std::string         target;
     RequestTargetType   type;
 };
@@ -33,14 +33,14 @@ class HttpRequestLine
         HttpRequestLine();
         ~HttpRequestLine();
 
-        const RequestMethod& get_request_method() const;
-        const RequestTarget& get_request_target() const;
-        const std::string& get_request_http() const;
-        void Parse(const std::string& request_line);
-        static size_t FindMethod(
-                    const RequestMethod* dictionary,
-                    const std::string& method
+        static size_t           FindMethod(const RequestMethod* dictionary,
+                                           const std::string& method
         );
+
+        const RequestMethod&    get_request_method() const;
+        const RequestTarget&    get_request_target() const;
+        const std::string&      get_request_http() const;
+        void                    Parse(const std::string& request_line);
 
     private:
         void set_request_method(const RequestMethod& request_method);
