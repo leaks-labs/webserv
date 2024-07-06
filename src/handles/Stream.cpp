@@ -3,7 +3,6 @@
 #include <cerrno>
 #include <cstring>
 #include <stdexcept>
-#include <string>
 
 #include <sys/socket.h>
 #include <unistd.h>
@@ -14,7 +13,6 @@
 
 Stream::Stream(int sfd)
     : sfd_(sfd),
-      request_count(0),
       buffer_(kBufSize)
 {
 }
@@ -29,32 +27,21 @@ int Stream::get_sfd() const
     return sfd_;
 }
 
-std::size_t Stream::get_request_count() const
-{
-    return request_count;
-}
-
-void    Stream::Send()
+void    Stream::Send(std::string& data)
 {
     std::cout << "ENTER: Send" << std::endl;
-    // TODO: send the response
-    // TODO: for now, just echo back;
-    const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello World!";
-    ssize_t bytes_sent;
 #ifdef __APPLE__
     int send_flags = 0;
 #elif __linux__
     int send_flags = MSG_DONTWAIT;
 #endif
-    if ((bytes_sent = send(sfd_, response.c_str(), response.size(), send_flags)) == -1)
+    ssize_t bytes_sent = send(sfd_, data.c_str(), data.size(), send_flags);
+    if (bytes_sent == -1)
         throw std::runtime_error("recv() failed:" + std::string(strerror(errno)));
-    // TODO: if bytes_sent < response.size(), we need to keep the response in the response queue with the remaining data.
-    // or if bytes_sent == response.size(), we need to remove the response from the response queue in the future ClientList.
-    // For now, just remove the response from the map.
-    --request_count;
+    data.erase(0, bytes_sent);
 }
 
-void    Stream::Read()
+std::string Stream::Read()
 {
     std::cout << "ENTER: Read " << std::endl;
     ssize_t bytes_read;
@@ -69,11 +56,5 @@ void    Stream::Read()
         throw std::runtime_error("recv() failed:" + std::string(strerror(errno)));
     else if (bytes_read == 0)
         throw std::runtime_error("recv() failed: connection closed by peer");
-    std::string str(buffer_.data(), bytes_read);
-    // TODO: add string to the request queue
-
-    // TODO: the future ClientList will add the count of VALID requests only if the request is complete
-    // For now, just add the request in the map.
-    //request_count;
-    ++request_count;
+    return std::string(buffer_.data(), bytes_read);
 }

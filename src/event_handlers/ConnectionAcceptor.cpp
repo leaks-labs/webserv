@@ -45,3 +45,8 @@ void    ConnectionAcceptor::HandleEvent(EventTypes::Type event_type)
         throw;
     }
 }
+
+void    ConnectionAcceptor::HandleTimeout()
+{
+    // TODO: implement
+}
