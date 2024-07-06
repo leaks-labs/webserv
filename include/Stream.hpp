@@ -27,7 +27,6 @@ class Stream {
     
         const int           acceptor_sfd_;
         const int           sfd_;
-        int                 pfd_[2];
         std::size_t         request_count;
         std::vector<char>   buffer_;
 };

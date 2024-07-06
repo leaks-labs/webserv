@@ -20,15 +20,11 @@ Stream::Stream(int acceptor_sfd, int sfd)
       request_count(0),
       buffer_(kBufSize)
 {
-    if(pipe(pfd_) == -1)
-        throw std::runtime_error("Stream failed opening pipe");
 }
 
 Stream::~Stream()
 {
     close(sfd_);
-    close(pfd_[0]);
-    close(pfd_[1]);
 }
 
 int Stream::get_sfd() const
@@ -54,11 +50,7 @@ void    Stream::Send()
     // TODO: send the response
     // TODO: for now, just echo back;
 
-    //const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello World!";
-    size_t len = 10000;
-    char buf[len];
-    read(pfd_[0], buf, len);
-    const std::string response = AddHeader(std::string(buf));
+    const std::string   response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello World!";
     ssize_t bytes_sent;
 #ifdef __APPLE__
     int send_flags = 0;
@@ -90,7 +82,6 @@ void    Stream::Read()
         throw std::runtime_error("recv() failed: connection closed by peer");
     std::string str(buffer_.data(), bytes_read);
     //std::cout << buffer_.data() << std::endl;
-    Response response(acceptor_sfd_, pfd_, "abc.com", "/test/file.php");
     //std::cout << response.GetText() << std::endl;
     // TODO: add string to the request queue
 
