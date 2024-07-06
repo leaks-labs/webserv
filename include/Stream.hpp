@@ -2,6 +2,7 @@
 # define STREAM_HPP_
 
 # include <cstddef>
+# include <string>
 # include <vector>
 
 class Stream {
@@ -11,10 +12,9 @@ class Stream {
         ~Stream();
 
         int         get_sfd() const;
-        std::size_t get_request_count() const;
 
-        void    Send();
-        void    Read();
+        void        Send(std::string& data);
+        std::string Read();
 
     private:
         static const int    kBufSize = 1024;
@@ -24,7 +24,6 @@ class Stream {
         Stream& operator=(const Stream& rhs);
     
         const int           sfd_;
-        std::size_t         request_count;
         std::vector<char>   buffer_;
 };
 
