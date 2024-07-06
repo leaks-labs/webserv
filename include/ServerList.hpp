@@ -1,9 +1,12 @@
 #ifndef SERVER_LIST_HPP_
 # define SERVER_LIST_HPP_
 
-# include <string>
+# include <cstring>
 # include <vector>
-
+# include <fstream>
+# include <iostream>
+# include <sstream>
+# include <stdexcept>
 # include "Server.hpp"
 
 class ServerList {
@@ -28,9 +31,10 @@ class ServerList {
 
         size_t                      Size() const;
         void                        InitServerList(const std::string& path);
+        bool                        IsSameAddr(const int listener_sfd, const struct addrinfo* addr_list) const;
+        const Server&               FindServer(const int acceptor_sfd, const std::string& name) const;
+
         void                        Print() const;
-        const std::vector<Server>&  GetServers() const;
-        const                       Server& FindServer(const int listener_sfd, const std::string& name) const;
 
     private:
         ServerList();

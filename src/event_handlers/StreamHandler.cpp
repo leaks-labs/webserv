@@ -13,9 +13,11 @@
 #include <iostream>
 // TODO: to remove
 
-StreamHandler::StreamHandler(int sfd)
-    : stream_(sfd),
-      request_count(0)
+StreamHandler::StreamHandler(int acceptor_sfd, int sfd)
+    : 
+    acceptor_sfd_(acceptor_sfd),
+    stream_(sfd),
+    request_count(0)
 {
     if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent) == -1)
         throw std::runtime_error("Failed to register StreamHandler with InitiationDispatcher");

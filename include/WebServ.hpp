@@ -20,7 +20,6 @@ class WebServ {
         WebServ();
         WebServ(const WebServ& src);
         WebServ&    operator=(const WebServ& rhs);
-
         AcceptorRecords acceptor_records_;
 };
 

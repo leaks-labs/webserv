@@ -4,6 +4,7 @@
 # include <cstddef>
 # include <string>
 # include <vector>
+# include <string>
 
 class Stream {
     public:

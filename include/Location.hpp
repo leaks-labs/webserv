@@ -34,6 +34,7 @@ class Location {
         int                                     get_bodymax() const;
         bool                                    get_listing() const;
         bool                                    get_strict() const;
+        bool                                    has_method(std::string const &) const;
 
         void    set_path(const std::string& value);
         void    set_root(const std::string& value);
@@ -48,6 +49,9 @@ class Location {
 
         int     SetValue(const std::string& key, const std::string& value);
         void    Print() const;
+
+        bool    StrictCompare(std::string const & path) const;
+        size_t  Compare(std::string const & path) const;
 
     private:
         static const std::map<std::string, void (Location::*)(const std::string&)>  set_functions_;
@@ -72,6 +76,8 @@ class Location {
         int                         bodymax_;
         bool                        listing_;
         bool                        strict_;
+
+        typedef std::map<std::string, int>::const_iterator const_methods_iterator;
 };
 
 #endif  // LOCATION_HPP_

@@ -7,19 +7,7 @@
 #include "ConnectionAcceptor.hpp"
 #include "InitiationDispatcher.hpp"
 
-int AcceptorRecords::IsSameAddr(const int acceptor_sfd, const struct addrinfo* addr_list)
-{
-    struct sockaddr_storage addr_buf;
-    socklen_t               len_buf;
-    if (getsockname(acceptor_sfd, reinterpret_cast<struct sockaddr*>(&addr_buf), &len_buf) == -1) {
-        perror("ERROR: getsockname()");
-        return -1;
-    }
-    for (const struct addrinfo *tmp = addr_list; tmp != NULL; tmp = tmp->ai_next)
-        if (tmp->ai_addrlen == len_buf && memcmp(tmp->ai_addr, &addr_buf, len_buf) == 0)
-            return 1;
-    return 0;
-}
+#include <iostream>
 
 AcceptorRecords::AcceptorRecords()
 {

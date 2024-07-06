@@ -6,7 +6,7 @@
 
 class StreamHandler : public EventHandler {
     public:
-        StreamHandler(int sfd);
+        StreamHandler(int acceptor_sfd, int sfd);
 
         virtual ~StreamHandler();
 
@@ -20,6 +20,7 @@ class StreamHandler : public EventHandler {
         StreamHandler(const StreamHandler& src);
         StreamHandler&  operator=(const StreamHandler& rhs);
 
+        const int acceptor_sfd_;
         Stream      stream_;
         std::size_t request_count;
 };

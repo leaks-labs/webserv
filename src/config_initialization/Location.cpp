@@ -99,6 +99,14 @@ bool    Location::get_strict() const
     return strict_;
 }
 
+bool    Location::has_method(std::string const & value) const
+{
+    for (const_methods_iterator it = methods_ref_.begin(); it!= methods_ref_.end(); it++)
+        if(value == it->first)
+            return methods_ & it->second;
+    return false;
+}
+
 void    Location::set_path(const std::string& value)
 {
     if (!IsAbsolutePath(value))
@@ -164,7 +172,7 @@ void    Location::set_cgi(const std::string& value)
         std::string res = value.substr(start, end - start);
         std::map<std::string, int>::const_iterator  i = cgi_ref_.find(res);
         if (i == cgi_ref_.end())
-            throw std::runtime_error("cgi is invalid: it should be php, python or none");
+            throw std::runtime_error("cgi is invalid: it should be php-cgi, python or none");
         else if (i->second == kCgiNone)
             cgi_ = kCgiNone;
         else
@@ -273,7 +281,7 @@ const std::map<std::string, int>    Location::InitCgiRef()
 {
     std::map<std::string, int>  m;
     m["none"] = kCgiNone;
-    m["php"] = kCgiPHP;
+    m["php-cgi"] = kCgiPHP;
     m["python"] = kCgiPython;
     return m;
 }
@@ -292,3 +300,19 @@ bool Location::IsAbsolutePath(const std::string& value) const
 {
     return (!value.empty() && value[0] == '/');
 }
+
+ size_t    Location::Compare(const std::string & path) const
+ {
+    size_t path_size;
+
+    path_size = path_.size();
+    if(path.size() >= path_size && path.substr(0, path_size) == path_)
+        return(path_size);
+    return(0);
+ }
+
+ bool    Location::StrictCompare(const std::string & path) const
+ {
+    return (strict_ && path == path_);
+ }
+
