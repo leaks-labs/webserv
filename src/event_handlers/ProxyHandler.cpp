@@ -12,6 +12,22 @@
 #include <iostream>
 // TODO: to remove
 
+struct addrinfo*    ProxyHandler::ConvertToAddrInfo(const std::string& url)
+{
+    struct addrinfo hints;
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    int                 status;
+    struct addrinfo*    res;
+    if ((status = getaddrinfo(url.c_str(), "http", &hints, &res)) != 0)
+        throw std::runtime_error("getaddrinfo failed: " + std::string(gai_strerror(status)));
+
+    return res;
+}
+
 ProxyHandler::ProxyHandler(StreamHandler& stream_handler, const struct addrinfo& address)
     : stream_handler_(stream_handler),
 #ifdef __APPLE__
@@ -85,6 +101,11 @@ void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
     }
 }
 
+void    ProxyHandler::HandleTimeout()
+{
+    // TODO: implement
+}
+
 void    ProxyHandler::ReturnToStreamHandler()
 {
     int err = (InitiationDispatcher::Instance().AddReadFilter(stream_handler_) == -1 || InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1);
@@ -93,20 +114,4 @@ void    ProxyHandler::ReturnToStreamHandler()
     InitiationDispatcher::Instance().RemoveHandler(this);
     if (err != 0)
         throw std::runtime_error("Failed to reactivate stream handler");
-}
-
-struct addrinfo*    ProxyHandler::ConvertToAddrInfo(const std::string& url)
-{
-    struct addrinfo hints;
-
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-
-    int                 status;
-    struct addrinfo*    res;
-    if ((status = getaddrinfo(url.c_str(), "http", &hints, &res)) != 0)
-        throw std::runtime_error("getaddrinfo failed: " + std::string(gai_strerror(status)));
-
-    return res;
 }
