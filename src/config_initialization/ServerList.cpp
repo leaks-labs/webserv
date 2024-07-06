@@ -143,7 +143,6 @@ bool ServerList::IsSameAddr(const int acceptor_sfd, const struct addrinfo* addr_
         if (tmp->ai_addrlen == len_buf && memcmp(tmp->ai_addr, &addr_buf, len_buf) == 0)
             return 1;
     }
-    std::cout << "IS NOT SAME ADDR" << std::endl;
     return 0;
 }
 

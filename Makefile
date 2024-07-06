@@ -69,12 +69,11 @@ SRCS_FILES:=	config_initialization/AcceptorRecords	\
 				event_handlers/EventHandler				\
 				event_handlers/EventTypes				\
 				event_handlers/ProxyHandler				\
+				event_handlers/CgiHandler				\
 				event_handlers/StreamHandler			\
 				handles/Acceptor						\
 				handles/Stream							\
-				response/Directory						\
-				response/HTMLPage						\
-				response/Response						\
+				handles/Cgi 							\
 				InitiationDispatcher					\
 				WebServ
 
