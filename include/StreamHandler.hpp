@@ -19,7 +19,8 @@ class StreamHandler : public EventHandler {
         StreamHandler(const StreamHandler& src);
         StreamHandler&  operator=(const StreamHandler& rhs);
 
-        Stream  stream_;
+        Stream      stream_;
+        std::size_t request_count;
 };
 
 #endif  // STREAM_HANDLER_HPP

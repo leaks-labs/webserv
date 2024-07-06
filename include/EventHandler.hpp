@@ -9,7 +9,7 @@ class EventHandler {
 
         virtual ~EventHandler();
 
-        virtual Handle      get_handle(void) const = 0;
+        virtual Handle      get_handle() const = 0;
         EventTypes::Type    get_event_types_registred() const;
 
         virtual void    HandleEvent(EventTypes::Type event_type) = 0;

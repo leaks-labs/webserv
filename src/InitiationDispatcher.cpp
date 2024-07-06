@@ -60,6 +60,15 @@ void    InitiationDispatcher::RemoveHandler(EventHandler* event_handler)
     delete event_handler;
 }
 
+int InitiationDispatcher::DeactivateHandler(EventHandler& event_handler)
+{
+#ifdef __APPLE__
+    return (DelReadFilter(event_handler) == -1 || DelWriteFilter(event_handler) == -1) ? -1 : 0;
+#elif __linux__
+    return (epoll_ctl(demultiplexer_, EPOLL_CTL_DEL, event_handler.get_handle(), NULL));
+#endif
+}
+
 int InitiationDispatcher::AddReadFilter(EventHandler& event_handler)
 {
     if (EventTypes::IsReadEvent(event_handler.get_event_types_registred()))
