@@ -2,6 +2,7 @@
 # define INITIATION_DISPATCHER_HPP_
 
 # include <csignal>
+# include <ctime>
 # include <map>
 # include <vector>
 
@@ -16,9 +17,11 @@
 
 class InitiationDispatcher {
     public:
+        static const time_t kNoTimeout = -1;
+
         static InitiationDispatcher&    Instance();
 
-        virtual void    HandleEvents();
+        virtual void    HandleEvents(const time_t timeout);
         int             RegisterHandler(EventHandler* event_handler, EventTypes::Type event_type);
         void            RemoveHandler(EventHandler* event_handler);
         int             AddReadFilter(EventHandler& event_handler);
@@ -38,7 +41,12 @@ class InitiationDispatcher {
 
         static volatile sig_atomic_t    g_signal_received;
 
-        static void SignalHandler(int signal);
+        static void                 SignalHandler(int signal);
+        static EventHandler::Handle GetHandleFromEvent(const Event& event);
+        static EventTypes::Type     GetEventTypeFromEvent(const Event& event);
+        static bool                 IsEventRead(const Event& event);
+        static bool                 IsEventWrite(const Event& event);
+        static bool                 IsEventClose(const Event& event);
 
         InitiationDispatcher();
 
@@ -47,13 +55,9 @@ class InitiationDispatcher {
 
         ~InitiationDispatcher();
 
-        int                     WaitForEvents(std::vector<Event>& event_list, int event_list_size) const;
-        void                    IterateEventList(const std::vector<Event>& event_list, int nubmer_events);
-        EventHandler::Handle    GetHandleFromEvent(const Event& event) const;
-        EventTypes::Type        GetEventTypeFromEvent(const Event& event) const;
-        bool                    IsEventRead(const Event& event) const;
-        bool                    IsEventWrite(const Event& event) const;
-        bool                    IsEventClose(const Event& event) const;
+        int     WaitForEvents(std::vector<Event>& event_list, int event_list_size, const time_t timeout) const;
+        void    IterateEventList(const std::vector<Event>& event_list, int nubmer_events);
+        void    CheckForTimeouts(time_t& start_time, time_t timeout);
 
         std::map<EventHandler::Handle, EventHandler*>   event_handler_table_;
         const int                                       demultiplexer_;

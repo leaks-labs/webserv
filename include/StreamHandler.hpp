@@ -13,6 +13,7 @@ class StreamHandler : public EventHandler {
         virtual Handle  get_handle() const;
 
         virtual void    HandleEvent(EventTypes::Type event_type);
+        virtual void    HandleTimeout();
 
     private:
         StreamHandler();
