@@ -1,5 +1,6 @@
 #include "ProxyHandler.hpp"
 
+#include <cerrno>
 #include <cstring>
 #include <stdexcept>
 
