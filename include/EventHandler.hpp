@@ -13,6 +13,7 @@ class EventHandler {
         EventTypes::Type    get_event_types_registred() const;
 
         virtual void    HandleEvent(EventTypes::Type event_type) = 0;
+        virtual void    HandleTimeout() = 0;
 
         void    AddRegistredEvent(EventTypes::Type event_type);
         void    DelRegistredEvent(EventTypes::Type event_type);

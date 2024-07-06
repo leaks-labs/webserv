@@ -74,3 +74,8 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
         }
     }
 }
+
+void    StreamHandler::HandleTimeout()
+{
+    // TODO: implement
+}
