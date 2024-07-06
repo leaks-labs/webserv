@@ -60,18 +60,6 @@ EXT:=	.cpp
 
 MAIN:=	main
 
-<<<<<<< HEAD
-SRCS_FILES:=	WebServ				\
-				Listener			\
-				ListenerList		\
-				EventBroker			\
-				ServerList			\
-				Server				\
-				Location			\
-				Directory			\
-				HTMLPage			\
-				Response
-=======
 SRCS_FILES:=	config_initialization/AcceptorRecords	\
 				config_initialization/Location			\
 				config_initialization/Server			\
@@ -85,7 +73,6 @@ SRCS_FILES:=	config_initialization/AcceptorRecords	\
 				handles/Stream							\
 				InitiationDispatcher					\
 				WebServ
->>>>>>> refactor/EventBroker_to_InitiationDispatcher
 
 ################################################################################
 #                                 SRC's FORMATING                              #
