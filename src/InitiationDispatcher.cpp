@@ -298,7 +298,11 @@ void    InitiationDispatcher::CheckForTimeouts(time_t& start_time, time_t timeou
     } else if (current_time - start_time >= timeout) {
         std::cout << "Callig timeout handler..." << std::endl;
         start_time = current_time;
-        for (std::map<EventHandler::Handle, EventHandler*>::iterator it = event_handler_table_.begin(); it != event_handler_table_.end(); ++it)
+        for (std::map<EventHandler::Handle, EventHandler*>::iterator it = event_handler_table_.begin(); it != event_handler_table_.end();) {
+            std::map<EventHandler::Handle, EventHandler*>::iterator next = it;
+            ++next;
             it->second->HandleTimeout();
+            it = next;
+        }
     }
 }
