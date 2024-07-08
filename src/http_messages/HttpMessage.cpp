@@ -1,25 +1,31 @@
 #include "HttpMessage.hpp"
 
-const MessageStatus status_dictionary[N_STATUS] = {
-        {"OK", 200},
-        {"CREATED", 201},
-        {"NO CONTENT", 204},
-        {"Moved Permanently", 301},
-        {"Found", 302},
-        {"Not Modified", 304},
-        {"Bad Request", 400},
-        {"Unauthorized", 401},
-        {"Forbidden", 403},
-        {"Not Found", 404}
-};
+const std::map<std::string, std::string>
+        HttpMessage::status_map = HttpMessage::init_message_status();
 
 HttpMessage::HttpMessage()
-        : is_chunk_(false), is_complete_(false)
+        : is_complete_(false)
 {
 }
 
 HttpMessage::~HttpMessage()
 {
+}
+
+void HttpMessage::Split(
+        const std::string& str,
+        const std::string& delim,
+        std::vector<std::string>& tokens)
+{
+    size_t i = 0, j = 0;
+    while ((j = str.find(delim, i)) != std::string::npos) {
+        std::string token(str.substr(i, j - i));
+        if (!token.empty())
+            tokens.push_back(token);
+        if ((i = str.find_first_not_of(delim, j)) == std::string::npos)
+            return;
+    }
+    tokens.push_back(str.substr(i));
 }
 
 const HttpRequestLine& HttpMessage::get_request_line() const
@@ -32,24 +38,29 @@ HttpRequestLine& HttpMessage::get_protected_request_line()
     return request_line_;
 }
 
-const HttpHeader& HttpMessage::get_message_header() const
+const HttpHeader& HttpMessage::get_header() const
 {
-    return message_header_;
+    return header_;
 }
 
-HttpHeader& HttpMessage::get_protected_message_header()
+HttpHeader& HttpMessage::get_protected_header()
 {
-    return message_header_;
+    return header_;
 }
 
-const MessageStatus& HttpMessage::get_message_status() const
+const HttpBody& HttpMessage::get_body() const
 {
-    return message_status_;
+    return body_;
 }
 
-void HttpMessage::set_message_status(const MessageStatus &message_status)
+HttpBody& HttpMessage::get_protected_body()
 {
-    message_status_ = message_status;
+    return body_;
+}
+
+const std::pair<std::string, std::string>& HttpMessage::get_status() const
+{
+    return status_;
 }
 
 const std::string& HttpMessage::get_message() const
@@ -57,34 +68,19 @@ const std::string& HttpMessage::get_message() const
     return message_;
 }
 
-void HttpMessage::set_message(const std::string& message)
-{
-    message_ = message;
-}
-
-const std::string& HttpMessage::get_body() const
-{
-    return body_;
-}
-
-void HttpMessage::set_body(const std::string& body)
-{
-    body_ = body;
-}
-
-bool HttpMessage::get_is_chunk() const
-{
-    return is_chunk_;
-}
-
-void HttpMessage::set_is_chunk(bool is_chunk)
-{
-    is_chunk_ = is_chunk;
-}
-
 bool HttpMessage::get_is_complete() const
 {
     return is_complete_;
+}
+
+void HttpMessage::set_status(const std::pair<std::string, std::string>& status)
+{
+    status_ = status;
+}
+
+void HttpMessage::set_message(const std::string& message)
+{
+    message_ = message;
 }
 
 void HttpMessage::set_is_complete(bool is_complete)
@@ -92,12 +88,18 @@ void HttpMessage::set_is_complete(bool is_complete)
     is_complete_ = is_complete;
 }
 
-size_t HttpMessage::FindStatus(const MessageStatus *dictionary, int status)
+std::map<std::string, std::string> HttpMessage::init_status_map()
 {
-    size_t i;
-    for (i = 0; i < N_STATUS; ++i) {
-        if (dictionary[i].status == status)
-            break;
-    }
-    return i;
+    std::map<std::string, std::string> m;
+    m["OK"] =                  "200";
+    m["CREATED"] =             "201";
+    m["NO CONTENT"] =          "204";
+    m["Moved Permanently"] =   "301";
+    m["Found"] =               "302";
+    m["Not Modified"] =        "304";
+    m["Bad Request"] =         "400";
+    m["Unauthorized"] =        "401";
+    m["Forbidden"] =           "403";
+    m["Not Found"] =           "404";
+    return m;
 }

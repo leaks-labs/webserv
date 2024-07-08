@@ -2,30 +2,21 @@
 # define HTTP_REQUEST_LINE_HPP_
 
 # include <string>
+# include <map>
 
 # define HTTP_VERSION "HTTP/1.1"
-# define N_METHODS 8
 
-enum RequestTargetType {
-    ORIGIN_FORM,
-    ABSOLUTE_FORM,
-    AUTHORITY_FORM,
-    ASTERISK_FORM,
-    UNKNOWN_FORM
+# define ORIGIN_FORM "/"
+# define ABSOLUTE_FORM "http://"
+# define AUTHORITY_FORM "//"
+# define ASTERISK_FORM "*"
+
+struct Target {
+    std::pair<std::string, bool> type;
+    std::string                 target;
+    std::string                 cgi_arg;
+    bool                        is_cgi;
 };
-
-struct RequestTarget { // is CGI ?
-    std::string         target;
-    RequestTargetType   type;
-};
-
-struct RequestMethod {
-    std::string method;
-    size_t      len;
-    bool        is_used;
-};
-
-extern const RequestMethod method_dictionary[N_METHODS];
 
 class HttpRequestLine
 {
@@ -33,23 +24,31 @@ class HttpRequestLine
         HttpRequestLine();
         ~HttpRequestLine();
 
-        static size_t           FindMethod(const RequestMethod* dictionary,
-                                           const std::string& method
-        );
+        static const std::map<std::string, bool>    method_map;
+        static const std::map<std::string, bool>     target_map;
 
-        const RequestMethod&    get_request_method() const;
-        const RequestTarget&    get_request_target() const;
-        const std::string&      get_request_http() const;
-        void                    Parse(const std::string& request_line);
+        const std::pair<std::string, bool>& get_method() const;
+        const Target&                       get_target() const;
+        const std::string&                  get_http_version() const;
+
+        void                         Parse(const std::string& request_line);
+        std::pair<std::string, bool> InitTargetType(const std::string& target);
 
     private:
-        void set_request_method(const RequestMethod& request_method);
-        void set_request_target(const RequestTarget& request_target);
-        void set_request_http(const std::string& request_http);
+        HttpRequestLine(const HttpRequestLine& request_line);
+        HttpRequestLine& operator=(const HttpRequestLine& request_line);
 
-        RequestMethod   request_method_;
-        RequestTarget   request_target_;
-        std::string     request_http_;
+        static std::map<std::string, bool>  InitMethodMap();
+        static std::map<std::string, bool>  InitTargetMap();
+
+        void set_method(const std::pair<std::string, bool>& method);
+        void set_target(const Target& target);
+        void set_http_version(const std::string& http_version);
+
+        std::pair<std::string, bool>    method_;
+        Target                          target_;
+        std::string                     http_version_;
+        std::string                     line_;
 };
 
 # endif

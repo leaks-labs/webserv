@@ -1,21 +1,15 @@
 #include "HttpRequestLine.hpp"
+#include "HttpMessage.hpp"
 
 #include <algorithm>
-#include <stdexcept>
-#include <sstream>
 #include <vector>
-#include <string>
+#include <stdexcept>
 
-const RequestMethod method_dictionary[N_METHODS] = {
-        {"OPTIONS", 7, false},
-        {"GET", 3, true},
-        {"HEAD", 4, false},
-        {"POST", 4,true},
-        {"PUT", 3, false},
-        {"DELETE", 6, true},
-        {"TRACE", 5, false},
-        {"CONNECT", 7, false},
-};
+const std::map<std::string, bool> HttpRequestLine::method_map =
+        HttpRequestLine::InitMethodMap();
+
+const std::map<std::string, bool> HttpRequestLine::target_map =
+        HttpRequestLine::InitTargetMap();
 
 HttpRequestLine::HttpRequestLine()
 {
@@ -26,69 +20,79 @@ HttpRequestLine::~HttpRequestLine()
 {
 }
 
-const RequestMethod& HttpRequestLine::get_request_method() const
+const std::pair<std::string, bool>& HttpRequestLine::get_method() const
 {
-    return request_method_;
+    return method_;
 }
 
-void HttpRequestLine::set_request_method(const RequestMethod &request_method)
+const Target& HttpRequestLine::get_target() const
 {
-    request_method_ = request_method;
+    return target_;
 }
 
-const RequestTarget& HttpRequestLine::get_request_target() const
+const std::string& HttpRequestLine::get_http_version() const
 {
-    return request_target_;
+    return http_version_;
 }
 
-void HttpRequestLine::set_request_target(const RequestTarget &request_target)
+void HttpRequestLine::set_method(const std::pair<std::string, bool>& method)
+{
+    method_ = method;
+}
+
+void HttpRequestLine::set_target(const RequestTarget &target)
 {
     request_target_ = request_target;
 }
 
-const std::string& HttpRequestLine::get_request_http() const
+void HttpRequestLine::set_http_version(const std::string &http_version)
 {
-    return request_http_;
-}
-
-void HttpRequestLine::set_request_http(const std::string & request_http)
-{
-    request_http_ = request_http;
+    http_version_ = http_version;
 }
 
 void HttpRequestLine::Parse(const std::string &request_line)
 {
-    std::stringstream stream(request_line);
-    if (stream.fail())
-        throw std::runtime_error("failed to create stream");
     std::vector<std::string> tokens;
-    std::string token;
-    while (std::getline(stream, token, ' '))
-        tokens.push_back(token);
+    HttpMessage::Split(request_line, " ", tokens);
     if (tokens.size() != 3)
-        throw std::runtime_error("bad request"); //todo improve
-    std::string method(tokens.at(1));
+        throw std::runtime_error("Bad Request");
+    std::string method(tokens.at(0));
     std::transform(method.begin(), method.end(), method.begin(), ::toupper);
-    size_t dictionary = FindMethod(method_dictionary, method);
-    if (dictionary == N_METHODS || !method_dictionary[dictionary].is_used)
-        throw std::runtime_error("bad request"); //todo improve
-    set_request_method(method_dictionary[dictionary]);
-    std::string target(tokens.at(2));
-    RequestTargetType target_type = FindRequestTargetType(target);
-    if (target_type == UNKNOWN_FORM)
+    std::map<std::string, bool>::const_iterator it = method_map.find(method);
+    if (it == method_map.end())
+        throw std::runtime_error("Bad Request");
+    if (!it->second)
+        throw std::runtime_error("Unauthorized");
+    set_method(*it);
+    std::string target(tokens.at(1));
+    Target target_type = FindRequestTargetType(target);
+
         throw std::runtime_error("bad request"); //todo improve
     RequestTarget request_target = {target, target_type};
     set_request_target(request_target);
 }
 
-size_t HttpRequestLine::FindMethod(
-        const RequestMethod* dictionary,
-        const std::string &method)
+
+
+std::map<std::string, bool> HttpRequestLine::InitMethodMap() {
+    std::map<std::string, bool> m;
+    m["OPTIONS"] =  false;
+    m["GET"] =      true;
+    m["HEAD"] =     false;
+    m["POST"] =     true;
+    m["PUT"] =      false;
+    m["DELETE"] =   true;
+    m["TRACE"] =    false;
+    m["CONNECT"] =  false;
+    return m;
+}
+
+std::map<std::string, bool> HttpRequestLine::InitTargetMap()
 {
-    size_t i;
-    for (i = 0; i < N_METHODS; ++i) {
-        if (dictionary[i].method == method)
-            break;
-    }
-    return i;
+    std::map<std::string, bool> m;
+    m[ORIGIN_FORM] =    true;
+    m[ABSOLUTE_FORM] =  true;
+    m[AUTHORITY_FORM] = true;
+    m[ASTERISK_FORM] =  false;
+    return m;
 }
