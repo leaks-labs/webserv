@@ -1,7 +1,7 @@
 #include "HttpMessage.hpp"
 
 const std::map<std::string, std::string>
-        HttpMessage::status_map = HttpMessage::init_message_status();
+        HttpMessage::status_map = HttpMessage::init_status_map();
 
 HttpMessage::HttpMessage()
         : is_complete_(false)
@@ -91,15 +91,20 @@ void HttpMessage::set_is_complete(bool is_complete)
 std::map<std::string, std::string> HttpMessage::init_status_map()
 {
     std::map<std::string, std::string> m;
-    m["OK"] =                  "200";
-    m["CREATED"] =             "201";
-    m["NO CONTENT"] =          "204";
-    m["Moved Permanently"] =   "301";
-    m["Found"] =               "302";
-    m["Not Modified"] =        "304";
-    m["Bad Request"] =         "400";
-    m["Unauthorized"] =        "401";
-    m["Forbidden"] =           "403";
-    m["Not Found"] =           "404";
+    m["OK"] =                               "200";
+    m["CREATED"] =                          "201";
+    m["NO CONTENT"] =                       "204";
+    m["Moved Permanently"] =                "301";
+    m["Found"] =                            "302";
+    m["Not Modified"] =                     "304";
+    m["Bad Request"] =                      "400";
+    m["Unauthorized"] =                     "401";
+    m["Forbidden"] =                        "403";
+    m["Not Found"] =                        "404";
+    m["Method Not Allowed"] =               "405";
+    m["Proxy Authentication Required"] =    "407";
+    m["Request Timeout"] =                  "408";
+    m["Payload Too Large"] =                "413";
+    m["Request Header Fields Too Large"] =  "431";
     return m;
 }

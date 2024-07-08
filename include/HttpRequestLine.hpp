@@ -4,8 +4,6 @@
 # include <string>
 # include <map>
 
-# define HTTP_VERSION "HTTP/1.1"
-
 # define ORIGIN_FORM "/"
 # define ABSOLUTE_FORM "http://"
 # define AUTHORITY_FORM "//"
@@ -14,7 +12,6 @@
 struct Target {
     std::pair<std::string, bool> type;
     std::string                 target;
-    std::string                 cgi_arg;
     bool                        is_cgi;
 };
 
@@ -25,14 +22,16 @@ class HttpRequestLine
         ~HttpRequestLine();
 
         static const std::map<std::string, bool>    method_map;
-        static const std::map<std::string, bool>     target_map;
+        static const std::map<std::string, bool>    target_map;
 
         const std::pair<std::string, bool>& get_method() const;
         const Target&                       get_target() const;
         const std::string&                  get_http_version() const;
 
         void                         Parse(const std::string& request_line);
-        std::pair<std::string, bool> InitTargetType(const std::string& target);
+        static std::map<std::string, bool>::const_iterator InitTargetType(
+                const std::string& target
+        );
 
     private:
         HttpRequestLine(const HttpRequestLine& request_line);

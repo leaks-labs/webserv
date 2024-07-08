@@ -5,16 +5,15 @@
 # include <vector>
 # include <string>
 
-# define N_HEADERS 10
-# define N_HEADERS_ARGS 3
+# define N_HEADERS 11
+# define N_HEADERS_ARGS 4
 
-struct HttpHeaderList
+struct HeaderField
 {
-    std::string header;
+    std::string name;
     std::string args[N_HEADERS_ARGS];
+    bool        is_used;
 };
-
-extern const HttpHeaderList header_dictionary[N_HEADERS];
 
 class HttpHeader
 {
@@ -22,18 +21,22 @@ class HttpHeader
         HttpHeader();
         ~HttpHeader();
 
+        static const HeaderField header_dictionary[N_HEADERS];
+
         static size_t                               FindHeader(
-                const HttpHeaderList* dictionary,
+                const HeaderField* header_field,
                 const std::string& header
         );
 
-        const std::map<std::string, std::string>&   get_header_map() const;
+        const std::map<std::string, std::string>& get_header_map() const;
+
+        void Parse(const std::string& header);
 
     private:
         HttpHeader(const HttpHeader& http_header);
         HttpHeader& operator=(const HttpHeader& http_header);
 
-        std::map<std::string, std::string>  header_map_;
+        std::map<std::string, std::string> header_map_;
 };
 
 #endif
