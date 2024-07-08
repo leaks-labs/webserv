@@ -11,7 +11,7 @@ class HttpRequest : public HttpMessage
 
         static size_t   FindRequest(const std::string& buff, size_t pos);
 
-        void            Parse();
+        virtual void           Parse();
     private:
         HttpRequest(const HttpRequest& http_request);
         HttpRequest& operator=(const HttpRequest& http_request);

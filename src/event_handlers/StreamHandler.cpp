@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "InitiationDispatcher.hpp"
+#include "HttpRequest.hpp"
 
 // TODO: to remove
 #include <iostream>
