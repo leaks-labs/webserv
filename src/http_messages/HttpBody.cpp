@@ -1,7 +1,7 @@
 #include "HttpBody.hpp"
 
 HttpBody::HttpBody()
-        : is_complete_(false)
+        : is_body_(false), is_complete_(false)
 {
 }
 
@@ -39,4 +39,31 @@ bool HttpBody::get_is_complete() const
 void HttpBody::set_is_complete(bool is_complete)
 {
     is_complete_ = is_complete;
+}
+
+bool HttpBody::SearchBody(const HttpMessage& request)
+{
+    int factor = 0;
+    if (request.get_request_line().get_method().first == "POST" ||
+        request.get_request_line().get_method().first == "PUT" ||
+        request.get_request_line().get_method().first == "DELETE")
+    {
+        factor++;
+    }
+    std::map<std::string, std::string>::const_iterator it1 = request.get_header().get_header_map().find("Content-Length");
+    if (it1 != request.get_header().get_header_map().end() && it1->first == "Content-Length")
+    {
+        set_transfer_type(*it1);
+        factor++;
+    }
+    else
+    {
+        std::map<std::string, std::string>::const_iterator it2 = request.get_header().get_header_map().find("Transfer-Encoding");
+        if (it2 != request.get_header().get_header_map().end() && it2->first == "Transfer-Encoding")
+        {
+            set_transfer_type(*it2);
+            factor++;
+        }
+    }
+    return factor == 2;
 }
