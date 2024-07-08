@@ -79,3 +79,22 @@ void    StreamHandler::HandleTimeout()
 {
     // TODO: implement
 }
+
+void   StreamHandler::Decode(std::string& buffer)
+{
+    size_t i = HttpRequest::FindRequest(buffer, 0);
+    HttpRequest request;
+    request.set_message(buffer.substr(0, i));
+    request.Parse();
+    // then add the body
+}
+
+void    StreamHandler::Execute(const HttpMessage& request)
+{
+    ;
+}
+
+void    StreamHandler::Encode(const HttpMessage& response)
+{
+    ;
+}
