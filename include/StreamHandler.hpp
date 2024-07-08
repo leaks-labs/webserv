@@ -3,7 +3,6 @@
 
 # include "EventHandler.hpp"
 # include "Stream.hpp"
-# include "CgiHandler.hpp"
 # include <deque>
 
 class StreamHandler : public EventHandler {
@@ -25,7 +24,6 @@ class StreamHandler : public EventHandler {
 
         Stream      stream_;
         std::size_t request_count;
-        std::deque<CgiHandler> cgi_handlers_;
 };
 
 #endif  // STREAM_HANDLER_HPP

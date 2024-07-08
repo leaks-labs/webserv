@@ -23,12 +23,16 @@ CgiHandler::CgiHandler(EventHandler& stream_handler, std::string const & request
     cgi_ = Cgi(sfd_);
     if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent | EventTypes::kWriteEvent) == -1)
         throw std::runtime_error("Failed to register CgiHandler with InitiationDispatcher");
+    if (InitiationDispatcher::Instance().DeactivateHandler(stream_handler) == -1) {
+        InitiationDispatcher::Instance().DeactivateHandler(*this);
+        throw std::runtime_error("Failed to deactivate StreamHandler with InitiationDispatcher");
+    }
 }
 
 CgiHandler::~CgiHandler()
 {
 }
-
+ 
 EventHandler::Handle    CgiHandler::get_handle(void) const
 {
     return cgi_.get_sfd();

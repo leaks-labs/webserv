@@ -64,13 +64,8 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
                 // modify the filter to add EVFILT_WRITE
                 // only if the request queue is empty for this fd
                 // TODO: check if the request queue is equel to 1 (of COMPLETE and VALID requests) for this fd. For now, just check the size_t
-                if(1 == 0) // if request is ready and for cgi
-                    AddCgiHandler();
-                else
-                {
-                    if (request_count == 1 && InitiationDispatcher::Instance().AddWriteFilter(*this) == -1)
-                        throw std::runtime_error("failed to add write filter for a socket:" + std::string(strerror(errno)));
-                }
+                if (request_count == 1 && InitiationDispatcher::Instance().AddWriteFilter(*this) == -1)
+                    throw std::runtime_error("failed to add write filter for a socket:" + std::string(strerror(errno)));
             }
         }
         catch(const std::exception& e)
@@ -78,18 +73,6 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
             InitiationDispatcher::Instance().RemoveHandler(this);
             throw;
         }
-    }
-}
-
-void StreamHandler::AddCgiHandler()
-{
-    try
-    {
-        cgi_handlers_.push_back(CgiHandler(const_cast<StreamHandler&>(*this), "coucou"));
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
     }
 }
 
