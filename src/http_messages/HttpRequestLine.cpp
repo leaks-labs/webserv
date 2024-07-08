@@ -15,7 +15,6 @@ HttpRequestLine::HttpRequestLine()
 {
 }
 
-
 HttpRequestLine::~HttpRequestLine()
 {
 }
