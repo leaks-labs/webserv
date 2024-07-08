@@ -2,18 +2,15 @@
 # define CGI_HANDLER_HPP_
 
 # include "EventHandler.hpp"
-# include "StreamHandler.hpp"
 # include "Cgi.hpp"
-
 # include <netdb.h>
 # include <string>
 # include <sys/socket.h>
 
 class CgiHandler : public EventHandler {
     public:
-        static struct addrinfo* ConvertToAddrInfo(const std::string& url);
 
-        CgiHandler(StreamHandler& stream_handler, const struct addrinfo& address);
+        CgiHandler(EventHandler& stream_handler, std::string const & request);
 
         virtual ~CgiHandler();
 
@@ -29,7 +26,8 @@ class CgiHandler : public EventHandler {
 
         void    ReturnToStreamHandler();
 
-        StreamHandler&  stream_handler_;
+        EventHandler &  stream_handler_;
+        int          sfd_[2];
         Cgi          cgi_;
 };
 

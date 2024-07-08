@@ -3,10 +3,12 @@
 
 # include "EventHandler.hpp"
 # include "Stream.hpp"
+# include "CgiHandler.hpp"
+# include <deque>
 
 class StreamHandler : public EventHandler {
     public:
-        StreamHandler(int acceptor_sfd, int sfd);
+        StreamHandler(int sfd);
 
         virtual ~StreamHandler();
 
@@ -19,10 +21,11 @@ class StreamHandler : public EventHandler {
         StreamHandler();
         StreamHandler(const StreamHandler& src);
         StreamHandler&  operator=(const StreamHandler& rhs);
+        void AddCgiHandler();
 
-        const int acceptor_sfd_;
         Stream      stream_;
         std::size_t request_count;
+        std::deque<CgiHandler> cgi_handlers_;
 };
 
 #endif  // STREAM_HANDLER_HPP

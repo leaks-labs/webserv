@@ -8,24 +8,28 @@
 
 class Cgi {
     public:
-        Cgi(int sfd);
+
+        Cgi();
+
+        Cgi(int sfd[2]);
+
+        Cgi(const Cgi& src);
+
+        Cgi& operator=(const Cgi& rhs);
 
         ~Cgi();
 
+        int        *get_sfds() const;
         int         get_sfd() const;
 
-        void        Send(std::string& data);
+        int        Send(std::string& data);
         std::string Read();
 
     private:
         static const int    kBufSize = 1024;
-
-        Cgi();
-        Cgi(const Cgi& src);
-        Cgi& operator=(const Cgi& rhs);
-    
-        const int           sfd_;
+        int                 sfds_[2];
         std::vector<char>   buffer_;
+        bool                reading_;
 };
 
 #endif  // CGI_HPP_

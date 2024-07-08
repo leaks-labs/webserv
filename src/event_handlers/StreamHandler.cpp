@@ -13,9 +13,8 @@
 #include <iostream>
 // TODO: to remove
 
-StreamHandler::StreamHandler(int acceptor_sfd, int sfd)
+StreamHandler::StreamHandler(int sfd)
     : 
-    acceptor_sfd_(acceptor_sfd),
     stream_(sfd),
     request_count(0)
 {
@@ -57,16 +56,21 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
                 if (request_count == 0 && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
                     throw std::runtime_error("Failed to delete write filter for a socket");
             } else if (EventTypes::IsReadEvent(event_type)) {
-                stream_.Read();
                 // TODO: add the string return by Read to the request queue
                 // For now, just add the request in the map.
                 ++request_count;
+                stream_.Read();
 
                 // modify the filter to add EVFILT_WRITE
                 // only if the request queue is empty for this fd
                 // TODO: check if the request queue is equel to 1 (of COMPLETE and VALID requests) for this fd. For now, just check the size_t
-                if (request_count == 1 && InitiationDispatcher::Instance().AddWriteFilter(*this) == -1)
-                    throw std::runtime_error("failed to add write filter for a socket:" + std::string(strerror(errno)));
+                if(1 == 0) // if request is ready and for cgi
+                    AddCgiHandler();
+                else
+                {
+                    if (request_count == 1 && InitiationDispatcher::Instance().AddWriteFilter(*this) == -1)
+                        throw std::runtime_error("failed to add write filter for a socket:" + std::string(strerror(errno)));
+                }
             }
         }
         catch(const std::exception& e)
@@ -74,6 +78,18 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
             InitiationDispatcher::Instance().RemoveHandler(this);
             throw;
         }
+    }
+}
+
+void StreamHandler::AddCgiHandler()
+{
+    try
+    {
+        cgi_handlers_.push_back(CgiHandler(const_cast<StreamHandler&>(*this), "coucou"));
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
     }
 }
 

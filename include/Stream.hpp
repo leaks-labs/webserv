@@ -5,6 +5,8 @@
 # include <string>
 # include <vector>
 # include <string>
+# include <deque>
+
 
 class Stream {
     public:

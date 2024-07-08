@@ -12,23 +12,48 @@
 #include <Server.hpp>
 // TODO: to remove
 
-Cgi::Cgi(int sfd)
-    : sfd_(sfd),
-      buffer_(kBufSize)
+Cgi::Cgi(){};
+
+Cgi::Cgi(int sfd[2]) :
+    buffer_(kBufSize),
+    reading_(false)
 {
+    std::memcpy(sfds_, sfd, sizeof(int) * 2);
+}
+
+Cgi::Cgi(Cgi const & src)
+{
+    *this = src;
+}
+
+Cgi &Cgi::operator=(Cgi const & src)
+{
+    if(this != &src)
+    {
+        std::memcpy(sfds_, src.get_sfds(), sizeof(int) * 2);
+    }
+    return *this;
 }
 
 Cgi::~Cgi()
 {
-    close(sfd_);
+    close(sfds_[0]);
+    close(sfds_[1]);
+}
+
+int *Cgi::get_sfds()const
+{
+    return const_cast<int *>(sfds_);
 }
 
 int Cgi::get_sfd() const
 {
-    return sfd_;
+    if(reading_)
+        return sfds_[0];
+    return sfds_[1];
 }
 
-void    Cgi::Send(std::string& data)
+int    Cgi::Send(std::string& data)
 {
     std::cout << "ENTER: Send" << std::endl;
 #ifdef __APPLE__
@@ -36,10 +61,12 @@ void    Cgi::Send(std::string& data)
 #elif __linux__
     int send_flags = MSG_DONTWAIT;
 #endif
-    ssize_t bytes_sent = send(sfd_, data.c_str(), data.size(), send_flags);
+    ssize_t bytes_sent = send(sfds_[0], data.c_str(), data.size(), send_flags);
     if (bytes_sent == -1)
         throw std::runtime_error("recv() failed:" + std::string(strerror(errno)));
     data.erase(0, bytes_sent);
+    reading_ = data.empty();
+    return reading_;
 }
 
 std::string Cgi::Read()
@@ -53,7 +80,7 @@ std::string Cgi::Read()
 #elif __linux__
     int recv_flags = MSG_DONTWAIT;
 #endif
-    if ((bytes_read = recv(sfd_, buffer_.data(), buffer_.size(), recv_flags)) == -1)
+    if ((bytes_read = recv(sfds_[1], buffer_.data(), buffer_.size(), recv_flags)) == -1)
         throw std::runtime_error("recv() failed:" + std::string(strerror(errno)));
     else if (bytes_read == 0)
         throw std::runtime_error("recv() failed: connection closed by peer");
