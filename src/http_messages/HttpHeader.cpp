@@ -36,8 +36,8 @@ const std::map<std::string, std::string>& HttpHeader::get_header_map() const
 void HttpHeader::Parse(const std::string &header)
 {
     std::vector<std::string> headers, values;
-    HttpMessage::Split(header, ":", headers);
-    if (headers.size() < 2)
+    HttpMessage::Split(header, ": ", headers);
+    if (headers.size() != 2)
         throw std::runtime_error("Bad Request");
     HttpMessage::Split(headers.at(1), ",", values);
     std::transform(headers.at(0).begin(), headers.at(0).end(), headers.at(0).begin(), ::toupper);

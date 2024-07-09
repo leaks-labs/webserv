@@ -1,22 +1,10 @@
 #include "StreamHandler.hpp"
 
-#include <cerrno>
-#include <cstring>
-#include <stdexcept>
-#include <string>
 
-#include <unistd.h>
 
-#include "InitiationDispatcher.hpp"
-#include "HttpRequest.hpp"
-#include "HttpResponse.hpp"
-
-// TODO: to remove
-#include <iostream>
-// TODO: to remove
-
-StreamHandler::StreamHandler(int sfd)
+StreamHandler::StreamHandler(int acceptor_sfd, int sfd)
     : 
+    acceptor_sfd_(acceptor_sfd),
     stream_(sfd),
     request_count(0)
 {
@@ -45,7 +33,9 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
         {
             if (EventTypes::IsWriteEvent(event_type) && request_count > 0) {
                 // TODO: send the first compliete response. For now, just send a string.
-                std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
+                std::string response = response_queue_.back().get_content();
+                std::cout << response << std::endl;
+                response_queue_.pop_back();
                 stream_.Send(response);
                 // TODO: if there is bytes not sent, we need to keep the response in the response queue with the remaining data.
                 // or if all bytes sent, we need to remove the response from the response queue.
@@ -63,7 +53,7 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
                 ++request_count;
                 std::string r = stream_.Read();
                 Decode(r);
-
+                
                 // modify the filter to add EVFILT_WRITE
                 // only if the request queue is empty for this fd
                 // TODO: check if the request queue is equel to 1 (of COMPLETE and VALID requests) for this fd. For now, just check the size_t
@@ -90,13 +80,12 @@ void   StreamHandler::Decode(std::string& buffer)
     HttpRequest request;
     request.set_message(buffer.substr(0, i));
     request.Parse();
-    response_queue_.push_back(HttpResponse(request));
+    response_queue_.push_back(HttpResponse(request, acceptor_sfd_));
 }
 
-/*
-void    StreamHandler::Execute(const HttpMessage& request)
+/*void    StreamHandler::Execute(HttpResponse &response)
 {
-    ;
+
 }
 
 void    StreamHandler::Encode(const HttpMessage& response)

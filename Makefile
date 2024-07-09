@@ -68,7 +68,6 @@ SRCS_FILES:=	config_initialization/AcceptorRecords	\
 				event_handlers/ConnectionAcceptor		\
 				event_handlers/EventHandler				\
 				event_handlers/EventTypes				\
-				event_handlers/LocalHandler				\
 				event_handlers/ProxyHandler				\
 				event_handlers/CgiHandler				\
 				event_handlers/StreamHandler			\
@@ -80,6 +79,8 @@ SRCS_FILES:=	config_initialization/AcceptorRecords	\
 				http_messages/HttpRequest				\
 				http_messages/HttpRequestLine			\
 				http_messages/HttpResponse				\
+				Directory								\
+				HTMLPage								\
 				InitiationDispatcher					\
 				WebServ
 

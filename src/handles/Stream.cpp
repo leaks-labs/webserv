@@ -17,6 +17,17 @@ Stream::Stream(int sfd)
 {
 }
 
+Stream::Stream(const Stream& src) :
+    sfd_(src.get_sfd())
+{
+}
+Stream& Stream::operator=(const Stream& rhs)
+{
+    if(this != &rhs)
+        sfd_ = rhs.get_sfd();
+    return *this;
+}
+
 Stream::~Stream()
 {
     close(sfd_);

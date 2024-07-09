@@ -11,7 +11,8 @@
 class Stream {
     public:
         Stream(int sfd);
-
+        Stream(const Stream& src);
+        Stream& operator=(const Stream& rhs);
         ~Stream();
 
         int         get_sfd() const;
@@ -23,10 +24,8 @@ class Stream {
         static const int    kBufSize = 1024;
 
         Stream();
-        Stream(const Stream& src);
-        Stream& operator=(const Stream& rhs);
     
-        const int           sfd_;
+        int           sfd_;
         std::vector<char>   buffer_;
 };
 
