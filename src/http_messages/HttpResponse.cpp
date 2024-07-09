@@ -33,7 +33,29 @@ std::string HttpResponse::BuildPath()
         error_ = 404;
         return "";
     }
-    return location_->get_root() + "/" + request_path_.substr(location_->get_path().size(), request_path_.size());
+    size_t start = location_->get_path().size();
+    std::cout << "request_path: " << request_path_ << std::endl;
+    return location_->get_root() + request_path_.substr(start, request_path_.size() - start);
+}
+
+
+std::string HttpResponse::CreateBody()
+{
+    std::cout << "path: " << path_ << std::endl;
+    Directory dir(path_, request_path_);
+    if(dir.IsOpen())
+        return ReadDirectory(dir);
+    return ReadFile();  
+}
+
+std::string HttpResponse::ReadDirectory(Directory & dir)
+{
+    std::string path;
+
+    if(location_->get_listing())
+        return dir.GetHTML();
+    path_ = location_->get_root() + "/" + location_->get_default_file();
+    return(ReadFile());
 }
 
 std::string HttpResponse::ReadFile()
@@ -51,25 +73,6 @@ std::string HttpResponse::ReadFile()
     delete [] buf;
     return res;
 }
-
-std::string HttpResponse::ReadDirectory(Directory & dir)
-{
-    std::string path;
-
-    if(location_->get_listing())
-        return dir.GetHTML();
-    path_ = location_->get_root() + "/" + location_->get_default_file();
-    return(ReadFile());
-}
-
-std::string HttpResponse::CreateBody()
-{
-    Directory dir(path_, location_->get_path());
-    if(dir.IsOpen())
-        return ReadDirectory(dir);
-    return ReadFile();  
-}
-
 
 std::string HttpResponse::CreateHeader()
 {

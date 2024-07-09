@@ -34,7 +34,7 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
             if (EventTypes::IsWriteEvent(event_type) && request_count > 0) {
                 // TODO: send the first compliete response. For now, just send a string.
                 std::string response = response_queue_.back().get_content();
-                std::cout << response << std::endl;
+                //std::cout << response << std::endl;
                 response_queue_.pop_back();
                 stream_.Send(response);
                 // TODO: if there is bytes not sent, we need to keep the response in the response queue with the remaining data.

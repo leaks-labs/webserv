@@ -5,7 +5,6 @@
 # include "HttpRequest.hpp"
 # include "ServerList.hpp"
 # include "Directory.hpp"
-//#include "Directory.hpp"
 
 class HttpResponse
 {
