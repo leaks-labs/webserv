@@ -17,6 +17,7 @@
 
 LocalHandler::LocalHandler(StreamHandler& stream_handler, std::string const & request)
     : stream_handler_(stream_handler),
+    error_(false),
     stream_(OpenFile()),
     request_(request)
 {
@@ -40,13 +41,22 @@ int LocalHandler::OpenFile()
 
     err = open("data/file.html", O_RDONLY);
     if(err == -1)
+    {
         err = open("data/error404.html", O_RDONLY);
+        error_ = err == -1 ? 2 : 1;
+    }
     return(err);
 }
 
 EventHandler::Handle    LocalHandler::get_handle(void) const
 {
     return stream_.get_sfd();
+}
+
+
+bool    LocalHandler::get_error() const
+{
+    return error_;
 }
 
 void    LocalHandler::HandleEvent(EventTypes::Type event_type)

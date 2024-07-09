@@ -11,6 +11,7 @@ class LocalHandler : public EventHandler {
         virtual ~LocalHandler();
 
         virtual Handle  get_handle() const;
+        bool            get_error() const;
 
         virtual void    HandleEvent(EventTypes::Type event_type);
         virtual void    HandleTimeout();
@@ -24,6 +25,7 @@ class LocalHandler : public EventHandler {
         void    ReturnToStreamHandler();
 
         StreamHandler &  stream_handler_;
+        int          error_; // 0 means ok, 1 cant open file, 2 cant open errorfile
         Stream       stream_;
         std::string  request_; // this will be the request object
         std::string  response_; // this will be the response object
