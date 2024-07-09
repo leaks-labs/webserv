@@ -9,6 +9,7 @@
 
 #include "InitiationDispatcher.hpp"
 #include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
 
 // TODO: to remove
 #include <iostream>
@@ -88,11 +89,9 @@ void   StreamHandler::Decode(std::string& buffer)
     HttpRequest request;
     request.set_message(buffer.substr(0, i));
     request.Parse();
-    request.get_header().Print();
-    request.get_request_line().Print();
-    std::cout << request.get_header().get_header_map().at("HOST") << std::endl;
-    // then add the body
+    response_queue_.push_back(HttpResponse(request));
 }
+
 /*
 void    StreamHandler::Execute(const HttpMessage& request)
 {

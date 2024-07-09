@@ -4,6 +4,7 @@
 # include "EventHandler.hpp"
 # include "Stream.hpp"
 # include "HttpMessage.hpp"
+# include "HttpResponse.hpp"
 
 # include <deque>
 
@@ -29,7 +30,7 @@ class StreamHandler : public EventHandler {
 
         Stream                      stream_;
         std::deque<HttpMessage *>   requests_queue_;
-        std::deque<HttpMessage *>   response_queue_;
+        std::deque<HttpResponse>    response_queue_;
         std::size_t                 request_count;
 };
 

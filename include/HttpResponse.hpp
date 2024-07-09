@@ -2,16 +2,21 @@
 # define HTTP_RESPONSE_HPP_
 
 # include "HttpMessage.hpp"
+# include "HttpRequest.hpp"
 
-class HttpResponse : HttpMessage
+class HttpResponse
 {
     public :
-        HttpResponse();
+        HttpResponse(HttpRequest & request);
+        HttpResponse(HttpResponse const & src);
+        HttpRequest &get_request() const;
         ~HttpResponse();
 
     private:
-        HttpResponse(const HttpResponse& http_response);
-        HttpResponse& operator=(const HttpResponse& http_response);
+        HttpResponse();
+        HttpResponse& operator=(HttpResponse const & src);
+
+        HttpRequest & request_;
 };
 
 #endif

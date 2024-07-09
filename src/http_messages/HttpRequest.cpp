@@ -35,7 +35,7 @@ void HttpRequest::Parse()
         const std::map<std::string, std::string>& map = get_header().get_header_map();
         std::map<std::string, std::string>::const_iterator it = map.begin();
         while (it != map.end()) {
-            //std::cout << it->first << "|" << it->second << std::endl;
+            std::cout << it->first << "|" << it->second << std::endl;
             ++it;
         }
         //get_protected_body().SearchBody(*this);

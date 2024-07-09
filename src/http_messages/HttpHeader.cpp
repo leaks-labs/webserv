@@ -35,20 +35,18 @@ const std::map<std::string, std::string>& HttpHeader::get_header_map() const
 
 void HttpHeader::Parse(const std::string &header)
 {
-    //std::cout << "header parse" << std::endl;
-    //std::cout << header << std::endl;
     std::vector<std::string> headers, values;
     HttpMessage::Split(header, ":", headers);
-    if (headers.size() != 2)
+    if (headers.size() < 2)
         throw std::runtime_error("Bad Request");
     HttpMessage::Split(headers.at(1), ",", values);
     std::transform(headers.at(0).begin(), headers.at(0).end(), headers.at(0).begin(), ::toupper);
     size_t i = FindHeader(header_dictionary, headers.at(0));
+
     if (i == N_HEADERS)
         throw std::runtime_error("Bad Request");
     if (header_dictionary[i].is_used) {
         if (header_dictionary[i].name == "CONTENT-LENGTH") {
-            //std::cout << values.at(0) << std::endl;
             if (values.at(0) != " 1024"/*header_dictionary[i].args[0]*/) //trim space in arg
                 throw std::runtime_error("OK");
         }
@@ -57,9 +55,7 @@ void HttpHeader::Parse(const std::string &header)
                 throw std::runtime_error("Bad Request");
         }
     }
-   // std::cout << headers.at(0) << "=> "<< headers.at(1) << std::endl;
     header_map_.insert(std::make_pair(headers.at(0), headers.at(1)));
-    //std::cout << "End of header parse" << std::endl;
 }
 
 size_t HttpHeader::FindHeader(const HeaderField *header_field, const std::string &header)
