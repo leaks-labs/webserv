@@ -9,8 +9,6 @@
 
 // TODO: to remove
 #include <iostream>
-#include <Response.hpp>
-#include <Server.hpp>
 // TODO: to remove
 
 Stream::Stream(int sfd)
