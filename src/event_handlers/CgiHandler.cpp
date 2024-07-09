@@ -48,7 +48,7 @@ void CgiHandler::Fork()
     if(pid == 0)
         Exec();
     close(pfd_[1]);
-    if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent | EventTypes::kWriteEvent) == -1)
+    if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent) == -1)
     {
         kill(pid, SIGKILL);
         ReturnToStreamHandler();
