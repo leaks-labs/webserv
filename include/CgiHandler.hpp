@@ -26,7 +26,6 @@ class CgiHandler : public EventHandler {
         int  InitPipe();
         void Fork();
         void Exec();
-        void CloseFd(int fd);
         void    ReturnToStreamHandler();
 
         StreamHandler &  stream_handler_;

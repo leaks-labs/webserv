@@ -47,15 +47,12 @@ void CgiHandler::Fork()
         throw std::runtime_error("Failed to fork");
     if(pid == 0)
         Exec();
-    else
+    close(pfd_[1]);
+    if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent | EventTypes::kWriteEvent) == -1)
     {
-        CloseFd(pfd_[1]);
-        if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent | EventTypes::kWriteEvent) == -1)
-        {
-            kill(pid, SIGKILL);
-            ReturnToStreamHandler();
-            throw std::runtime_error("Failed to register Cgi Handler");
-        }
+        kill(pid, SIGKILL);
+        ReturnToStreamHandler();
+        throw std::runtime_error("Failed to register Cgi Handler");
     }
 }
 
@@ -67,23 +64,19 @@ void CgiHandler::Exec()
 
     std::vector<char *> cmd;
     char **c_cmd;
+    int err;
 
     cmd.push_back(const_cast<char*>(cgi_path.c_str()));
     cmd.push_back(const_cast<char*>(path.c_str()));
     cmd.push_back(const_cast<char*>(args.c_str()));
     cmd.push_back(NULL);
     c_cmd = &cmd[0];
-    CloseFd(pfd_[0]);
-    if(dup2(pfd_[1], 1) == -1)
+    close(pfd_[0]);
+    err = dup2(pfd_[1], 1);
+    close(pfd_[1]);
+    if(err == -1)
         throw std::runtime_error("Cgi : dup2 failed ");
-    CloseFd(pfd_[1]);
     std::exit(execve(c_cmd[0], c_cmd, NULL));
-}
-
-void CgiHandler::CloseFd(int fd)
-{
-    if(close(fd) == -1)
-        throw std::runtime_error("Cgi : failed closing file descrpitor");
 }
  
 EventHandler::Handle    CgiHandler::get_handle(void) const
