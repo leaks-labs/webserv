@@ -8,6 +8,8 @@
 #include <unistd.h>
 
 #include "InitiationDispatcher.hpp"
+#include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
 
 // TODO: to remove
 #include <iostream>
@@ -59,7 +61,8 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
                 // TODO: add the string return by Read to the request queue
                 // For now, just add the request in the map.
                 ++request_count;
-                stream_.Read();
+                std::string r = stream_.Read();
+                Decode(r);
 
                 // modify the filter to add EVFILT_WRITE
                 // only if the request queue is empty for this fd
@@ -80,3 +83,24 @@ void    StreamHandler::HandleTimeout()
 {
     // TODO: implement
 }
+
+void   StreamHandler::Decode(std::string& buffer)
+{
+    size_t i = HttpRequest::FindRequest(buffer, 0);
+    HttpRequest request;
+    request.set_message(buffer.substr(0, i));
+    request.Parse();
+    response_queue_.push_back(HttpResponse(request));
+}
+
+/*
+void    StreamHandler::Execute(const HttpMessage& request)
+{
+    ;
+}
+
+void    StreamHandler::Encode(const HttpMessage& response)
+{
+    ;
+}
+*/

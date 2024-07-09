@@ -34,10 +34,10 @@ CFLAGS+=	-Wconversion \
 			-Wmissing-prototypes \
 			-Wmissing-declarations
 
-#			-Wpedantic 
+#			-Wpedantic
 # 			-pedantic-errors
 #			-Wcast-qual
-#			-Wstrict-prototypes 
+#			-Wstrict-prototypes
 #			-Wpadded
 #
 #			gcc flags only
@@ -74,6 +74,12 @@ SRCS_FILES:=	config_initialization/AcceptorRecords	\
 				event_handlers/StreamHandler			\
 				handles/Acceptor						\
 				handles/Stream							\
+				http_messages/HttpBody					\
+				http_messages/HttpHeader				\
+				http_messages/HttpMessage				\
+				http_messages/HttpRequest				\
+				http_messages/HttpRequestLine			\
+				http_messages/HttpResponse				\
 				InitiationDispatcher					\
 				WebServ
 

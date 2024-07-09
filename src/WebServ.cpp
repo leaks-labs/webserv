@@ -13,7 +13,7 @@ WebServ::WebServ(const std::string& config_file)
 {
     ServerList::Instance().InitServerList(config_file);
     acceptor_records_.InitAcceptors(ServerList::Instance());
-    ServerList::Instance().Print();
+    //ServerList::Instance().Print();
 }
 
 WebServ::~WebServ()
