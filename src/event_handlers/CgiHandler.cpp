@@ -76,7 +76,8 @@ void CgiHandler::Exec()
     close(pfd_[1]);
     if(err == -1)
         throw std::runtime_error("Cgi : dup2 failed ");
-    std::exit(execve(c_cmd[0], c_cmd, NULL));
+    execve(c_cmd[0], c_cmd, NULL);
+    std::exit(errno);
 }
  
 EventHandler::Handle    CgiHandler::get_handle(void) const
