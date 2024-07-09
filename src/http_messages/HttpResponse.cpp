@@ -8,7 +8,7 @@ HttpResponse::HttpResponse(HttpRequest & request, int acceptor_sfd) :
     path_(BuildPath()),
     body_(CreateBody()),
     header_(CreateHeader()),
-    error_(0)
+    error_(200)
 {
     //request_.get_header().Print();
     //request_.get_request_line().Print();
@@ -91,7 +91,7 @@ std::string HttpResponse::BuildPath()
 std::string HttpResponse::CreateBody()
 {
     std::cout << "path: " << path_ << std::endl;
-    Directory dir(path_, request_path_);
+    Directory dir(path_, request_path_, location_->get_path());
     if(dir.IsOpen())
         return ReadDirectory(dir);
     return ReadFile();  
@@ -113,12 +113,12 @@ std::string HttpResponse::ReadFile()
     if(!ifs)
         return "";
     std::filebuf* pbuf = ifs.rdbuf();
-    std::size_t size = pbuf->pubseekoff(0,ifs.end,ifs.in);
-    pbuf->pubseekpos (0,ifs.in);
+    std::size_t size = pbuf->pubseekoff(0, ifs.end, ifs.in);
+    pbuf->pubseekpos (0, ifs.in);
     char* buf = new char[size];
     pbuf->sgetn (buf, size);
     ifs.close();
-    std::string res = std::string(buf);
+    std::string res = std::string(buf, size);
     delete [] buf;
     return res;
 }

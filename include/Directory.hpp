@@ -8,7 +8,7 @@
 class Directory
 {
 public:
-    Directory(std::string const & path, std::string const & root);
+    Directory(std::string const & path, std::string const & request_path, std::string const & root);
     Directory(const Directory &src);
     Directory& operator=(const Directory& src);
     ~Directory();
@@ -20,6 +20,7 @@ private:
     Directory();
 
     std::string path_;
+    std::string request_path_;
     std::string root_;
     DIR* dir_;
 };
