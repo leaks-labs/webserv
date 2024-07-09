@@ -2,6 +2,7 @@
 
 #include <cerrno>
 #include <cstring>
+#include <cstdlib>
 #include <stdexcept>
 
 #include <fcntl.h>
@@ -14,49 +15,94 @@
 // TODO: to remove
 
 
-CgiHandler::CgiHandler(EventHandler& stream_handler, std::string const & request)
-    : stream_handler_(stream_handler)
+CgiHandler::CgiHandler(StreamHandler& stream_handler, std::string const & request)
+    : stream_handler_(stream_handler),
+    stream_(InitPipe()),
+    request_(request)
 {
-    std::cout << request << std::endl;
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sfd_) == -1)
-        throw std::runtime_error("Failed create socketpair: " + std::string(strerror(errno)));
-    cgi_ = Cgi(sfd_);
-    if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent | EventTypes::kWriteEvent) == -1)
-        throw std::runtime_error("Failed to register CgiHandler with InitiationDispatcher");
-    if (InitiationDispatcher::Instance().DeactivateHandler(stream_handler) == -1) {
-        InitiationDispatcher::Instance().DeactivateHandler(*this);
+    if (InitiationDispatcher::Instance().DeactivateHandler(stream_handler) == -1)
         throw std::runtime_error("Failed to deactivate StreamHandler with InitiationDispatcher");
-    }
+    Fork();
 }
+
 
 CgiHandler::~CgiHandler()
 {
 }
+
+
+int  CgiHandler::InitPipe()
+{
+    if(pipe(pfd_)== -1)
+        throw std::runtime_error("pipe() failed to create pipe");
+    return pfd_[0];
+}
+
+void CgiHandler::Fork()
+{
+    int pid;
+
+    pid = fork();
+    if(pid == -1)
+        throw std::runtime_error("Failed to fork");
+    if(pid == 0)
+        Exec();
+    else
+    {
+        CloseFd(pfd_[1]);
+        if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent | EventTypes::kWriteEvent) == -1)
+        {
+            kill(pid, SIGKILL);
+            ReturnToStreamHandler();
+            throw std::runtime_error("Failed to register Cgi Handler");
+        }
+    }
+}
+
+void CgiHandler::Exec()
+{
+    std::string const cgi_path = "/usr/bin/php-cgi";
+    std::string const path = "/home/toto/Bureau/19/git_webserv/data/file.php";
+    std::string const args = "arg1=toto";
+
+    std::vector<char *> cmd;
+    char **c_cmd;
+
+    cmd.push_back(const_cast<char*>(cgi_path.c_str()));
+    cmd.push_back(const_cast<char*>(path.c_str()));
+    cmd.push_back(const_cast<char*>(args.c_str()));
+    cmd.push_back(NULL);
+    c_cmd = &cmd[0];
+    CloseFd(pfd_[0]);
+    if(dup2(pfd_[1], 1) == -1)
+        throw std::runtime_error("Cgi : dup2 failed ");
+    CloseFd(pfd_[1]);
+    std::exit(execve(c_cmd[0], c_cmd, NULL));
+}
+
+void CgiHandler::CloseFd(int fd)
+{
+    if(close(fd) == -1)
+        throw std::runtime_error("Cgi : failed closing file descrpitor");
+}
  
 EventHandler::Handle    CgiHandler::get_handle(void) const
 {
-    return cgi_.get_sfd();
+    return stream_.get_sfd();
 }
 
 void    CgiHandler::HandleEvent(EventTypes::Type event_type)
 {
-    std::cout << "ENTER CgiHandler: event " << event_type << std::endl;
-    if (EventTypes::IsCloseEvent(event_type)) {
-        std::cout << "closing Cgi" << std::endl;
-        ReturnToStreamHandler();
+    //std::cout << "ENTER CgiHandler: event " << event_type << std::endl;
+    if(!EventTypes::IsReadEvent(event_type))
         return;
-    } else if (EventTypes::IsWriteEvent(event_type)) {
-        std::string request = "GET / HTTP/1.1\r\nHost: www.google.com\r\n\r\n";
-        
-        if (cgi_.Send(request) && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1) {
-            ReturnToStreamHandler();
-            throw std::runtime_error("Failed to delete write filter for a socket");
-        }
-    } else if (EventTypes::IsReadEvent(event_type)) {
-        cgi_.Read();
+    std::string r = stream_.Read();
+    if(r.empty())
+    {
         ReturnToStreamHandler();
         return;
     }
+    response_ += r;
 }
 
 void    CgiHandler::HandleTimeout()

@@ -73,7 +73,6 @@ SRCS_FILES:=	config_initialization/AcceptorRecords	\
 				event_handlers/StreamHandler			\
 				handles/Acceptor						\
 				handles/Stream							\
-				handles/Cgi 							\
 				InitiationDispatcher					\
 				WebServ
 

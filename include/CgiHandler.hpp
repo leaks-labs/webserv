@@ -1,8 +1,7 @@
 #ifndef CGI_HANDLER_HPP_
 # define CGI_HANDLER_HPP_
 
-# include "EventHandler.hpp"
-# include "Cgi.hpp"
+# include "StreamHandler.hpp"
 # include <netdb.h>
 # include <string>
 # include <sys/socket.h>
@@ -10,7 +9,7 @@
 class CgiHandler : public EventHandler {
     public:
 
-        CgiHandler(EventHandler& stream_handler, std::string const & request);
+        CgiHandler(StreamHandler& stream_handler, std::string const & request);
 
         virtual ~CgiHandler();
 
@@ -24,11 +23,17 @@ class CgiHandler : public EventHandler {
         CgiHandler(const CgiHandler &src);
         CgiHandler&   operator=(const CgiHandler &rhs);
 
+        int  InitPipe();
+        void Fork();
+        void Exec();
+        void CloseFd(int fd);
         void    ReturnToStreamHandler();
 
-        EventHandler &  stream_handler_;
-        int          sfd_[2];
-        Cgi          cgi_;
+        StreamHandler &  stream_handler_;
+        Stream       stream_;
+        int          pfd_[2];
+        std::string  request_; // this will be the request object
+        std::string  response_; // this will be the response object
 };
 
 #endif  // PROXY_HANDLER_HPP_
