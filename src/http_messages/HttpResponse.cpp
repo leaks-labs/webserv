@@ -26,6 +26,55 @@ HttpResponse::HttpResponse(HttpResponse const & src) :
 {
 }
 
+HttpResponse::~HttpResponse()
+{
+}
+
+HttpRequest &HttpResponse::get_request() const
+{
+    return request_;
+}
+
+Server const &HttpResponse::get_server() const
+{
+    return server_;
+}
+
+Location    const *HttpResponse::get_location() const
+{
+    return location_;
+}
+
+std::string const & HttpResponse::get_request_path() const 
+{
+    return request_path_;
+}
+
+std::string const & HttpResponse::get_path() const 
+{
+    return path_;
+}
+
+int HttpResponse::get_error() const 
+{
+    return error_;
+}
+
+std::string  const &HttpResponse::get_body() const
+{
+    return body_;
+}
+
+std::string  const &HttpResponse::get_header() const
+{
+    return header_;
+}
+
+std::string  HttpResponse::get_content() const
+{
+    return std::string(header_ + body_);
+}
+
 std::string HttpResponse::BuildPath()
 {
     if(!location_ || (location_->get_strict() && location_->get_path() != request_path_))
@@ -79,56 +128,4 @@ std::string HttpResponse::CreateHeader()
     std::stringstream ss;
     ss << body_.size();
     return "HTTP/1.1 200 OK\r\nContent-Length: " + ss.str() + "\r\n\r\n";
-}
-
-HttpResponse::~HttpResponse()
-{
-}
-
-HttpRequest &HttpResponse::get_request() const
-{
-    return request_;
-}
-
-
-Server const &HttpResponse::get_server() const
-{
-    return server_;
-}
-
-Location    const *HttpResponse::get_location() const
-{
-    return location_;
-}
-
-
-std::string const & HttpResponse::get_request_path() const 
-{
-    return request_path_;
-}
-
-std::string const & HttpResponse::get_path() const 
-{
-    return path_;
-}
-
-int HttpResponse::get_error() const 
-{
-    return error_;
-}
-
-std::string  const &HttpResponse::get_body() const
-{
-    return body_;
-}
-
-std::string  const &HttpResponse::get_header() const
-{
-    return header_;
-}
-
-
-std::string  HttpResponse::get_content() const
-{
-    return std::string(header_ + body_);
 }
