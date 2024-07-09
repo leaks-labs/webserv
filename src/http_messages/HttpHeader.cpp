@@ -35,8 +35,8 @@ const std::map<std::string, std::string>& HttpHeader::get_header_map() const
 
 void HttpHeader::Parse(const std::string &header)
 {
-    std::cout << "header parse" << std::endl;
-    std::cout << header << std::endl;
+    //std::cout << "header parse" << std::endl;
+    //std::cout << header << std::endl;
     std::vector<std::string> headers, values;
     HttpMessage::Split(header, ":", headers);
     if (headers.size() != 2)
@@ -48,7 +48,7 @@ void HttpHeader::Parse(const std::string &header)
         throw std::runtime_error("Bad Request");
     if (header_dictionary[i].is_used) {
         if (header_dictionary[i].name == "CONTENT-LENGTH") {
-            std::cout << values.at(0) << std::endl;
+            //std::cout << values.at(0) << std::endl;
             if (values.at(0) != " 1024"/*header_dictionary[i].args[0]*/) //trim space in arg
                 throw std::runtime_error("OK");
         }
@@ -57,9 +57,9 @@ void HttpHeader::Parse(const std::string &header)
                 throw std::runtime_error("Bad Request");
         }
     }
-    std::cout << headers.at(0) << "=> "<< headers.at(1) << std::endl;
+   // std::cout << headers.at(0) << "=> "<< headers.at(1) << std::endl;
     header_map_.insert(std::make_pair(headers.at(0), headers.at(1)));
-    std::cout << "End of header parse" << std::endl;
+    //std::cout << "End of header parse" << std::endl;
 }
 
 size_t HttpHeader::FindHeader(const HeaderField *header_field, const std::string &header)
@@ -70,4 +70,14 @@ size_t HttpHeader::FindHeader(const HeaderField *header_field, const std::string
             break;
     }
     return i;
+}
+
+void HttpHeader::Print() const
+{
+    std::cout << "\tHttpHeader properties: " << std::endl;
+    typedef std::map<std::string, std::string>::const_iterator iterator;
+    if(header_map_.empty())
+        std::cout << "\t\tthe header map is empty" << std::endl;
+    for (iterator it = header_map_.begin(); it != header_map_.end(); it++)
+        std::cout << "\t\t" << it->first << ": " << it->second << std::endl;
 }

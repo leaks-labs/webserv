@@ -31,6 +31,7 @@ public:
     const std::map<std::string, std::string>& get_header_map() const;
 
     void Parse(const std::string& header);
+    void Print() const;
 
 private:
     HttpHeader(const HttpHeader& http_header);

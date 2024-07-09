@@ -56,7 +56,8 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
                 if (request_count == 0 && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
                     throw std::runtime_error("Failed to delete write filter for a socket");
             } else if (EventTypes::IsReadEvent(event_type)) {
-                stream_.Read();
+                std::string r = stream_.Read();
+                Decode(r);
                 // TODO: add the string return by Read to the request queue
                 // For now, just add the request in the map.
                 ++request_count;
@@ -87,9 +88,12 @@ void   StreamHandler::Decode(std::string& buffer)
     HttpRequest request;
     request.set_message(buffer.substr(0, i));
     request.Parse();
+    request.get_header().Print();
+    request.get_request_line().Print();
+    std::cout << request.get_header().get_header_map().at("HOST") << std::endl;
     // then add the body
 }
-
+/*
 void    StreamHandler::Execute(const HttpMessage& request)
 {
     ;
@@ -99,3 +103,4 @@ void    StreamHandler::Encode(const HttpMessage& response)
 {
     ;
 }
+*/

@@ -33,6 +33,7 @@ public:
     static std::map<std::string, bool>::const_iterator InitTargetType(
             const std::string& target
     );
+    void Print() const;
 
 private:
     HttpRequestLine(const HttpRequestLine& request_line);
