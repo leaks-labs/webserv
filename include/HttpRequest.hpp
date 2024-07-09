@@ -5,16 +5,19 @@
 
 class HttpRequest : public HttpMessage
 {
-    public :
-        HttpRequest();
-        ~HttpRequest();
+public :
+    HttpRequest();
+    ~HttpRequest();
 
-        static size_t   FindRequest(const std::string& buff, size_t pos);
+    static size_t   FindRequest(const std::string& buff, size_t pos);
 
-        virtual void           Parse();
-    private:
-        HttpRequest(const HttpRequest& http_request);
-        HttpRequest& operator=(const HttpRequest& http_request);
+    void            Parse();
+
+    bool            SearchBody(const HttpRequest& request);
+
+private:
+    HttpRequest(const HttpRequest& http_request);
+    HttpRequest& operator=(const HttpRequest& http_request);
 };
 
 #endif
