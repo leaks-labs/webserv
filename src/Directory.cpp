@@ -5,6 +5,8 @@ Directory::Directory(std::string const &path, std::string const & root) :
     root_(root),
     dir_(opendir(path.c_str()))
 {
+    if(root_.at(root.size() - 1) == '/')
+        root_ = root.substr(0, root.size() - 1);
 }
 
 Directory::Directory(const Directory &src)
