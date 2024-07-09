@@ -1,14 +1,14 @@
-#ifndef CGI_HANDLER_HPP_
-# define CGI_HANDLER_HPP_
+#ifndef LOXAL_HANDLER_HPP_
+# define LOXAL_HANDLER_HPP_
 
 # include "StreamHandler.hpp"
 
-class CgiHandler : public EventHandler {
+class LocalHandler : public EventHandler {
     public:
 
-        CgiHandler(StreamHandler& stream_handler, std::string const & request);
+        LocalHandler(StreamHandler& stream_handler, std::string const & request);
 
-        virtual ~CgiHandler();
+        virtual ~LocalHandler();
 
         virtual Handle  get_handle() const;
 
@@ -16,18 +16,15 @@ class CgiHandler : public EventHandler {
         virtual void    HandleTimeout();
 
     private:
-        CgiHandler();
-        CgiHandler(const CgiHandler &src);
-        CgiHandler&   operator=(const CgiHandler &rhs);
+        LocalHandler();
+        LocalHandler(const LocalHandler &src);
+        LocalHandler&   operator=(const LocalHandler &rhs);
 
-        int  InitPipe();
-        void Fork();
-        void Exec();
+        int OpenFile();
         void    ReturnToStreamHandler();
 
         StreamHandler &  stream_handler_;
         Stream       stream_;
-        int          pfd_[2];
         std::string  request_; // this will be the request object
         std::string  response_; // this will be the response object
 };
