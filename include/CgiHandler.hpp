@@ -21,6 +21,7 @@ class CgiHandler : public EventHandler {
         CgiHandler&   operator=(const CgiHandler &rhs);
 
         int  InitPipe();
+        void CloseFd(int fd);
         void Fork();
         void Exec();
         void    ReturnToStreamHandler();
