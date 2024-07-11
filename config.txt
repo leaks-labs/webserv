@@ -11,7 +11,7 @@ proxy false
 
 > /test
 methods GET POST
-root /home/toto/Bureau
+root /home/toto/Bureau/19/git_webserv/data/
 default_file file.html
 > /other
 proxy otherwebsite.com

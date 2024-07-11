@@ -131,7 +131,8 @@ std::string HttpResponse::GetCgiPath(std::string const & ext) const
 
 void HttpResponse::addToBuffer(std::string const & str)
 {
-    body_ += str; // remplacer body_ par buffer_
+    std::cout << this->get_cgi_path() << std::endl;
+    body_ += std::string(str); // remplacer body_ par buffer_
 }
 
 void HttpResponse::set_complete()

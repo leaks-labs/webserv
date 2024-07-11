@@ -15,7 +15,9 @@
 // TODO: to remove
 
 CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse & response)
-    : ProcessHandler(stream_handler, response),
+    : 
+    stream_handler_(stream_handler),
+    response_(response),
     stream_(InitPipe())
 {
     Fork();
@@ -54,9 +56,9 @@ void CgiHandler::Fork()
     CloseFd(pfd_[1]);
     if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent) == -1)
     {
+        std::cout << "CgiHandler line 55 : Failed to register Cgi Handler " << get_handle() << std::endl;
         kill(pid, SIGKILL);
-        std::cout << "CgiHandler line 55 : Failed to register Cgi Handler" << std::endl;
-        ReturnToStreamHandler();
+        stream_handler_.Register();
         throw std::runtime_error("Failed to register Cgi Handler");
     }
 }
@@ -84,20 +86,37 @@ void CgiHandler::Exec()
     std::exit(errno);
 }
  
+EventHandler::Handle    CgiHandler::get_handle(void) const
+{
+    return stream_.get_sfd();
+}
+
 void    CgiHandler::HandleEvent(EventTypes::Type event_type)
 {
-    //std::cout << "ENTER CgiHandler: event " << event_type << std::endl;
+    std::cout << "ENTER CgiHandler: event " << event_type << std::endl;
     if (EventTypes::IsCloseEvent(event_type))
     {
         std::cout << "closing cgi" << std::endl;
         ReturnToStreamHandler();
         return;
     }
-    else if(!EventTypes::IsReadEvent(event_type))
+    if(!EventTypes::IsReadEvent(event_type))
         return;
     std::string r = stream_.Read();
     if(r.empty())
-        response_.set_complete();
+        ReturnToStreamHandler();
     else
         response_.addToBuffer(r);
+}
+
+void        CgiHandler::ReturnToStreamHandler()
+{
+    response_.set_complete();
+    InitiationDispatcher::Instance().RemoveHandler(this);
+    stream_handler_.Register();
+}
+
+void CgiHandler::HandleTimeout()
+{
+    
 }

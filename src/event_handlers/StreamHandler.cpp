@@ -15,6 +15,20 @@ StreamHandler::~StreamHandler()
 {
 }
 
+void StreamHandler::Register()
+{
+    int err = (InitiationDispatcher::Instance().AddReadFilter(*this) == -1 
+        || InitiationDispatcher::Instance().AddWriteFilter(*this) == -1);
+    if (err != 0)
+        InitiationDispatcher::Instance().RemoveHandler(this);
+}
+
+void StreamHandler::UnRegister()
+{
+    if (InitiationDispatcher::Instance().DeactivateHandler(*this) == -1)
+        throw std::runtime_error("Failed to deactivate StreamHandler with InitiationDispatcher");
+}
+
 EventHandler::Handle    StreamHandler::get_handle() const
 {
     return stream_.get_sfd();
@@ -74,17 +88,18 @@ void   StreamHandler::Decode(std::string& buffer)
     HttpRequest request;
     request.set_message(buffer.substr(0, i));
     request.Parse();
-    response_queue_.push_back(HttpResponse(*this, request, acceptor_sfd_));
+    response_queue_.push_back(new HttpResponse(*this, request, acceptor_sfd_));
 }
 
 
 void    StreamHandler::Encode()
 {
-    HttpResponse response = response_queue_.back();
+    HttpResponse response = *response_queue_.back();
     if(response.get_complete())
     {
         std::string res = response.get_content();
         stream_.Send(res);
+        delete response_queue_.back();
         response_queue_.pop_back();
     }
 }

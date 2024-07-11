@@ -1,14 +1,17 @@
 #ifndef CGI_HANDLER_HPP_
 # define CGI_HANDLER_HPP_
 
-# include "ProcessHandler.hpp"
+# include "StreamHandler.hpp"
 # include "HttpResponse.hpp"
 
-class CgiHandler : public ProcessHandler {
+class CgiHandler : public EventHandler {
     public:
         CgiHandler(StreamHandler& stream_handler, HttpResponse &response);
         virtual ~CgiHandler();
+        virtual Handle  get_handle() const;
         virtual void    HandleEvent(EventTypes::Type event_type);
+        virtual void    ReturnToStreamHandler();
+        virtual void    HandleTimeout();
 
     private:
         CgiHandler();
@@ -20,8 +23,10 @@ class CgiHandler : public ProcessHandler {
         void Fork();
         void Exec();
 
-        Stream       stream_;
         int          pfd_[2];
+        StreamHandler&  stream_handler_;
+        HttpResponse&    response_;
+        Stream          stream_;
 };
 
 #endif  // CGI_HANDLER_HPP_

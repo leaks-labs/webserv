@@ -31,6 +31,9 @@ class StreamHandler : public EventHandler {
         virtual void    HandleEvent(EventTypes::Type event_type);
         virtual void    HandleTimeout();
         
+        void Register();
+        void UnRegister();
+
         void            Decode(std::string& buffer);
         void            Encode();
         
@@ -41,7 +44,7 @@ class StreamHandler : public EventHandler {
 
         int                         acceptor_sfd_;
         Stream                      stream_;
-        std::deque<HttpResponse>    response_queue_;
+        std::deque<HttpResponse*>    response_queue_;
 };
 
 #endif  // STREAM_HANDLER_HPP

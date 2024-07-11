@@ -63,7 +63,6 @@ void    InitiationDispatcher::RemoveHandler(EventHandler* event_handler)
 {
     event_handler_table_.erase(event_handler->get_handle());
     delete event_handler;
-    std::cout << "InitiationDispatcher::RemoveHandler : line 65 -> this delete crash" << std::endl;
 }
 
 int InitiationDispatcher::DeactivateHandler(EventHandler& event_handler)
@@ -77,6 +76,7 @@ int InitiationDispatcher::DeactivateHandler(EventHandler& event_handler)
 
 int InitiationDispatcher::AddReadFilter(EventHandler& event_handler)
 {
+    //std::cerr << "Add Read filter : " << event_handler.get_handle() << " " << event_handler.get_event_types_registred() << std::endl;
     if (EventTypes::IsReadEvent(event_handler.get_event_types_registred()))
         return 0;
     Event   event = {};
@@ -102,6 +102,7 @@ int InitiationDispatcher::AddReadFilter(EventHandler& event_handler)
 
 int InitiationDispatcher::AddWriteFilter(EventHandler& event_handler)
 {
+    //std::cerr << "Add Write filter : " << event_handler.get_handle() << " " << event_handler.get_event_types_registred() << std::endl;
     if (EventTypes::IsWriteEvent(event_handler.get_event_types_registred()))
         return 0;
     Event   event = {};
