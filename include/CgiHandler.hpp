@@ -2,10 +2,11 @@
 # define CGI_HANDLER_HPP_
 
 # include "ProcessHandler.hpp"
+# include "HttpResponse.hpp"
 
 class CgiHandler : public ProcessHandler {
     public:
-        CgiHandler(StreamHandler& stream_handler, std::string & buffer, std::string const & request);
+        CgiHandler(StreamHandler& stream_handler, HttpResponse &response);
         virtual ~CgiHandler();
         virtual void    HandleEvent(EventTypes::Type event_type);
 
@@ -21,7 +22,6 @@ class CgiHandler : public ProcessHandler {
 
         Stream       stream_;
         int          pfd_[2];
-        std::string  request_; // this will be the request object
 };
 
-#endif  // PROXY_HANDLER_HPP_
+#endif  // CGI_HANDLER_HPP_

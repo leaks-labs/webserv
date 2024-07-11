@@ -6,13 +6,14 @@
 # include "ServerList.hpp"
 # include "Directory.hpp"
 # include "PathFinder.hpp"
+# include "CgiHandler.hpp"
 
 class HttpResponse
 {
     public :
-        HttpResponse(HttpRequest & request, int client_sfd);
+        HttpResponse(StreamHandler & stream_handler, HttpRequest & request, int client_sfd);
         HttpResponse(HttpResponse const & src);
-        //StreamHandler &get_stream_handler() const;
+        StreamHandler &get_stream_handler() const;
         HttpRequest &get_request() const;
         Server      const &get_server() const;
         Location    const *get_location() const;
@@ -21,7 +22,12 @@ class HttpResponse
         int                get_error() const;
         std::string  const & get_body() const;
         std::string  const & get_header() const;
-        std::string         get_content() const;
+        std::string get_content();
+        std::string const & get_cgi_path() const;
+        bool get_complete() const;
+
+        void set_complete();
+        void addToBuffer(std::string const & str);
 
         ~HttpResponse();
 
@@ -34,10 +40,10 @@ class HttpResponse
         std::string GetCgiPath(std::string const & ext) const;
         std::string ReadFile();
         std::string CreateHeader();
-        std::string CreateBody();
+        void        CreateBody();
         std::string ReadDirectory(Directory & dir);
 
-        //StreamHandler&  stream_handler_;
+        StreamHandler&  stream_handler_;
         HttpRequest &   request_;
         Server const &  server_;
         std::string     request_path_;
@@ -45,8 +51,9 @@ class HttpResponse
         std::string     buffer_;
         std::string     path_;
         std::string     body_;
-        std::string     header_;
+        std::string     cgi_path_;
         int             error_;
+        bool            complete_;
 };
 
 #endif

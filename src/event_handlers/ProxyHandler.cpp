@@ -29,8 +29,8 @@ struct addrinfo*    ProxyHandler::ConvertToAddrInfo(const std::string& url)
     return res;
 }
 
-ProxyHandler::ProxyHandler(StreamHandler& stream_handler, std::string &buffer, const struct addrinfo& address)
-   : ProcessHandler(stream_handler, buffer)
+ProxyHandler::ProxyHandler(StreamHandler& stream_handler, HttpResponse & response, const struct addrinfo& address)
+   : ProcessHandler(stream_handler, response)
 {
     #ifdef __APPLE__
       stream_ = socket(address.ai_family, address.ai_socktype, address.ai_protocol);
@@ -46,7 +46,8 @@ ProxyHandler::ProxyHandler(StreamHandler& stream_handler, std::string &buffer, c
     if (connect(stream_.get_sfd(), address.ai_addr, address.ai_addrlen) == -1 && errno != EINPROGRESS)
         throw std::runtime_error("connect() failed to connect to the remote host: " + std::string(strerror(errno)));
     // TODO: or update the response with a 500 error or something instead of throwing?
-    InitHandler();
+    if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent | EventTypes::kWriteEvent) == -1)
+        throw std::runtime_error("Failed to register ProcessHandler with InitiationDispatcher");
 }
 
 ProxyHandler::~ProxyHandler()

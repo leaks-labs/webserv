@@ -14,16 +14,10 @@
 #include <iostream>
 // TODO: to remove
 
-CgiHandler::CgiHandler(StreamHandler& stream_handler, std::string & buffer, std::string const & request)
-    : ProcessHandler(stream_handler, buffer),
-    stream_(InitPipe()),
-    request_(request)
+CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse & response)
+    : ProcessHandler(stream_handler, response),
+    stream_(InitPipe())
 {
-    if (InitiationDispatcher::Instance().DeactivateHandler(stream_handler) == -1)
-    {
-        CloseFd(pfd_[1]);
-        throw std::runtime_error("Failed to deactivate StreamHandler with InitiationDispatcher");
-    }
     Fork();
 }
 
@@ -34,7 +28,7 @@ CgiHandler::~CgiHandler()
 
 int  CgiHandler::InitPipe()
 {
-    if(pipe(pfd_)== -1)
+    if(socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0, pfd_) == -1)
         throw std::runtime_error("pipe() failed to create pipe");
     return pfd_[0];
 }
@@ -61,6 +55,7 @@ void CgiHandler::Fork()
     if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent) == -1)
     {
         kill(pid, SIGKILL);
+        std::cout << "CgiHandler line 55 : Failed to register Cgi Handler" << std::endl;
         ReturnToStreamHandler();
         throw std::runtime_error("Failed to register Cgi Handler");
     }
@@ -68,16 +63,14 @@ void CgiHandler::Fork()
 
 void CgiHandler::Exec()
 {
-    std::string cgi_path = "/usr/bin/php-cgi";
-    std::string path = "/home/toto/Bureau/19/git_webserv/data/file.php";
     std::string args = "arg1=toto";
 
     std::vector<char *> cmd;
     char **c_cmd;
     int err;
 
-    cmd.push_back(const_cast<char*>(cgi_path.c_str()));
-    cmd.push_back(const_cast<char*>(path.c_str()));
+    cmd.push_back(const_cast<char*>(response_.get_cgi_path().c_str()));
+    cmd.push_back(const_cast<char*>(response_.get_path().c_str()));
     cmd.push_back(const_cast<char*>(args.c_str()));
     cmd.push_back(NULL);
     c_cmd = &cmd[0];
@@ -104,9 +97,7 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
         return;
     std::string r = stream_.Read();
     if(r.empty())
-    {
-        ReturnToStreamHandler();
-        return;
-    }
-    buffer_ += r;
+        response_.set_complete();
+    else
+        response_.addToBuffer(r);
 }

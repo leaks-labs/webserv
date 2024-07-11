@@ -62,6 +62,7 @@ int InitiationDispatcher::RegisterHandler(EventHandler* event_handler, EventType
 void    InitiationDispatcher::RemoveHandler(EventHandler* event_handler)
 {
     event_handler_table_.erase(event_handler->get_handle());
+    std::cout << "InitiationDispatcher line 65: crash when delete event_handler" << std::endl;
     delete event_handler;
 }
 

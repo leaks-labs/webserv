@@ -6,8 +6,6 @@
 # include "Stream.hpp"
 # include "HttpMessage.hpp"
 # include "HttpRequest.hpp"
-# include "HttpResponse.hpp"
-
 # include <deque>
 # include <fcntl.h>
 # include <cerrno>
@@ -19,6 +17,8 @@
 // TODO: to remove
 #include <iostream>
 // TODO: to remove
+
+class HttpResponse;
 
 class StreamHandler : public EventHandler {
     public:
@@ -32,7 +32,7 @@ class StreamHandler : public EventHandler {
         virtual void    HandleTimeout();
         
         void            Decode(std::string& buffer);
-        void            Execute(HttpResponse & response);
+        void            Encode();
         
     private:
         StreamHandler();
@@ -41,9 +41,7 @@ class StreamHandler : public EventHandler {
 
         int                         acceptor_sfd_;
         Stream                      stream_;
-        std::deque<HttpMessage *>   requests_queue_;
         std::deque<HttpResponse>    response_queue_;
-        std::size_t                 request_count;
 };
 
 #endif  // STREAM_HANDLER_HPP

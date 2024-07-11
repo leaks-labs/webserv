@@ -11,12 +11,11 @@ class ProcessHandler : public EventHandler {
         virtual void    HandleTimeout();
 
     protected:
-        ProcessHandler(StreamHandler& stream_handler, std::string &buffer);
-        void            InitHandler();
+        ProcessHandler(StreamHandler& stream_handler, HttpResponse & response);
         void            ReturnToStreamHandler();
         StreamHandler&  stream_handler_;
-        std::string     buffer_;
         Stream          stream_;
+        HttpResponse    &response_;
 
     private:
         ProcessHandler();
@@ -25,4 +24,4 @@ class ProcessHandler : public EventHandler {
 
 };
 
-#endif  // PROXY_HANDLER_HPP_
+#endif

@@ -13,24 +13,16 @@
 #include <iostream>
 // TODO: to remove
 
-ProcessHandler::ProcessHandler(StreamHandler& stream_handler, std::string &buffer)
+ProcessHandler::ProcessHandler(StreamHandler& stream_handler, HttpResponse & response)
     : stream_handler_(stream_handler),
-    buffer_(buffer)
+    response_(response)
 {
+    if (InitiationDispatcher::Instance().DeactivateHandler(stream_handler_) == -1)
+        throw std::runtime_error("Failed to deactivate StreamHandler with InitiationDispatcher");
 }
 
 ProcessHandler::~ProcessHandler()
 {
-}
-
-void    ProcessHandler::InitHandler()
-{
-    if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent | EventTypes::kWriteEvent) == -1)
-        throw std::runtime_error("Failed to register ProcessHandler with InitiationDispatcher");
-    if (InitiationDispatcher::Instance().DeactivateHandler(stream_handler_) == -1) {
-        InitiationDispatcher::Instance().DeactivateHandler(*this);
-        throw std::runtime_error("Failed to deactivate StreamHandler with InitiationDispatcher");
-    }
 }
 
 EventHandler::Handle    ProcessHandler::get_handle(void) const
@@ -45,10 +37,13 @@ void    ProcessHandler::HandleTimeout()
 
 void    ProcessHandler::ReturnToStreamHandler()
 {
+    std::cout << "return to stream handler" << std::endl;
     int err = (InitiationDispatcher::Instance().AddReadFilter(stream_handler_) == -1 || InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1);
     if (err != 0)
         InitiationDispatcher::Instance().RemoveHandler(&stream_handler_);
+    std::cout << "ProcessHandler line 45 : InitiationDispatcher::Instance().RemoveHandler(this) is going to crash" << std::endl;
     InitiationDispatcher::Instance().RemoveHandler(this);
+    std::cout << "This does not print" << std::endl;
     if (err != 0)
         throw std::runtime_error("Failed to reactivate stream handler");
 }
