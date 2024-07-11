@@ -37,13 +37,11 @@ void    ProcessHandler::HandleTimeout()
 
 void    ProcessHandler::ReturnToStreamHandler()
 {
-    std::cout << "return to stream handler" << std::endl;
+    std::cout << "ProcessHandler line 40 : return to stream handler" << std::endl;
     int err = (InitiationDispatcher::Instance().AddReadFilter(stream_handler_) == -1 || InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1);
     if (err != 0)
         InitiationDispatcher::Instance().RemoveHandler(&stream_handler_);
-    std::cout << "ProcessHandler line 45 : InitiationDispatcher::Instance().RemoveHandler(this) is going to crash" << std::endl;
     InitiationDispatcher::Instance().RemoveHandler(this);
-    std::cout << "This does not print" << std::endl;
     if (err != 0)
         throw std::runtime_error("Failed to reactivate stream handler");
 }

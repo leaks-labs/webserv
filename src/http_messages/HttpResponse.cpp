@@ -52,7 +52,14 @@ void HttpResponse::CreateBody()
     //std::cout << "path: " << path_ << std::endl;
     if(IsCgiFile(path_))
     {
-        CgiHandler cgi(stream_handler_, *this);
+        try
+        {
+            new CgiHandler(stream_handler_, *this);
+        }
+        catch(const std::exception& e)
+        {
+            throw;
+        }
         return;
     }
     Directory dir(path_, request_path_, location_->get_path());
