@@ -22,7 +22,7 @@ class HttpResponse
         int                get_error() const;
         std::string  const & get_body() const;
         std::string  const & get_header() const;
-        std::string get_content();
+        std::string & get_buffer();
         std::string const & get_cgi_path() const;
         bool get_complete() const;
 

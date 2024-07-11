@@ -28,6 +28,8 @@ HttpResponse::HttpResponse(HttpResponse const & src) :
     error_(src.get_error()),
     complete_(src.get_complete())
 {
+    if (complete_)
+        set_complete();
 }
 
 HttpResponse::~HttpResponse()
@@ -67,7 +69,7 @@ void HttpResponse::CreateBody()
         body_ = ReadDirectory(dir);
     else
         body_ = ReadFile();
-    complete_ = true;
+    set_complete();
 }
 
 std::string HttpResponse::ReadDirectory(Directory & dir)
@@ -138,6 +140,7 @@ void HttpResponse::addToBuffer(std::string const & str)
 void HttpResponse::set_complete()
 {
     complete_ = true;
+    buffer_ = CreateHeader() + body_;
 }
 
 StreamHandler & HttpResponse::get_stream_handler() const
@@ -180,9 +183,9 @@ std::string  const &HttpResponse::get_body() const
     return body_;
 }
 
-std::string HttpResponse::get_content()
+std::string & HttpResponse::get_buffer()
 {
-    return CreateHeader() + body_;
+    return buffer_;
 }
 
 std::string  const & HttpResponse::get_cgi_path() const

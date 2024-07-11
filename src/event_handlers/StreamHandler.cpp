@@ -45,26 +45,12 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
         try
         {
             if (EventTypes::IsWriteEvent(event_type) && !response_queue_.empty()) {
-                // TODO: send the first compliete response. For now, just send a string.
-
-                // TODO: if there is bytes not sent, we need to keep the response in the response queue with the remaining data.
-                // or if all bytes sent, we need to remove the response from the response queue.
-                // For now, just remove the response from the map.
                 Encode();
-                // modify the filter to remove write filter
-                // only if there is no more response to send for this fd
-                // TODO: check if the response queue is empty (COMPLETE or NOT COMPLETE) for this fd. For now, just check the size_t
                 if (response_queue_.empty() && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
                     throw std::runtime_error("Failed to delete write filter for a socket");
             } else if (EventTypes::IsReadEvent(event_type)) {
-                // TODO: add the string return by Read to the request queue
-                // For now, just add the request in the map.
                 std::string r = stream_.Read();
                 Decode(r);
-                
-                // modify the filter to add EVFILT_WRITE
-                // only if the request queue is empty for this fd
-                // TODO: check if the request queue is equel to 1 (of COMPLETE and VALID requests) for this fd. For now, just check the size_t
                 if (!response_queue_.empty() && InitiationDispatcher::Instance().AddWriteFilter(*this) == -1)
                     throw std::runtime_error("failed to add write filter for a socket:" + std::string(strerror(errno)));
             }
@@ -97,8 +83,7 @@ void    StreamHandler::Encode()
     HttpResponse response = *response_queue_.back();
     if(response.get_complete())
     {
-        std::string res = response.get_content();
-        stream_.Send(res);
+        stream_.Send(response.get_buffer());
         delete response_queue_.back();
         response_queue_.pop_back();
     }
