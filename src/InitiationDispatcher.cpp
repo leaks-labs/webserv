@@ -29,7 +29,7 @@ void    InitiationDispatcher::HandleEvents(const time_t timeout)
         throw std::runtime_error("time() failed: ");
     std::vector<Event>  event_list(kMaxEvents);
     while (g_signal_received == 0) {
-        std::cout << "Waiting for events..." << std::endl;
+        //std::cout << "Waiting for events..." << std::endl;
         int number_events = WaitForEvents(event_list, kMaxEvents, timeout);
         if (number_events == -1) {
             if (errno != EINTR)

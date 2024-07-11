@@ -38,10 +38,10 @@ class HttpResponse
         std::string FindExtension(std::string const & str) const;
         bool        IsCgiFile(std::string const & path) const;
         std::string GetCgiPath(std::string const & ext) const;
-        std::string ReadFile();
+        void        ReadFile();
         std::string CreateHeader();
-        void        CreateBody();
-        std::string ReadDirectory(Directory & dir);
+        void        ReadDirectory(Directory & dir);
+        void LaunchCgiHandler();
 
         StreamHandler&  stream_handler_;
         HttpRequest &   request_;

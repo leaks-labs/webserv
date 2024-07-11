@@ -13,7 +13,20 @@ HttpResponse::HttpResponse(StreamHandler & stream_handler, HttpRequest & request
 {
     //request_.get_header().Print();
     //request_.get_request_line().Print();
-    CreateBody();
+    std::cout << "path: " << path_ << std::endl;
+    std::cout << "create body for path: " << path_ <<std::endl;
+    if(IsCgiFile(path_))
+    {
+        LaunchCgiHandler();
+        return;
+    }
+    Directory dir(path_, request_path_, location_->get_path());
+    if(dir.IsOpen())
+        ReadDirectory(dir);
+    else
+        ReadFile();
+    set_complete();
+    stream_handler_.Register();
 }
 
 HttpResponse::HttpResponse(HttpResponse const & src) :
@@ -38,71 +51,62 @@ HttpResponse::~HttpResponse()
 
 std::string HttpResponse::BuildPath()
 {
-    if(!location_ || (location_->get_strict() && location_->get_path() != request_path_))
+    if(!location_)
     {
         error_ = 404;
         return "";
     }
+    if (location_->get_strict())
+        return location_->get_root() + location_->get_default_file();
     size_t start = location_->get_path().size();
-    //std::cout << "request_path: " << request_path_ << std::endl;
     return location_->get_root() + request_path_.substr(start, request_path_.size() - start);
 }
 
-
-void HttpResponse::CreateBody()
+void HttpResponse::LaunchCgiHandler()
 {
-    //std::cout << "path: " << path_ << std::endl;
-    if(IsCgiFile(path_))
+    try
     {
-        try
-        {
-            new CgiHandler(stream_handler_, *this);
-        }
-        catch(const std::exception& e)
-        {
-            throw;
-        }
-        return;
+        new CgiHandler(stream_handler_, *this);
     }
-    Directory dir(path_, request_path_, location_->get_path());
-    if(dir.IsOpen())
-        body_ = ReadDirectory(dir);
-    else
-        body_ = ReadFile();
-    set_complete();
+    catch(const std::exception& e)
+    {
+        throw;
+    }
 }
 
-std::string HttpResponse::ReadDirectory(Directory & dir)
+void HttpResponse::ReadDirectory(Directory & dir)
 {
     std::string path;
 
     if(location_->get_listing())
-        return dir.GetHTML();
+    {
+        body_ =  dir.GetHTML();
+        return;
+    }
     path_ = location_->get_root() + "/" + location_->get_default_file();
-    return(ReadFile());
+    ReadFile();
 }
 
-std::string HttpResponse::ReadFile()
+void HttpResponse::ReadFile()
 {
     std::ifstream ifs (path_.c_str());
     if(!ifs)
-        return "";
+        return;
     std::filebuf* pbuf = ifs.rdbuf();
     std::size_t size = pbuf->pubseekoff(0, ifs.end, ifs.in);
     pbuf->pubseekpos (0, ifs.in);
     char* buf = new char[size];
     pbuf->sgetn (buf, size);
     ifs.close();
-    std::string res = std::string(buf, size);
+    body_ = std::string(buf, size);
     delete [] buf;
-    return res;
 }
 
 std::string HttpResponse::CreateHeader()
 {
     std::stringstream ss;
     ss << body_.size(); // A REMPLACER PAR body_.size();
-    return "HTTP/1.1 200 OK\r\nContent-Length: " + ss.str() + "\r\n\r\n";
+    return "HTTP/1.1 200 OK\r\nContent-type: text/html\r\nContent-Length: " + ss.str() + "\r\n\r\n";
 }
 
 std::string HttpResponse::FindExtension(std::string const & str) const

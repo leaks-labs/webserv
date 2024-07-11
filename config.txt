@@ -4,14 +4,15 @@ server_names abc.com xyz.fr
 errors /home/toto/Bureau/19/git_webserv/data/error.html 400 404
 default_file default.html
 bodymax 10000
-root /
+root /home/toto/Bureau/19/git_webserv/
 listing true
 cgi php-cgi
 proxy false
 
-> /test
+>= /test
+listing false
 methods GET POST
 root /home/toto/Bureau/19/git_webserv/data/
-default_file file.html
+default_file file.php
 > /other
 proxy otherwebsite.com

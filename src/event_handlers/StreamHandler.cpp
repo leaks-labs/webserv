@@ -17,16 +17,21 @@ StreamHandler::~StreamHandler()
 
 void StreamHandler::Register()
 {
-    int err = (InitiationDispatcher::Instance().AddReadFilter(*this) == -1 
-        || InitiationDispatcher::Instance().AddWriteFilter(*this) == -1);
-    if (err != 0)
+    if(InitiationDispatcher::Instance().AddReadFilter(*this) == -1 
+        || InitiationDispatcher::Instance().AddWriteFilter(*this) == -1)
         InitiationDispatcher::Instance().RemoveHandler(this);
+    else
+        std::cout << "StreamHandler is registered" << std::endl;
 }
 
 void StreamHandler::UnRegister()
 {
     if (InitiationDispatcher::Instance().DeactivateHandler(*this) == -1)
+    {
+        std::cout << "Failed to deactivate StreamHandler with InitiationDispatcher" << std::endl;
         throw std::runtime_error("Failed to deactivate StreamHandler with InitiationDispatcher");
+    }
+    std::cout << "StreamHandler is unregistered" << std::endl;
 }
 
 EventHandler::Handle    StreamHandler::get_handle() const
@@ -36,7 +41,7 @@ EventHandler::Handle    StreamHandler::get_handle() const
 
 void    StreamHandler::HandleEvent(EventTypes::Type event_type)
 {
-    std::cout << "ENTER StreamHandler: event " << event_type << std::endl;
+    //std::cout << "ENTER StreamHandler: event " << event_type << std::endl;
     if (EventTypes::IsCloseEvent(event_type)) {
         std::cout << "closing stream" << std::endl;
         InitiationDispatcher::Instance().RemoveHandler(this);
@@ -46,13 +51,10 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
         {
             if (EventTypes::IsWriteEvent(event_type) && !response_queue_.empty()) {
                 Encode();
-                if (response_queue_.empty() && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
-                    throw std::runtime_error("Failed to delete write filter for a socket");
+
             } else if (EventTypes::IsReadEvent(event_type)) {
                 std::string r = stream_.Read();
                 Decode(r);
-                if (!response_queue_.empty() && InitiationDispatcher::Instance().AddWriteFilter(*this) == -1)
-                    throw std::runtime_error("failed to add write filter for a socket:" + std::string(strerror(errno)));
             }
         }
         catch(const std::exception& e)
@@ -75,8 +77,9 @@ void   StreamHandler::Decode(std::string& buffer)
     request.set_message(buffer.substr(0, i));
     request.Parse();
     response_queue_.push_back(new HttpResponse(*this, request, acceptor_sfd_));
+    //if (!response_queue_.empty() && InitiationDispatcher::Instance().AddWriteFilter(*this) == -1)
+    //    throw std::runtime_error("failed to add write filter for a socket:" + std::string(strerror(errno)));
 }
-
 
 void    StreamHandler::Encode()
 {
@@ -87,4 +90,8 @@ void    StreamHandler::Encode()
         delete response_queue_.back();
         response_queue_.pop_back();
     }
+    if (response_queue_.empty() && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
+        throw std::runtime_error("Failed to delete write filter for a socket");
+    //else
+    //    std::cout << "response is not complete" << std::endl;
 }
