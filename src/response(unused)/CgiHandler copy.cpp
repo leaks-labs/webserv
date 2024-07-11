@@ -14,8 +14,8 @@
 #include <iostream>
 // TODO: to remove
 
-CgiHandler::CgiHandler(StreamHandler& stream_handler, std::string & buffer, std::string const & request)
-    : ProcessHandler(stream_handler, buffer),
+CgiHandler::CgiHandler(StreamHandler& stream_handler, std::string const & request)
+    : stream_handler_(stream_handler),
     stream_(InitPipe()),
     request_(request)
 {
@@ -91,6 +91,11 @@ void CgiHandler::Exec()
     std::exit(errno);
 }
  
+EventHandler::Handle    CgiHandler::get_handle(void) const
+{
+    return stream_.get_sfd();
+}
+
 void    CgiHandler::HandleEvent(EventTypes::Type event_type)
 {
     //std::cout << "ENTER CgiHandler: event " << event_type << std::endl;
@@ -108,5 +113,20 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
         ReturnToStreamHandler();
         return;
     }
-    buffer_ += r;
+    response_ += r;
+}
+
+void    CgiHandler::HandleTimeout()
+{
+    // TODO: implement
+}
+
+void    CgiHandler::ReturnToStreamHandler()
+{
+    int err = (InitiationDispatcher::Instance().AddReadFilter(stream_handler_) == -1 || InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1);
+    if (err != 0)
+        InitiationDispatcher::Instance().RemoveHandler(&stream_handler_);
+    InitiationDispatcher::Instance().RemoveHandler(this);
+    if (err != 0)
+        throw std::runtime_error("Failed to reactivate stream handler");
 }

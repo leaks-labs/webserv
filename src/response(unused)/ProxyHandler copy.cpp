@@ -29,14 +29,14 @@ struct addrinfo*    ProxyHandler::ConvertToAddrInfo(const std::string& url)
     return res;
 }
 
-ProxyHandler::ProxyHandler(StreamHandler& stream_handler, std::string &buffer, const struct addrinfo& address)
-   : ProcessHandler(stream_handler, buffer)
+ProxyHandler::ProxyHandler(StreamHandler& stream_handler, const struct addrinfo& address)
+    : stream_handler_(stream_handler),
+#ifdef __APPLE__
+      stream_(socket(address.ai_family, address.ai_socktype, address.ai_protocol))
+#elif __linux__
+      stream_(socket(address.ai_family, address.ai_socktype | SOCK_NONBLOCK | SOCK_CLOEXEC, address.ai_protocol))
+#endif
 {
-    #ifdef __APPLE__
-      stream_ = socket(address.ai_family, address.ai_socktype, address.ai_protocol);
-    #elif __linux__
-      stream_ =socket(address.ai_family, address.ai_socktype | SOCK_NONBLOCK | SOCK_CLOEXEC, address.ai_protocol);
-    #endif
     if (stream_.get_sfd() == -1)
         throw std::runtime_error("socket() failed to create a socket");
 #ifdef __APPLE__
@@ -45,14 +45,24 @@ ProxyHandler::ProxyHandler(StreamHandler& stream_handler, std::string &buffer, c
 #endif
     if (connect(stream_.get_sfd(), address.ai_addr, address.ai_addrlen) == -1 && errno != EINPROGRESS)
         throw std::runtime_error("connect() failed to connect to the remote host: " + std::string(strerror(errno)));
+    if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent | EventTypes::kWriteEvent) == -1)
+        throw std::runtime_error("Failed to register ProxyHandler with InitiationDispatcher");
+    if (InitiationDispatcher::Instance().DeactivateHandler(stream_handler) == -1) {
+        InitiationDispatcher::Instance().DeactivateHandler(*this);
+        throw std::runtime_error("Failed to deactivate StreamHandler with InitiationDispatcher");
+    }
+
     // TODO: or update the response with a 500 error or something instead of throwing?
-    InitHandler();
 }
 
 ProxyHandler::~ProxyHandler()
 {
 }
 
+EventHandler::Handle    ProxyHandler::get_handle(void) const
+{
+    return stream_.get_sfd();
+}
 
 void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
 {
@@ -90,4 +100,19 @@ void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
         ReturnToStreamHandler();
         return; // Do NOT remove this return. It is important to be sure to return here.
     }
+}
+
+void    ProxyHandler::HandleTimeout()
+{
+    // TODO: implement
+}
+
+void    ProxyHandler::ReturnToStreamHandler()
+{
+    int err = (InitiationDispatcher::Instance().AddReadFilter(stream_handler_) == -1 || InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1);
+    if (err != 0)
+        InitiationDispatcher::Instance().RemoveHandler(&stream_handler_);
+    InitiationDispatcher::Instance().RemoveHandler(this);
+    if (err != 0)
+        throw std::runtime_error("Failed to reactivate stream handler");
 }

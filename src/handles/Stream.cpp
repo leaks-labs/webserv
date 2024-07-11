@@ -11,6 +11,12 @@
 #include <iostream>
 // TODO: to remove
 
+Stream::Stream()
+    : sfd_(-1),
+      buffer_(kBufSize)
+{
+}
+
 Stream::Stream(int sfd)
     : sfd_(sfd),
       buffer_(kBufSize)

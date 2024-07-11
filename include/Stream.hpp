@@ -10,6 +10,7 @@
 
 class Stream {
     public:
+        Stream();
         Stream(int sfd);
         Stream(const Stream& src);
         Stream& operator=(const Stream& rhs);
@@ -21,10 +22,7 @@ class Stream {
         std::string Read();
 
     private:
-        static const int    kBufSize = 1024;
-
-        Stream();
-    
+        static const int    kBufSize = 1024;    
         int           sfd_;
         std::vector<char>   buffer_;
 };

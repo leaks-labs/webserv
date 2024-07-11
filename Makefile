@@ -66,11 +66,12 @@ SRCS_FILES:=	config_initialization/AcceptorRecords	\
 				config_initialization/ServerList		\
 				config_initialization/PathFinder		\
 				event_handlers/ConnectionAcceptor		\
-				event_handlers/EventHandler				\
 				event_handlers/EventTypes				\
+				event_handlers/EventHandler				\
+				event_handlers/StreamHandler			\
+				event_handlers/ProcessHandler			\
 				event_handlers/ProxyHandler				\
 				event_handlers/CgiHandler				\
-				event_handlers/StreamHandler			\
 				handles/Acceptor						\
 				handles/Stream							\
 				http_messages/HttpBody					\
