@@ -8,6 +8,7 @@
 
 #include <fcntl.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include "InitiationDispatcher.hpp"
 
@@ -91,20 +92,18 @@ std::pair<int, int> CgiHandler::InitSocketPair()
 
 void CgiHandler::Exec()
 {
-    std::vector<char*>  cmd;
-
-    cmd.push_back(const_cast<char*>(response_.get_cgi_path().c_str()));
-    cmd.push_back(const_cast<char*>(response_.get_path().c_str()));
-    cmd.push_back(const_cast<char*>(response_.get_args().c_str()));
-    cmd.push_back(NULL);
-    char**    c_cmd = cmd.data();
     stream_main_.Close();
-    int err = dup2(stream_child_.get_sfd(), 1);
+    std::vector<char*>  cmd(4);
+    cmd[0] = const_cast<char*>(response_.get_cgi_path().c_str());
+    cmd[1] = const_cast<char*>(response_.get_path().c_str());
+    cmd[2] = const_cast<char*>(response_.get_args().c_str());
+    int err = dup2(stream_child_.get_sfd(), STDOUT_FILENO);
     stream_child_.Close();
     if(err == -1)
         throw std::runtime_error("Cgi : dup2 failed " + std::string(strerror(errno)));
-    execve(c_cmd[0], c_cmd, NULL);
-        throw std::runtime_error("Cgi : Exec failed " + std::string(strerror(errno)));
+    execve(cmd[0], cmd.data(), NULL);
+    close(STDOUT_FILENO);
+    // if execve failed, the content of the socket will be empty
     std::exit(errno);
 }
  
