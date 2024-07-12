@@ -11,11 +11,11 @@
 #include <iostream>
 // TODO: to remove
 
-Stream::Stream()
-    : sfd_(-1),
-      buffer_(kBufSize)
-{
-}
+// Stream::Stream()
+//     : sfd_(-1),
+//       buffer_(kBufSize)
+// {
+// }
 
 Stream::Stream(int sfd)
     : sfd_(sfd),
@@ -23,16 +23,16 @@ Stream::Stream(int sfd)
 {
 }
 
-Stream::Stream(const Stream& src) :
-    sfd_(src.get_sfd())
-{
-}
-Stream& Stream::operator=(const Stream& rhs)
-{
-    if(this != &rhs)
-        sfd_ = rhs.get_sfd();
-    return *this;
-}
+// Stream::Stream(const Stream& src) :
+//     sfd_(src.get_sfd())
+// {
+// }
+// Stream& Stream::operator=(const Stream& rhs)
+// {
+//     if(this != &rhs)
+//         sfd_ = rhs.get_sfd();
+//     return *this;
+// }
 
 Stream::~Stream()
 {
@@ -74,4 +74,12 @@ std::string Stream::Read()
     else if (bytes_read == 0)
         throw std::runtime_error("recv() failed: connection closed by peer");
     return std::string(buffer_.data(), bytes_read);
+}
+
+void    Stream::Close()
+{
+    if (sfd_ != -1) {
+        close(sfd_);
+        sfd_ = -1;
+    }
 }

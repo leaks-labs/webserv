@@ -1,23 +1,21 @@
 #ifndef STREAM_HANDLER_HPP
 # define STREAM_HANDLER_HPP
 
-# include "InitiationDispatcher.hpp"
-# include "EventHandler.hpp"
-# include "Stream.hpp"
-# include "HttpMessage.hpp"
-# include "HttpRequest.hpp"
 # include <deque>
-# include <fcntl.h>
-# include <cerrno>
-# include <cstring>
-# include <stdexcept>
 # include <string>
+
+# include "EventHandler.hpp"
+# include "EventTypes.hpp"
+# include "Stream.hpp"
+
+# include <fcntl.h>
 # include <unistd.h>
 
 // TODO: to remove
 #include <iostream>
 // TODO: to remove
 
+class HttpRequest;
 class HttpResponse;
 
 class StreamHandler : public EventHandler {
@@ -31,11 +29,10 @@ class StreamHandler : public EventHandler {
         virtual void    HandleEvent(EventTypes::Type event_type);
         virtual void    HandleTimeout();
         
-        void Register();
-        void UnRegister();
-
-        void            Decode(std::string& buffer);
-        void            Encode();
+        int     ReRegister();
+        int     UnRegister();
+        void    Decode(std::string& buffer);
+        void    Encode();
         
     private:
         StreamHandler();

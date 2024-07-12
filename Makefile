@@ -62,14 +62,14 @@ MAIN:=	main
 
 SRCS_FILES:=	config_initialization/AcceptorRecords	\
 				config_initialization/Location			\
+				config_initialization/PathFinder		\
 				config_initialization/Server			\
 				config_initialization/ServerList		\
-				config_initialization/PathFinder		\
-				event_handlers/ConnectionAcceptor		\
-				event_handlers/EventTypes				\
-				event_handlers/EventHandler				\
-				event_handlers/StreamHandler			\
 				event_handlers/CgiHandler				\
+				event_handlers/ConnectionAcceptor		\
+				event_handlers/EventHandler				\
+				event_handlers/EventTypes				\
+				event_handlers/StreamHandler			\
 				handles/Acceptor						\
 				handles/Stream							\
 				http_messages/HttpBody					\

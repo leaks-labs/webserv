@@ -119,7 +119,7 @@ void HttpResponse::Get()
             ReadFile();
     }
     SetComplete();
-    stream_handler_.Register();
+    stream_handler_.ReRegister();
 }
 
 

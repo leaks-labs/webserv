@@ -61,7 +61,7 @@ int InitiationDispatcher::RegisterHandler(EventHandler* event_handler, EventType
 
 void    InitiationDispatcher::RemoveHandler(EventHandler* event_handler)
 {
-    event_handler_table_.erase(event_handler->get_handle());
+    RemoveEntry(event_handler);
     delete event_handler;
 }
 
@@ -72,6 +72,11 @@ int InitiationDispatcher::DeactivateHandler(EventHandler& event_handler)
 #elif __linux__
     return (epoll_ctl(demultiplexer_, EPOLL_CTL_DEL, event_handler.get_handle(), NULL));
 #endif
+}
+
+void    InitiationDispatcher::RemoveEntry(EventHandler* event_handler)
+{
+    event_handler_table_.erase(event_handler->get_handle());
 }
 
 int InitiationDispatcher::AddReadFilter(EventHandler& event_handler)

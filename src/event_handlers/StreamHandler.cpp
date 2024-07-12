@@ -1,6 +1,10 @@
 #include "StreamHandler.hpp"
-#include "HttpResponse.hpp"
 
+#include <stdexcept>
+
+#include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
+#include "InitiationDispatcher.hpp"
 
 StreamHandler::StreamHandler(int acceptor_sfd, int sfd)
     : 
@@ -13,22 +17,6 @@ StreamHandler::StreamHandler(int acceptor_sfd, int sfd)
 
 StreamHandler::~StreamHandler()
 {
-}
-
-void StreamHandler::Register()
-{
-    if(InitiationDispatcher::Instance().AddReadFilter(*this) == -1 
-        || InitiationDispatcher::Instance().AddWriteFilter(*this) == -1)
-        InitiationDispatcher::Instance().RemoveHandler(this);
-}
-
-void StreamHandler::UnRegister()
-{
-    if (InitiationDispatcher::Instance().DeactivateHandler(*this) == -1)
-    {
-        std::cout << "Failed to deactivate StreamHandler with InitiationDispatcher" << std::endl;
-        throw std::runtime_error("Failed to deactivate StreamHandler with InitiationDispatcher");
-    }
 }
 
 EventHandler::Handle    StreamHandler::get_handle() const
@@ -65,6 +53,25 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
 void    StreamHandler::HandleTimeout()
 {
     // TODO: implement
+}
+
+int StreamHandler::ReRegister()
+{
+    if (InitiationDispatcher::Instance().AddReadFilter(*this) == -1 
+        || InitiationDispatcher::Instance().AddWriteFilter(*this) == -1) {
+        InitiationDispatcher::Instance().RemoveHandler(this);
+        return -1;
+    }
+    return 0;
+}
+
+int StreamHandler::UnRegister()
+{
+    if (InitiationDispatcher::Instance().DeactivateHandler(*this) == -1) {
+        throw std::runtime_error("Failed to deactivate StreamHandler with InitiationDispatcher");
+        return -1;
+    }
+    return 0;
 }
 
 void   StreamHandler::Decode(std::string& buffer)

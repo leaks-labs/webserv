@@ -11,7 +11,8 @@
 class ProxyHandler : public ProcessHandler {
     public:
         static struct addrinfo* ConvertToAddrInfo(const std::string& url);
-        ProxyHandler(StreamHandler& stream_handler, HttpResponse &response, const struct addrinfo& address);
+
+        ProxyHandler(StreamHandler& stream_handler, HttpResponse& response, const struct addrinfo& address);
 
         virtual ~ProxyHandler();
         virtual void    HandleEvent(EventTypes::Type event_type);

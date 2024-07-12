@@ -1,29 +1,29 @@
 #ifndef STREAM_HPP_
 # define STREAM_HPP_
 
-# include <cstddef>
 # include <string>
 # include <vector>
-# include <string>
-# include <deque>
-
 
 class Stream {
     public:
-        Stream();
         Stream(int sfd);
-        Stream(const Stream& src);
-        Stream& operator=(const Stream& rhs);
+
         ~Stream();
 
-        int         get_sfd() const;
+        int get_sfd() const;
 
         void        Send(std::string& data);
         std::string Read();
+        void        Close();
 
     private:
         static const int    kBufSize = 1024;    
-        int           sfd_;
+
+        Stream();
+        Stream(const Stream& src);
+        Stream& operator=(const Stream& rhs);
+
+        int                 sfd_;
         std::vector<char>   buffer_;
 };
 

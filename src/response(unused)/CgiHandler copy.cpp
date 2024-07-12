@@ -32,7 +32,7 @@ CgiHandler::~CgiHandler()
     CloseFd(pfd_[1]);
 }
 
-int  CgiHandler::InitPipe()
+int  CgiHandler::InitSockets()
 {
     if(pipe(pfd_)== -1)
         throw std::runtime_error("pipe() failed to create pipe");

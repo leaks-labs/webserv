@@ -49,6 +49,7 @@ ProxyHandler::ProxyHandler(StreamHandler& stream_handler, const struct addrinfo&
         throw std::runtime_error("Failed to register ProxyHandler with InitiationDispatcher");
     if (InitiationDispatcher::Instance().DeactivateHandler(stream_handler) == -1) {
         InitiationDispatcher::Instance().DeactivateHandler(*this);
+        // TODO: remove entry
         throw std::runtime_error("Failed to deactivate StreamHandler with InitiationDispatcher");
     }
 
