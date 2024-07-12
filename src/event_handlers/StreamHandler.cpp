@@ -73,12 +73,17 @@ void    StreamHandler::HandleTimeout()
 void   StreamHandler::Decode(std::string& buffer)
 {
     size_t i = HttpRequest::FindRequest(buffer, 0);
-    HttpRequest request;
-    request.set_message(buffer.substr(0, i));
-    request.Parse();
-    response_queue_.push_back(new HttpResponse(*this, request, acceptor_sfd_));
-    //if (!response_queue_.empty() && InitiationDispatcher::Instance().AddWriteFilter(*this) == -1)
-    //    throw std::runtime_error("failed to add write filter for a socket:" + std::string(strerror(errno)));
+    HttpRequest *request;
+    try
+    {
+        request = new HttpRequest();
+        request->set_message(buffer.substr(0, i));
+        request->Parse();
+        response_queue_.push_back(new HttpResponse(*this, request, acceptor_sfd_));    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
 }
 
 void    StreamHandler::Encode()
@@ -92,6 +97,4 @@ void    StreamHandler::Encode()
     }
     if (response_queue_.empty() && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
         throw std::runtime_error("Failed to delete write filter for a socket");
-    //else
-    //    std::cout << "response is not complete" << std::endl;
 }

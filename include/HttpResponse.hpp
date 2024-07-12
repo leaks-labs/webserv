@@ -11,29 +11,32 @@
 class HttpResponse
 {
     public :
-        HttpResponse(StreamHandler & stream_handler, HttpRequest & request, int client_sfd);
+        HttpResponse(StreamHandler &stream_handler, HttpRequest *request, int client_sfd);
         HttpResponse(HttpResponse const & src);
-        StreamHandler &get_stream_handler() const;
-        HttpRequest &get_request() const;
-        Server      const &get_server() const;
-        Location    const *get_location() const;
-        std::string const & get_request_path() const;
-        std::string const & get_path() const;
-        int                get_error() const;
-        std::string  const & get_body() const;
-        std::string  const & get_header() const;
-        std::string & get_buffer();
-        std::string const & get_cgi_path() const;
-        bool get_complete() const;
+        StreamHandler&          get_stream_handler() const;
+        HttpRequest*            get_request() const;
+        Server const &          get_server() const;
+        Location const *        get_location() const;
+        std::string const &     get_request_path() const;
+        std::string const &     get_path() const;
+        std::string const &     get_args() const;
+        int                     get_error() const;
+        std::string const &     get_body() const;
+        std::string const &     get_header() const;
+        std::string &           get_buffer();
+        std::string const &     get_cgi_path() const;
+        bool                    get_complete() const;
 
-        void set_complete();
-        void addToBuffer(std::string const & str);
+        void                    set_complete();
+        void                    addToBuffer(std::string const & str);
+        void                    RemoveFirstBodyLine();
 
         ~HttpResponse();
 
     private:
         HttpResponse();
         HttpResponse& operator=(HttpResponse const & src);
+        std::string ExtractArgs();
         std::string BuildPath();
         std::string FindExtension(std::string const & str) const;
         bool        IsCgiFile(std::string const & path) const;
@@ -41,12 +44,13 @@ class HttpResponse
         void        ReadFile();
         std::string CreateHeader();
         void        ReadDirectory(Directory & dir);
-        void LaunchCgiHandler();
+        void        LaunchCgiHandler();
 
         StreamHandler&  stream_handler_;
-        HttpRequest &   request_;
+        HttpRequest*    request_;
         Server const &  server_;
         std::string     request_path_;
+        std::string     args_;
         Location const* location_;
         std::string     buffer_;
         std::string     path_;

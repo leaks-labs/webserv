@@ -1,20 +1,17 @@
 #include "HttpResponse.hpp"
 
-HttpResponse::HttpResponse(StreamHandler & stream_handler, HttpRequest & request, int acceptor_sfd) : 
+HttpResponse::HttpResponse(StreamHandler & stream_handler, HttpRequest * request, int acceptor_sfd) : 
     stream_handler_(stream_handler),
     request_(request),
-    server_(ServerList::Instance().FindServer(acceptor_sfd, request_.get_header().get_header_map().find("HOST")->second)),
-    request_path_(request_.get_request_line().get_target().target),
+    server_(ServerList::Instance().FindServer(acceptor_sfd, request_->get_header().get_header_map().find("HOST")->second)),
+    request_path_(request_->get_request_line().get_target().target),
+    args_(ExtractArgs()),
     location_(server_.FindLocation(request_path_)),
     path_(BuildPath()),
     cgi_path_(GetCgiPath(FindExtension(path_))),
     error_(200),
     complete_(false)
 {
-    //request_.get_header().Print();
-    //request_.get_request_line().Print();
-    std::cout << "path: " << path_ << std::endl;
-    std::cout << "create body for path: " << path_ <<std::endl;
     if(IsCgiFile(path_))
     {
         LaunchCgiHandler();
@@ -34,6 +31,7 @@ HttpResponse::HttpResponse(HttpResponse const & src) :
     request_(src.get_request()),
     server_(src.get_server()),
     request_path_(src.get_request_path()),
+    args_(src.get_args()),
     location_(src.get_location()),
     path_(src.get_path()),
     body_(src.get_body()),
@@ -47,6 +45,16 @@ HttpResponse::HttpResponse(HttpResponse const & src) :
 
 HttpResponse::~HttpResponse()
 {
+}
+
+std::string HttpResponse::ExtractArgs()
+{
+    size_t pos = request_path_.find("?");
+    if (pos == std::string::npos || pos == request_path_.size() - 1)
+        return "";
+    std::string res = request_path_.substr(pos + 1, request_path_.size() - (pos + 1));
+    request_path_ = request_path_.substr(0, pos);
+    return res;
 }
 
 std::string HttpResponse::BuildPath()
@@ -104,9 +112,30 @@ void HttpResponse::ReadFile()
 
 std::string HttpResponse::CreateHeader()
 {
+    typedef std::map<std::string, std::string>::const_iterator iterator;
+    std::map<std::string, std::string> map;
     std::stringstream ss;
-    ss << body_.size(); // A REMPLACER PAR body_.size();
-    return "HTTP/1.1 200 OK\r\nContent-type: text/html\r\nContent-Length: " + ss.str() + "\r\n\r\n";
+    std::string header;
+
+    header += request_->get_request_line().get_http_version() + " ";
+    ss << error_;
+    map = HttpMessage::status_map;
+    for (iterator it= map.begin(); it != map.end(); ++it)
+    {
+        if (it->second == ss.str())
+        {
+            header += it->second + " " + it->first + + "\r\n";
+            break;
+        }
+    }
+    map = request_->get_header().get_header_map();
+    for (iterator it= map.begin(); it != map.end(); ++it)
+        header += std::string(it->first) + ": " + std::string(it->second) + "\r\n";
+    header += "Content-type: text/html\r\n";
+    ss.str("");
+    ss << body_.size();
+    header += "Content-Length: " + ss.str() + "\r\n\r\n";
+    return header;
 }
 
 std::string HttpResponse::FindExtension(std::string const & str) const
@@ -147,12 +176,18 @@ void HttpResponse::set_complete()
     buffer_ = CreateHeader() + body_;
 }
 
+void HttpResponse::RemoveFirstBodyLine() // SHOULD EXTRACT ENCODING TYPE AND CONTENT TYPE HERE
+{
+    size_t pos = body_.find("\n");
+    body_ = body_.substr(pos, body_.size() - pos);
+}
+
 StreamHandler & HttpResponse::get_stream_handler() const
 {
     return stream_handler_;
 }
 
-HttpRequest &HttpResponse::get_request() const
+HttpRequest *HttpResponse::get_request() const
 {
     return request_;
 }
@@ -175,6 +210,11 @@ std::string const & HttpResponse::get_request_path() const
 std::string const & HttpResponse::get_path() const 
 {
     return path_;
+}
+
+std::string const & HttpResponse::get_args() const 
+{
+    return args_;
 }
 
 int HttpResponse::get_error() const 

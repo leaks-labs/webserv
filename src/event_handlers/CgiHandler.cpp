@@ -65,15 +65,13 @@ void CgiHandler::Fork()
 
 void CgiHandler::Exec()
 {
-    std::string args = "arg1=toto";
-
     std::vector<char *> cmd;
     char **c_cmd;
     int err;
 
     cmd.push_back(const_cast<char*>(response_.get_cgi_path().c_str()));
     cmd.push_back(const_cast<char*>(response_.get_path().c_str()));
-    cmd.push_back(const_cast<char*>(args.c_str()));
+    cmd.push_back(const_cast<char*>(response_.get_args().c_str()));
     cmd.push_back(NULL);
     c_cmd = &cmd[0];
     CloseFd(pfd_[0]);
@@ -108,6 +106,7 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
 
 void        CgiHandler::ReturnToStreamHandler()
 {
+    response_.RemoveFirstBodyLine();
     response_.set_complete();
     stream_handler_.Register();
     InitiationDispatcher::Instance().RemoveHandler(this);
