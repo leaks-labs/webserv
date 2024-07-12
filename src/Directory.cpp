@@ -48,5 +48,5 @@ std::string Directory::GetHTML() const
         html.NewLine();
     }
     html.AddButtom();
-    return html.GetPage();
+    return html.get_page();
 }
