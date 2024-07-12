@@ -10,14 +10,15 @@ class PathFinder {
 
         ~PathFinder();
         
-        std::string const & GetPhp()const;
-        std::string const & GetPython()const;
+        const std::string&  GetPhp() const;
+        const std::string&  GetPython() const;
         
     private:
         PathFinder();
         PathFinder(PathFinder const & src);
-        PathFinder& operator=(PathFinder const & src);
+        PathFinder& operator=(const PathFinder& rhs);
 
+        // TODO: need a refactor into a map
         std::string php_;
         std::string python_;
 };

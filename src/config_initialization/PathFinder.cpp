@@ -11,12 +11,30 @@ PathFinder &PathFinder::Instance()
 
 bool PathFinder::FileExist(const std::string& path)
 {
-    std::ifstream file(path.c_str());
-    return file.good();
+    return std::ifstream(path.c_str()).good();
+
+    //TODO: or ?
+    // struct stat buffer;
+    // return (stat(path.c_str(), &buffer) == 0 && buffer.st_mode & S_IXUSR);
+}
+
+PathFinder::~PathFinder()
+{
+}
+
+const std::string&  PathFinder::GetPhp() const
+{
+    return php_;
+}
+
+const std::string&  PathFinder::GetPython() const
+{
+    return python_;
 }
 
 PathFinder::PathFinder()
 {        
+    // TODO: need a refactor
     const std::string   value(std::getenv("PATH"));
     std::string folder, path;
     size_t start = 0;
@@ -32,18 +50,4 @@ PathFinder::PathFinder()
             python_ = path;
         start = end + 1;
     } while (end != std::string::npos);
-}
-
-PathFinder::~PathFinder()
-{
-}
-
-std::string const & PathFinder::GetPhp()const
-{
-    return php_;
-}
-
-std::string const & PathFinder::GetPython()const
-{
-    return python_;
 }
