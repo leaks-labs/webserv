@@ -110,9 +110,8 @@ void CgiHandler::Exec()
 void    CgiHandler::KillChild()
 {
     int status;
-    if (waitpid(pid_child_, &status, WNOHANG) == 0)
-        if (kill(pid_child_, SIGKILL) == -1)
-            perror("kill");
+    if (waitpid(pid_child_, &status, WNOHANG) == 0 && kill(pid_child_, SIGKILL) == -1)
+        perror("kill");
 }
 
 void    CgiHandler::ReturnToStreamHandler()
