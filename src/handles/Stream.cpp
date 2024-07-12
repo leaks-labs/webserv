@@ -11,32 +11,15 @@
 #include <iostream>
 // TODO: to remove
 
-// Stream::Stream()
-//     : sfd_(-1),
-//       buffer_(kBufSize)
-// {
-// }
-
 Stream::Stream(int sfd)
     : sfd_(sfd),
       buffer_(kBufSize)
 {
 }
 
-// Stream::Stream(const Stream& src) :
-//     sfd_(src.get_sfd())
-// {
-// }
-// Stream& Stream::operator=(const Stream& rhs)
-// {
-//     if(this != &rhs)
-//         sfd_ = rhs.get_sfd();
-//     return *this;
-// }
-
 Stream::~Stream()
 {
-    close(sfd_);
+    Close();
 }
 
 int Stream::get_sfd() const

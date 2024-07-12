@@ -1,9 +1,9 @@
 #ifndef DIRECTORY_HPP_
-#define DIRECTORY_HPP_
+# define DIRECTORY_HPP_
 
-#include <dirent.h>
-#include <iostream>
-#include <HTMLPage.hpp>
+# include <dirent.h>
+
+# include "HTMLPage.hpp"
 
 class Directory
 {
