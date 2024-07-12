@@ -20,8 +20,6 @@ void StreamHandler::Register()
     if(InitiationDispatcher::Instance().AddReadFilter(*this) == -1 
         || InitiationDispatcher::Instance().AddWriteFilter(*this) == -1)
         InitiationDispatcher::Instance().RemoveHandler(this);
-    else
-        std::cout << "StreamHandler is registered" << std::endl;
 }
 
 void StreamHandler::UnRegister()
@@ -31,7 +29,6 @@ void StreamHandler::UnRegister()
         std::cout << "Failed to deactivate StreamHandler with InitiationDispatcher" << std::endl;
         throw std::runtime_error("Failed to deactivate StreamHandler with InitiationDispatcher");
     }
-    std::cout << "StreamHandler is unregistered" << std::endl;
 }
 
 EventHandler::Handle    StreamHandler::get_handle() const

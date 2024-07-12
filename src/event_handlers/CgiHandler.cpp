@@ -101,7 +101,7 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
     if(!EventTypes::IsReadEvent(event_type))
         return;
     std::string r = stream_.Read();
-    response_.AddToBuffer(r);
+    response_.AddToBody(r);
 }
 
 void        CgiHandler::ReturnToStreamHandler()

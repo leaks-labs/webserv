@@ -68,6 +68,14 @@ std::string HttpResponse::BuildPath()
     return res;
 }
 
+std::string HttpResponse::FindExtension(std::string const & str) const
+{
+    size_t pos = str.rfind(".");
+    if(pos == str.size() - 1 || pos == std::string::npos)
+        return "";
+    return str.substr(pos + 1, str.size() - pos);
+}
+
 bool HttpResponse::IsCgiFile(std::string const & path) const
 {
     std::string extension = FindExtension(path);
@@ -180,17 +188,9 @@ void HttpResponse::CreateHeader()
     header_ += "Content-Length: " + ss.str() + "\r\n\r\n";
 }
 
-std::string HttpResponse::FindExtension(std::string const & str) const
+void HttpResponse::AddToBody(std::string const & str)
 {
-    size_t pos = str.rfind(".");
-    if(pos == str.size() - 1 || pos == std::string::npos)
-        return "";
-    return str.substr(pos + 1, str.size() - pos);
-}
-
-void HttpResponse::AddToBuffer(std::string const & str)
-{
-    body_ += std::string(str); // remplacer body_ par buffer_
+    body_ += std::string(str);
 }
 
 void HttpResponse::SetComplete()

@@ -28,7 +28,7 @@ class HttpResponse
         bool                    get_complete() const;
 
         void                    SetComplete();
-        void                    AddToBuffer(std::string const & str);
+        void                    AddToBody(std::string const & str);
         void                    CgiParseHeader();
 
         ~HttpResponse();
