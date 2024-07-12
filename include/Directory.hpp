@@ -8,13 +8,12 @@
 class Directory
 {
 public:
-    Directory(std::string const & path, std::string const & request_path, std::string const & root);
-    Directory(const Directory &src);
-    Directory& operator=(const Directory& src);
+    Directory(const std::string& path, const std::string& request_path, const std::string& root);
+
     ~Directory();
 
+    bool        IsOpen() const;
     std::string GetHTML() const;
-    bool IsOpen() const;
 
 private:
     Directory();
@@ -22,8 +21,8 @@ private:
     std::string path_;
     std::string request_path_;
     std::string root_;
-    DIR* dir_;
+    DIR*        dir_;
 };
 
 
-#endif
+#endif  // DIRECTORY_HPP_
