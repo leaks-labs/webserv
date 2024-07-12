@@ -60,9 +60,9 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
         ReturnToStreamHandler();
         return; // Do NOT remove this return. It is important to be sure to return here.
     } else if (EventTypes::IsReadEvent(event_type)) {
-        std::string r = stream_main_.Read();
+        std::string res = stream_main_.Read();
         // TODO: what happens if Read() throws?
-        response_.AddToBody(r);
+        response_.AddToBody(res);
     }
 }
 
@@ -91,17 +91,15 @@ std::pair<int, int> CgiHandler::InitSocketPair()
 
 void CgiHandler::Exec()
 {
-    std::vector<char *> cmd;
-    char **c_cmd;
-    int err;
+    std::vector<char*>  cmd;
 
     cmd.push_back(const_cast<char*>(response_.get_cgi_path().c_str()));
     cmd.push_back(const_cast<char*>(response_.get_path().c_str()));
     cmd.push_back(const_cast<char*>(response_.get_args().c_str()));
     cmd.push_back(NULL);
-    c_cmd = &cmd[0];
+    char**    c_cmd = cmd.data();
     stream_main_.Close();
-    err = dup2(stream_child_.get_sfd(), 1);
+    int err = dup2(stream_child_.get_sfd(), 1);
     stream_child_.Close();
     if(err == -1)
         throw std::runtime_error("Cgi : dup2 failed " + std::string(strerror(errno)));
