@@ -24,17 +24,16 @@ class Location {
 
         ~Location();
 
-        const std::string&                      get_path() const;
-        const std::string&                      get_root() const;
-        const std::string&                      get_default_file() const;
-        const std::string&                      get_proxy() const;
-        const std::map<int, std::string>&       get_errors() const;
-        int                                     get_cgi() const;
-        int                                     get_methods() const;
-        int                                     get_bodymax() const;
-        bool                                    get_listing() const;
-        bool                                    get_strict() const;
-        bool                                    has_method(std::string const &) const;
+        const std::string&                  get_path() const;
+        const std::string&                  get_root() const;
+        const std::string&                  get_default_file() const;
+        const std::string&                  get_proxy() const;
+        const std::map<int, std::string>&   get_errors() const;
+        int                                 get_cgi() const;
+        int                                 get_methods() const;
+        int                                 get_bodymax() const;
+        bool                                get_listing() const;
+        bool                                get_strict() const;
 
         void    set_path(const std::string& value);
         void    set_root(const std::string& value);
@@ -47,11 +46,11 @@ class Location {
         void    set_listing(const std::string& value);
         void    set_strict(bool value);
 
+        bool    HasMethod(const std::string& value) const;
         int     SetValue(const std::string& key, const std::string& value);
+        size_t  Compare(const std::string& path) const;
+        bool    StrictCompare(const std::string& path) const;
         void    Print() const;
-
-        bool    StrictCompare(std::string const & path) const;
-        size_t  Compare(std::string const & path) const;
 
     private:
         static const std::map<std::string, void (Location::*)(const std::string&)>  set_functions_;

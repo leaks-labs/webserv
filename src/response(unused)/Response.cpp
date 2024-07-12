@@ -6,7 +6,7 @@ Response::Response(int client_sfd, int pfd[2], std::string const & server_name, 
 {
     std::memcpy(pfd_, pfd, sizeof(int) * 2);
     std::string args = "arg1=toto";
-    if(!location_->has_method("GET"))
+    if(!location_->HasMethod("GET"))
         GetError(400);
     else
         Get(path, args);

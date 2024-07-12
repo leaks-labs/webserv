@@ -99,14 +99,6 @@ bool    Location::get_strict() const
     return strict_;
 }
 
-bool    Location::has_method(std::string const & value) const
-{
-    for (const_methods_iterator it = methods_ref_.begin(); it!= methods_ref_.end(); it++)
-        if(value == it->first)
-            return methods_ & it->second;
-    return false;
-}
-
 void    Location::set_path(const std::string& value)
 {
     if (!IsAbsolutePath(value))
@@ -223,6 +215,12 @@ void    Location::set_strict(bool value)
    strict_ = value;
 }
 
+bool    Location::HasMethod(const std::string& value) const
+{
+    std::map<std::string, int>::const_iterator it = methods_ref_.find(value);
+    return (it != methods_ref_.end()) ? ((methods_ & it->second) != 0) : false;
+}
+
 int Location::SetValue(const std::string& key, const std::string& value)
 {
     typedef std::map<std::string, void (Location::*)(const std::string&)>::const_iterator it;
@@ -301,17 +299,12 @@ bool Location::IsAbsolutePath(const std::string& value) const
     return (!value.empty() && value[0] == '/');
 }
 
- size_t    Location::Compare(const std::string & path) const
- {
-    size_t path_size;
+size_t Location::Compare(const std::string& path) const
+{
+    return path.compare(0, path_.size(), path_) == 0 ? path_.size() : 0;
+}
 
-    path_size = path_.size();
-    if(path.size() >= path_size && path.substr(0, path_size) == path_)
-        return(path_size);
-    return(0);
- }
-
- bool    Location::StrictCompare(const std::string & path) const
+ bool    Location::StrictCompare(const std::string& path) const
  {
     return (strict_ && path == path_);
  }
