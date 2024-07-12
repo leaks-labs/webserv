@@ -1,5 +1,8 @@
 #include "PathFinder.hpp"
 
+#include <cstdlib>
+#include <fstream>
+
 PathFinder::PathFinder()
 {        
     const std::string value = std::string(std::getenv("PATH"));
@@ -7,8 +10,7 @@ PathFinder::PathFinder()
     std::string path;
     size_t start = 0;
     size_t end;
-    do
-    {
+    do {
         end = value.find(":", start);
         folder = value.substr(start, end - start);
         path = folder + "/php-cgi";
@@ -19,7 +21,6 @@ PathFinder::PathFinder()
             python_ = path;
         start = end + 1;
     } while (end != std::string::npos);
-    
 }
 
 PathFinder::~PathFinder()
