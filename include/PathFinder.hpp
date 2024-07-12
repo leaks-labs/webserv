@@ -5,8 +5,9 @@
 
 class PathFinder {
     public:
-        static PathFinder& Instance();
-        static bool FileExist(std::string const & path);
+        static PathFinder&  Instance();
+        static bool         FileExist(const std::string& path);
+
         ~PathFinder();
         
         std::string const & GetPhp()const;

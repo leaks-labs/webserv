@@ -3,11 +3,22 @@
 #include <cstdlib>
 #include <fstream>
 
+PathFinder &PathFinder::Instance()
+{
+    static PathFinder   instance;
+    return instance;
+}
+
+bool PathFinder::FileExist(const std::string& path)
+{
+    std::ifstream file(path.c_str());
+    return file.good();
+}
+
 PathFinder::PathFinder()
 {        
-    const std::string value = std::string(std::getenv("PATH"));
-    std::string folder;
-    std::string path;
+    const std::string   value(std::getenv("PATH"));
+    std::string folder, path;
     size_t start = 0;
     size_t end;
     do {
@@ -25,18 +36,6 @@ PathFinder::PathFinder()
 
 PathFinder::~PathFinder()
 {
-}
-
-PathFinder &PathFinder::Instance()
-{
-    static PathFinder instance;
-    return instance;
-}
-
-bool PathFinder::FileExist(std::string const & path)
-{
-    std::ifstream file(path.c_str());
-    return file.good();
 }
 
 std::string const & PathFinder::GetPhp()const
