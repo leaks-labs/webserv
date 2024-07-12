@@ -29,7 +29,6 @@ class CgiHandler : public EventHandler {
         void                KillChild();
         void                ReturnToStreamHandler();
 
-
         StreamHandler&      stream_handler_;
         HttpResponse&       response_;
         std::pair<int, int> sfd_pair_;
