@@ -74,12 +74,19 @@ void   StreamHandler::Decode(std::string& buffer)
 {
     size_t i = HttpRequest::FindRequest(buffer, 0);
     HttpRequest *request;
+
     try
     {
-        request = new HttpRequest();
+        if(request_queue_.empty())
+            request_queue_.push_back(new HttpRequest());
+        request = request_queue_.back();
         request->set_message(buffer.substr(0, i));
-        request->Parse();
-        response_queue_.push_back(new HttpResponse(*this, request, acceptor_sfd_));    }
+        if (i != std::string::npos)
+        {
+            request->Parse();
+            response_queue_.push_back(new HttpResponse(*this, request, acceptor_sfd_));   
+        }
+    }
     catch(const std::exception& e)
     {
         std::cerr << e.what() << '\n';
@@ -88,12 +95,14 @@ void   StreamHandler::Decode(std::string& buffer)
 
 void    StreamHandler::Encode()
 {
-    HttpResponse response = *response_queue_.back();
-    if(response.get_complete())
+    HttpResponse *response = response_queue_.front();
+    if(response->get_complete())
     {
-        stream_.Send(response.get_buffer());
-        delete response_queue_.back();
-        response_queue_.pop_back();
+        stream_.Send(response->get_buffer());
+        delete response_queue_.front();
+        response_queue_.pop_front();
+        delete request_queue_.front();
+        request_queue_.pop_front();
     }
     if (response_queue_.empty() && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
         throw std::runtime_error("Failed to delete write filter for a socket");

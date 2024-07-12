@@ -44,7 +44,9 @@ class StreamHandler : public EventHandler {
 
         int                         acceptor_sfd_;
         Stream                      stream_;
-        std::deque<HttpResponse*>    response_queue_;
+        std::deque<HttpRequest*>    request_queue_;
+        std::deque<HttpResponse*>   response_queue_;
+        std::string                 read_buffer;
 };
 
 #endif  // STREAM_HANDLER_HPP

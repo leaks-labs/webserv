@@ -32,7 +32,7 @@ PathFinder &PathFinder::Instance()
     return instance;
 }
 
-bool PathFinder::FileExist(std::string const & path) const
+bool PathFinder::FileExist(std::string const & path)
 {
     std::ifstream file(path.c_str());
     return file.good();

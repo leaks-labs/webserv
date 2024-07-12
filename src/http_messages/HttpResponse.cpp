@@ -1,6 +1,7 @@
 #include "HttpResponse.hpp"
 
 HttpResponse::HttpResponse(StreamHandler & stream_handler, HttpRequest * request, int acceptor_sfd) : 
+    error_(200),
     stream_handler_(stream_handler),
     request_(request),
     server_(ServerList::Instance().FindServer(acceptor_sfd, request_->get_header().get_header_map().find("HOST")->second)),
@@ -9,24 +10,19 @@ HttpResponse::HttpResponse(StreamHandler & stream_handler, HttpRequest * request
     location_(server_.FindLocation(request_path_)),
     path_(BuildPath()),
     cgi_path_(GetCgiPath(FindExtension(path_))),
-    error_(200),
     complete_(false)
-{
+{   
     if(IsCgiFile(path_))
     {
         LaunchCgiHandler();
         return;
     }
-    Directory dir(path_, request_path_, location_->get_path());
-    if(dir.IsOpen())
-        ReadDirectory(dir);
-    else
-        ReadFile();
-    set_complete();
-    stream_handler_.Register();
+
+    Get();
 }
 
 HttpResponse::HttpResponse(HttpResponse const & src) :
+    error_(src.get_error()),
     stream_handler_(src.get_stream_handler()),
     request_(src.get_request()),
     server_(src.get_server()),
@@ -36,11 +32,10 @@ HttpResponse::HttpResponse(HttpResponse const & src) :
     path_(src.get_path()),
     body_(src.get_body()),
     cgi_path_(src.get_cgi_path()),
-    error_(src.get_error()),
     complete_(src.get_complete())
 {
     if (complete_)
-        set_complete();
+        SetComplete();
 }
 
 HttpResponse::~HttpResponse()
@@ -67,7 +62,28 @@ std::string HttpResponse::BuildPath()
     if (location_->get_strict())
         return location_->get_root() + location_->get_default_file();
     size_t start = location_->get_path().size();
-    return location_->get_root() + request_path_.substr(start, request_path_.size() - start);
+    std::string res = location_->get_root() + request_path_.substr(start, request_path_.size() - start);
+    if(!PathFinder::FileExist(res))
+        error_ = 404;
+    return res;
+}
+
+bool HttpResponse::IsCgiFile(std::string const & path) const
+{
+    std::string extension = FindExtension(path);
+    if (extension == "php" || extension == "py")
+        return true;
+    return false;
+}
+
+std::string HttpResponse::GetCgiPath(std::string const & ext) const
+{
+    PathFinder& finder = PathFinder::Instance();
+    if (ext == "php")
+        return finder.GetPhp();
+    else if (ext == "py")
+        return finder.GetPython();
+    return "none";
 }
 
 void HttpResponse::LaunchCgiHandler()
@@ -81,6 +97,23 @@ void HttpResponse::LaunchCgiHandler()
         throw;
     }
 }
+
+void HttpResponse::Get()
+{
+    if(error_ != 200)
+        ReadError(error_);
+    else
+    {
+        Directory dir(path_, request_path_, location_->get_path());
+        if(dir.IsOpen())
+            ReadDirectory(dir);
+        else
+            ReadFile();
+    }
+    SetComplete();
+    stream_handler_.Register();
+}
+
 
 void HttpResponse::ReadDirectory(Directory & dir)
 {
@@ -108,34 +141,43 @@ void HttpResponse::ReadFile()
     ifs.close();
     body_ = std::string(buf, size);
     delete [] buf;
+
 }
 
-std::string HttpResponse::CreateHeader()
+void HttpResponse::ReadError(const int error)
+{
+    path_ = location_->get_errors().find(error)->second;
+    std::ifstream ifs (path_.c_str());
+    if(ifs.good())
+        ReadFile();
+    else
+        std::cout << "can't find errorfile" << std::endl;
+}
+
+void HttpResponse::CreateHeader()
 {
     typedef std::map<std::string, std::string>::const_iterator iterator;
     std::map<std::string, std::string> map;
     std::stringstream ss;
-    std::string header;
-
-    header += request_->get_request_line().get_http_version() + " ";
+    std::string res;
+    
+    header_ = request_->get_request_line().get_http_version() + "\r\n" + header_;
     ss << error_;
     map = HttpMessage::status_map;
     for (iterator it= map.begin(); it != map.end(); ++it)
     {
         if (it->second == ss.str())
         {
-            header += it->second + " " + it->first + + "\r\n";
+            header_ += it->second + " " + it->first + + "\r\n";
             break;
         }
     }
     map = request_->get_header().get_header_map();
     for (iterator it= map.begin(); it != map.end(); ++it)
-        header += std::string(it->first) + ": " + std::string(it->second) + "\r\n";
-    header += "Content-type: text/html\r\n";
+        header_ += std::string(it->first) + ": " + std::string(it->second) + "\r\n";
     ss.str("");
     ss << body_.size();
-    header += "Content-Length: " + ss.str() + "\r\n\r\n";
-    return header;
+    header_ += "Content-Length: " + ss.str() + "\r\n\r\n";
 }
 
 std::string HttpResponse::FindExtension(std::string const & str) const
@@ -146,40 +188,23 @@ std::string HttpResponse::FindExtension(std::string const & str) const
     return str.substr(pos + 1, str.size() - pos);
 }
 
-bool HttpResponse::IsCgiFile(std::string const & path) const
+void HttpResponse::AddToBuffer(std::string const & str)
 {
-    std::string extension = FindExtension(path);
-    if (extension == "php" || extension == "py")
-        return true;
-    return false;
-}
-
-std::string HttpResponse::GetCgiPath(std::string const & ext) const
-{
-    PathFinder& finder = PathFinder::Instance();
-    if (ext == "php")
-        return finder.GetPhp();
-    else if (ext == "py")
-        return finder.GetPython();
-    return "none";
-}
-
-void HttpResponse::addToBuffer(std::string const & str)
-{
-    std::cout << this->get_cgi_path() << std::endl;
     body_ += std::string(str); // remplacer body_ par buffer_
 }
 
-void HttpResponse::set_complete()
+void HttpResponse::SetComplete()
 {
     complete_ = true;
-    buffer_ = CreateHeader() + body_;
+    CreateHeader();
+    buffer_ = header_ + body_;
 }
 
-void HttpResponse::RemoveFirstBodyLine() // SHOULD EXTRACT ENCODING TYPE AND CONTENT TYPE HERE
+void HttpResponse::CgiParseHeader() // SHOULD EXTRACT ENCODING TYPE AND CONTENT TYPE HERE
 {
     size_t pos = body_.find("\n");
     body_ = body_.substr(pos, body_.size() - pos);
+    header_ = "Content-type: text/html\r\n";
 }
 
 StreamHandler & HttpResponse::get_stream_handler() const

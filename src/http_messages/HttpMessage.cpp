@@ -80,7 +80,7 @@ void HttpMessage::set_status(const std::pair<std::string, std::string>& status)
 
 void HttpMessage::set_message(const std::string& message)
 {
-    message_ = message;
+    message_ += message;
 }
 
 void HttpMessage::set_is_complete(bool is_complete)

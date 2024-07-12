@@ -101,13 +101,13 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
     if(!EventTypes::IsReadEvent(event_type))
         return;
     std::string r = stream_.Read();
-    response_.addToBuffer(r);
+    response_.AddToBuffer(r);
 }
 
 void        CgiHandler::ReturnToStreamHandler()
 {
-    response_.RemoveFirstBodyLine();
-    response_.set_complete();
+    response_.CgiParseHeader();
+    response_.SetComplete();
     stream_handler_.Register();
     InitiationDispatcher::Instance().RemoveHandler(this);
 }

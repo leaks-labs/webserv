@@ -27,9 +27,9 @@ class HttpResponse
         std::string const &     get_cgi_path() const;
         bool                    get_complete() const;
 
-        void                    set_complete();
-        void                    addToBuffer(std::string const & str);
-        void                    RemoveFirstBodyLine();
+        void                    SetComplete();
+        void                    AddToBuffer(std::string const & str);
+        void                    CgiParseHeader();
 
         ~HttpResponse();
 
@@ -42,10 +42,13 @@ class HttpResponse
         bool        IsCgiFile(std::string const & path) const;
         std::string GetCgiPath(std::string const & ext) const;
         void        ReadFile();
-        std::string CreateHeader();
+        void        ReadError(const int error);
+        void        CreateHeader();
         void        ReadDirectory(Directory & dir);
         void        LaunchCgiHandler();
+        void        Get();
 
+        int             error_;
         StreamHandler&  stream_handler_;
         HttpRequest*    request_;
         Server const &  server_;
@@ -54,9 +57,9 @@ class HttpResponse
         Location const* location_;
         std::string     buffer_;
         std::string     path_;
+        std::string     header_;
         std::string     body_;
         std::string     cgi_path_;
-        int             error_;
         bool            complete_;
 };
 

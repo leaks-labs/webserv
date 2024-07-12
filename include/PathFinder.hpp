@@ -9,6 +9,7 @@ class PathFinder
 {
 public:
     static PathFinder& Instance();
+    static bool FileExist(std::string const & path);
     ~PathFinder();
     
     std::string const & GetPhp()const;
@@ -18,7 +19,6 @@ private:
     PathFinder();
     PathFinder(PathFinder const & src);
     PathFinder& operator=(PathFinder const & src);
-    bool FileExist(std::string const & path) const;
 
     std::string php_;
     std::string python_;
