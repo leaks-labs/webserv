@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <fstream>
 
-PathFinder &PathFinder::Instance()
+PathFinder& PathFinder::Instance()
 {
     static PathFinder   instance;
     return instance;
