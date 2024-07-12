@@ -25,7 +25,7 @@ AcceptorRecords::~AcceptorRecords()
 
 void    AcceptorRecords::InitAcceptors(ServerList& server_list)
 {
-    for (ServerList::Iterator it = server_list.begin(); it != server_list.end(); ++it)
+    for (ServerList::Iterator it = server_list.Begin(); it != server_list.End(); ++it)
         it->set_addr(AddAcceptorRecord(it->get_host().c_str(), it->get_port()));
     RegisterAcceptors();
 }

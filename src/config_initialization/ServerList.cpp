@@ -12,42 +12,42 @@ Server& ServerList::operator[](size_t index)
     return servers_[index];
 }
 
-ServerList::Iterator    ServerList::begin()
+ServerList::Iterator    ServerList::Begin()
 {
     return servers_.begin();
 }
 
-ServerList::Iterator    ServerList::end()
+ServerList::Iterator    ServerList::End()
 {
     return servers_.end();
 }
 
-ServerList::ConstIterator   ServerList::begin() const
+ServerList::ConstIterator   ServerList::Begin() const
 {
     return servers_.begin();
 }
 
-ServerList::ConstIterator   ServerList::end() const
+ServerList::ConstIterator   ServerList::End() const
 {
     return servers_.end();
 }
 
-ServerList::ReverseIterator ServerList::rbegin()
+ServerList::ReverseIterator ServerList::Rbegin()
 {
     return servers_.rbegin();
 }
 
-ServerList::ReverseIterator ServerList::rend()
+ServerList::ReverseIterator ServerList::Rend()
 {
     return servers_.rend();
 }
 
-ServerList::ConstReverseIterator    ServerList::rbegin() const
+ServerList::ConstReverseIterator    ServerList::Rbegin() const
 {
     return servers_.rbegin();
 }
 
-ServerList::ConstReverseIterator    ServerList::rend() const
+ServerList::ConstReverseIterator    ServerList::Rend() const
 {
     return servers_.rend();
 }

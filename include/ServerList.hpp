@@ -20,21 +20,20 @@ class ServerList {
 
         Server& operator[](size_t index);
 
-        Iterator                begin();
-        Iterator                end();
-        ConstIterator           begin() const;
-        ConstIterator           end() const;
-        ReverseIterator         rbegin();
-        ReverseIterator         rend();
-        ConstReverseIterator    rbegin() const;
-        ConstReverseIterator    rend() const;
+        Iterator                Begin();
+        Iterator                End();
+        ConstIterator           Begin() const;
+        ConstIterator           End() const;
+        ReverseIterator         Rbegin();
+        ReverseIterator         Rend();
+        ConstReverseIterator    Rbegin() const;
+        ConstReverseIterator    Rend() const;
 
-        size_t                      Size() const;
-        void                        InitServerList(const std::string& path);
-        bool                        IsSameAddr(const int listener_sfd, const struct addrinfo* addr_list) const;
-        const Server&               FindServer(const int acceptor_sfd, const std::string& name) const;
-
-        void                        Print() const;
+        size_t          Size() const;
+        void            InitServerList(const std::string& path);
+        bool            IsSameAddr(const int listener_sfd, const struct addrinfo* addr_list) const;
+        const Server&   FindServer(const int acceptor_sfd, const std::string& name) const;
+        void            Print() const;
 
     private:
         ServerList();
