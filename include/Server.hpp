@@ -4,6 +4,7 @@
 # include <map>
 # include <string>
 # include <vector>
+
 # include <netdb.h>
 
 # include "Location.hpp"
@@ -23,6 +24,7 @@ class Server {
         const std::vector<std::string>& get_server_names() const;
         const std::vector<Location>&    get_locations() const;
         const struct addrinfo*          get_addr() const;
+
         void    set_host(const std::string& value);
         void    set_port(const std::string& value);
         void    set_server_names(const std::string& value);
