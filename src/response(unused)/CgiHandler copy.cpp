@@ -66,7 +66,7 @@ void CgiHandler::Fork()
     }
 }
 
-void CgiHandler::Exec()
+void CgiHandler::ExecCGI()
 {
     std::string cgi_path = "/usr/bin/php-cgi";
     std::string path = "/home/toto/Bureau/19/git_webserv/data/file.php";

@@ -25,7 +25,7 @@ class CgiHandler : public EventHandler {
         CgiHandler&   operator=(const CgiHandler &rhs);
 
         std::pair<int, int> InitSocketPair();
-        void                Exec();
+        void                ExecCGI();
         void                KillChild();
         void                ReturnToStreamHandler();
 

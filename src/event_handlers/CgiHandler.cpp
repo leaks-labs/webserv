@@ -27,7 +27,7 @@ CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse& response)
     if (pid_child_ == -1)
         throw std::runtime_error("Failed to fork: " + std::string(strerror(errno)));
     if (pid_child_ == 0)
-        Exec();
+        ExecCGI();
     stream_child_.Close();
     if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent) == -1) {
         KillChild();
@@ -90,10 +90,12 @@ std::pair<int, int> CgiHandler::InitSocketPair()
     return std::pair<int, int>(pfd[0], pfd[1]);
 }
 
-void CgiHandler::Exec()
+void CgiHandler::ExecCGI()
 {
     stream_main_.Close();
     std::vector<char*>  cmd(4);
+    // TODO: check the cgi type, and execute a function for that cgi
+    // for now, just act as if it's always php
     cmd[0] = const_cast<char*>(response_.get_cgi_path().c_str());
     cmd[1] = const_cast<char*>(response_.get_path().c_str());
     cmd[2] = const_cast<char*>(response_.get_args().c_str());
