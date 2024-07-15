@@ -60,10 +60,9 @@ class HttpResponse {
         const Location&             location_;
         bool                        keep_alive_;
         std::string                 method_;
-        std::string                 request_path_;
+        HttpRequestLine::Target     target_;
+        HttpHeader                  request_header_;
         std::string                 request_body_;
-        std::string                 query_;
-        std::string                 fragment_;
         std::string                 path_;
         std::string                 status_line_;
         std::string                 header_;
