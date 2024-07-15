@@ -23,12 +23,16 @@ class HttpRequestLine {
                 void    set_target(const std::string& target);
                 void    set_query(const std::string& query);
                 void    set_fragment(const std::string& fragment);
+                void    set_complete_url(const std::string& url);
 
             private:
+                void    UpdateCompleteUrl();
+
                 std::string type_;
                 std::string target_;
                 std::string query_;
                 std::string fragment_;
+                std::string complete_url;
         };
 
         static const std::string    kOriginForm;
@@ -37,6 +41,8 @@ class HttpRequestLine {
 
         static const std::map<std::string, bool>    method_map;
         static const std::map<std::string, bool>    target_map;
+
+        static std::string  UrlCleaner(const std::string& url);
 
         HttpRequestLine();
         HttpRequestLine(const HttpRequestLine& src);
@@ -50,7 +56,6 @@ class HttpRequestLine {
         const std::string&  get_line() const;
 
         void        Parse(const std::string& request_line);
-        std::string UrlCleaner(const std::string& url) const;
         void        Print() const;
 
     private:

@@ -18,6 +18,15 @@ const std::string   HttpRequestLine::kAsteriskForm = "*";
 const std::map<std::string, bool>   HttpRequestLine::method_map = HttpRequestLine::InitMethodMap();
 const std::map<std::string, bool>   HttpRequestLine::target_map = HttpRequestLine::InitTargetMap();
 
+std::string HttpRequestLine::UrlCleaner(const std::string& url)
+{
+    std::string res = url;
+    size_t pos;
+    while ((pos = res.find("%20")) != std::string::npos)
+        res.replace(pos, 3, " ");
+    return PathFinder::CanonicalizePath(res);
+}
+
 HttpRequestLine::HttpRequestLine()
 {
 }
@@ -76,18 +85,13 @@ void HttpRequestLine::Parse(const std::string &request_line)
     if (!method_it->second)
         throw std::runtime_error("400");
     method_ = method_it->first;
-    std::string s_target(tokens[1]);
-    std::map<std::string, bool>::const_iterator target_type_it = InitTargetType(s_target);
+    target_.set_complete_url(tokens[1]);
+    std::map<std::string, bool>::const_iterator target_type_it = InitTargetType(tokens[1]);
     if (target_type_it == target_map.end())
         throw std::runtime_error("400");
     if (!target_type_it->second)
         throw std::runtime_error("400");
     target_.set_type(target_type_it->first);
-    std::string::size_type query_pos = s_target.find('?');
-    std::string::size_type fragment_pos = s_target.find('#');
-    target_.set_target(UrlCleaner(s_target.substr(0, query_pos)));
-    target_.set_query(query_pos != std::string::npos ? s_target.substr(query_pos + 1, fragment_pos - query_pos - 1) : "");
-    target_.set_fragment(fragment_pos != std::string::npos ? s_target.substr(fragment_pos + 1) : "");
     std::string http_version(tokens[2]);
     if (http_version == "HTTP/0.9"|| http_version == "HTTP/1.0")
         throw std::runtime_error("400");
@@ -127,15 +131,6 @@ std::map<std::string, bool> HttpRequestLine::InitTargetMap()
     return m;
 }
 
-std::string HttpRequestLine::UrlCleaner(const std::string& url) const
-{
-    std::string res = url;
-    size_t pos;
-    while ((pos = res.find("%20")) != std::string::npos)
-        res.replace(pos, 3, " ");
-    return PathFinder::CanonicalizePath(res);
-}
-
 void HttpRequestLine::Print() const
 {
     std::cout << "\tHttpResquestLine properties:" << std::endl
@@ -146,7 +141,8 @@ void HttpRequestLine::Print() const
 
 HttpRequestLine::Target::Target()
     : type_("/"),
-      target_("/")
+      target_("/"),
+      complete_url("/")
 {
 }
 
@@ -162,6 +158,7 @@ HttpRequestLine::Target&    HttpRequestLine::Target::operator=(const Target& rhs
         target_ = rhs.get_target();
         query_ = rhs.get_query();
         fragment_ = rhs.get_fragment();
+        complete_url = rhs.complete_url;
     }
     return *this;
 }
@@ -198,14 +195,37 @@ void    HttpRequestLine::Target::set_type(const std::string& type)
 void    HttpRequestLine::Target::set_target(const std::string& target)
 {
     target_ = target;
+    UpdateCompleteUrl();
 }
 
 void    HttpRequestLine::Target::set_query(const std::string& query)
 {
     query_ = query;
+    UpdateCompleteUrl();
 }
 
 void    HttpRequestLine::Target::set_fragment(const std::string& fragment)
 {
     fragment_ = fragment;
+    UpdateCompleteUrl();
+}
+
+void    HttpRequestLine::Target::set_complete_url(const std::string& url)
+{
+    complete_url = url;
+
+    std::string::size_type query_pos = url.find('?');
+    std::string::size_type fragment_pos = url.find('#');
+    target_ = HttpRequestLine::UrlCleaner(url.substr(0, query_pos));
+    query_ = (query_pos != std::string::npos ? url.substr(query_pos + 1, fragment_pos - query_pos - 1) : "");
+    fragment_ = (fragment_pos != std::string::npos ? url.substr(fragment_pos + 1) : "");
+}
+
+void    HttpRequestLine::Target::UpdateCompleteUrl()
+{
+    complete_url = target_;
+    if (!query_.empty())
+        complete_url += "?" + query_;
+    if (!fragment_.empty())
+        complete_url + "#" + fragment_;
 }
