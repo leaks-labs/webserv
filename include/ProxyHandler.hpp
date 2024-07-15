@@ -13,7 +13,7 @@ class ProxyHandler : public EventHandler {
     public:
         static struct addrinfo* ConvertToAddrInfo(const std::string& url);
 
-        ProxyHandler(StreamHandler& stream_handler, HttpResponse& response, const struct addrinfo& address);
+        ProxyHandler(StreamHandler& stream_handler, const struct addrinfo& address);
 
         virtual ~ProxyHandler();
 
