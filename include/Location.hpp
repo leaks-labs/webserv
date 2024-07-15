@@ -16,7 +16,6 @@ class Location {
 
         static const int    kCgiNone = 0;
         static const int    kCgiPHP = 1 << 0;
-        static const int    kCgiPython = 1 << 1;
 
         Location();
         Location(const Location& src);
@@ -24,16 +23,16 @@ class Location {
 
         ~Location();
 
-        const std::string&                      get_path() const;
-        const std::string&                      get_root() const;
-        const std::string&                      get_default_file() const;
-        const std::string&                      get_proxy() const;
-        const std::map<int, std::string>&       get_errors() const;
-        int                                     get_cgi() const;
-        int                                     get_methods() const;
-        int                                     get_bodymax() const;
-        bool                                    get_listing() const;
-        bool                                    get_strict() const;
+        const std::string&                  get_path() const;
+        const std::string&                  get_root() const;
+        const std::string&                  get_default_file() const;
+        const std::string&                  get_proxy() const;
+        const std::map<int, std::string>&   get_errors() const;
+        int                                 get_cgi() const;
+        int                                 get_methods() const;
+        size_t                              get_bodymax() const;
+        bool                                get_listing() const;
+        bool                                get_strict() const;
 
         void    set_path(const std::string& value);
         void    set_root(const std::string& value);
@@ -46,7 +45,10 @@ class Location {
         void    set_listing(const std::string& value);
         void    set_strict(bool value);
 
+        bool    HasMethod(const std::string& value) const;
         int     SetValue(const std::string& key, const std::string& value);
+        size_t  Compare(const std::string& path) const;
+        bool    StrictCompare(const std::string& path) const;
         void    Print() const;
 
     private:
@@ -69,7 +71,7 @@ class Location {
         std::map<int, std::string>  errors_;
         int                         cgi_;
         int                         methods_;
-        int                         bodymax_;
+        size_t                      bodymax_;
         bool                        listing_;
         bool                        strict_;
 };

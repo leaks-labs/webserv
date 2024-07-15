@@ -25,6 +25,7 @@ class InitiationDispatcher {
         int             RegisterHandler(EventHandler* event_handler, EventTypes::Type event_type);
         void            RemoveHandler(EventHandler* event_handler);
         int             DeactivateHandler(EventHandler& event_handler);
+        void            RemoveEntry(EventHandler* event_handler);
         int             AddReadFilter(EventHandler& event_handler);
         int             AddWriteFilter(EventHandler& event_handler);
         int             DelReadFilter(EventHandler& event_handler);

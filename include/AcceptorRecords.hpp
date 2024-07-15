@@ -10,8 +10,6 @@
 
 class AcceptorRecords {
     public:
-        static int IsSameAddr(const int listener_sfd, const struct addrinfo* addr_list);
-
         AcceptorRecords();
 
         ~AcceptorRecords();

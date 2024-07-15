@@ -34,10 +34,10 @@ CFLAGS+=	-Wconversion \
 			-Wmissing-prototypes \
 			-Wmissing-declarations
 
-#			-Wpedantic 
+#			-Wpedantic
 # 			-pedantic-errors
 #			-Wcast-qual
-#			-Wstrict-prototypes 
+#			-Wstrict-prototypes
 #			-Wpadded
 #
 #			gcc flags only
@@ -62,15 +62,23 @@ MAIN:=	main
 
 SRCS_FILES:=	config_initialization/AcceptorRecords	\
 				config_initialization/Location			\
+				config_initialization/PathFinder		\
 				config_initialization/Server			\
 				config_initialization/ServerList		\
+				event_handlers/CgiHandler				\
 				event_handlers/ConnectionAcceptor		\
 				event_handlers/EventHandler				\
 				event_handlers/EventTypes				\
-				event_handlers/ProxyHandler				\
 				event_handlers/StreamHandler			\
 				handles/Acceptor						\
 				handles/Stream							\
+				HTML_creator/Directory					\
+				HTML_creator/HTMLPage					\
+				http_messages/HttpBody					\
+				http_messages/HttpHeader				\
+				http_messages/HttpRequest				\
+				http_messages/HttpRequestLine			\
+				http_messages/HttpResponse				\
 				InitiationDispatcher					\
 				WebServ
 

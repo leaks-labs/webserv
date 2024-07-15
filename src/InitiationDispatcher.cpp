@@ -29,7 +29,6 @@ void    InitiationDispatcher::HandleEvents(const time_t timeout)
         throw std::runtime_error("time() failed: ");
     std::vector<Event>  event_list(kMaxEvents);
     while (g_signal_received == 0) {
-        std::cout << "Waiting for events..." << std::endl;
         int number_events = WaitForEvents(event_list, kMaxEvents, timeout);
         if (number_events == -1) {
             if (errno != EINTR)
@@ -47,8 +46,9 @@ int InitiationDispatcher::RegisterHandler(EventHandler* event_handler, EventType
 {
     try
     {
-        if ((EventTypes::IsReadEvent(event_type) && AddReadFilter(*event_handler) == -1)
-            || (EventTypes::IsWriteEvent(event_type) && AddWriteFilter(*event_handler) == -1))
+        if ((EventTypes::IsReadEvent(event_type) && AddReadFilter(*event_handler) == -1))
+            return -1;
+        if ((EventTypes::IsWriteEvent(event_type) && AddWriteFilter(*event_handler) == -1))
             return -1;
         event_handler_table_[event_handler->get_handle()] = event_handler;
         return 0;
@@ -61,7 +61,7 @@ int InitiationDispatcher::RegisterHandler(EventHandler* event_handler, EventType
 
 void    InitiationDispatcher::RemoveHandler(EventHandler* event_handler)
 {
-    event_handler_table_.erase(event_handler->get_handle());
+    RemoveEntry(event_handler);
     delete event_handler;
 }
 
@@ -74,8 +74,14 @@ int InitiationDispatcher::DeactivateHandler(EventHandler& event_handler)
 #endif
 }
 
+void    InitiationDispatcher::RemoveEntry(EventHandler* event_handler)
+{
+    event_handler_table_.erase(event_handler->get_handle());
+}
+
 int InitiationDispatcher::AddReadFilter(EventHandler& event_handler)
 {
+    //std::cerr << "Add Read filter : " << event_handler.get_handle() << " " << event_handler.get_event_types_registred() << std::endl;
     if (EventTypes::IsReadEvent(event_handler.get_event_types_registred()))
         return 0;
     Event   event = {};
@@ -101,6 +107,7 @@ int InitiationDispatcher::AddReadFilter(EventHandler& event_handler)
 
 int InitiationDispatcher::AddWriteFilter(EventHandler& event_handler)
 {
+    //std::cerr << "Add Write filter : " << event_handler.get_handle() << " " << event_handler.get_event_types_registred() << std::endl;
     if (EventTypes::IsWriteEvent(event_handler.get_event_types_registred()))
         return 0;
     Event   event = {};

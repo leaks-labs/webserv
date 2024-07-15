@@ -1,9 +1,12 @@
 #ifndef SERVER_LIST_HPP_
 # define SERVER_LIST_HPP_
 
-# include <string>
+# include <cstring>
 # include <vector>
-
+# include <fstream>
+# include <iostream>
+# include <sstream>
+# include <stdexcept>
 # include "Server.hpp"
 
 class ServerList {
@@ -17,20 +20,20 @@ class ServerList {
 
         Server& operator[](size_t index);
 
-        Iterator                begin();
-        Iterator                end();
-        ConstIterator           begin() const;
-        ConstIterator           end() const;
-        ReverseIterator         rbegin();
-        ReverseIterator         rend();
-        ConstReverseIterator    rbegin() const;
-        ConstReverseIterator    rend() const;
+        Iterator                Begin();
+        Iterator                End();
+        ConstIterator           Begin() const;
+        ConstIterator           End() const;
+        ReverseIterator         Rbegin();
+        ReverseIterator         Rend();
+        ConstReverseIterator    Rbegin() const;
+        ConstReverseIterator    Rend() const;
 
-        const std::vector<Server>&  get_servers() const;
-
-        size_t  Size() const;
-        void    InitServerList(const std::string& path);
-        void    Print() const;
+        size_t          Size() const;
+        void            InitServerList(const std::string& path);
+        int             IsSameAddr(const int listener_sfd, const struct addrinfo* addr_list) const;
+        const Server&   FindServer(const int acceptor_sfd, const std::string& name) const;
+        void            Print() const;
 
     private:
         ServerList();
