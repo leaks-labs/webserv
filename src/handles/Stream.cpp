@@ -19,7 +19,7 @@ Stream::Stream(int sfd)
 
 Stream::~Stream()
 {
-    close(sfd_);
+    Close();
 }
 
 int Stream::get_sfd() const
@@ -45,8 +45,6 @@ std::string Stream::Read()
 {
     std::cout << "ENTER: Read " << std::endl;
     ssize_t bytes_read;
-    // TODO: prepare the request or append to complete an incomplete request
-    // for now, just consume data
 #ifdef __APPLE__
     int recv_flags = 0;
 #elif __linux__
@@ -57,4 +55,12 @@ std::string Stream::Read()
     else if (bytes_read == 0)
         throw std::runtime_error("recv() failed: connection closed by peer");
     return std::string(buffer_.data(), bytes_read);
+}
+
+void    Stream::Close()
+{
+    if (sfd_ != -1) {
+        close(sfd_);
+        sfd_ = -1;
+    }
 }

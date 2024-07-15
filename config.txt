@@ -1,22 +1,18 @@
 # 0.0.0.0
 port 8080
 server_names abc.com xyz.fr
-errors /errors/error400.html 400
-errors /errors/error400.html 404
+errors /home/toto/Bureau/19/git_webserv/data/error.html 400 404
 default_file default.html
 bodymax 10000
-root /data/server1
-listing false
-cgi php
+listing true
+
+root /
+cgi php-cgi
 proxy false
 
->= /
-methods GET
-root /data/folder1
-listing true
-> /images
+> /data
 methods GET POST
-root /data/images
-default_file defaultimg.html
+root /home/toto/Bureau/19/git_webserv/
+default_file file.php
 > /other
 proxy otherwebsite.com

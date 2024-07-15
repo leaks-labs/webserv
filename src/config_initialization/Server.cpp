@@ -46,6 +46,10 @@ const std::vector<Location>&    Server::get_locations() const
 {
     return locations_;   
 }
+const struct addrinfo*          Server::get_addr() const
+{
+    return addr_;
+}
 
 void    Server::set_host(const std::string& value)
 {
@@ -120,6 +124,43 @@ void    Server::PopDefaultServerName()
         server_names_.erase(server_names_.begin());
 }
 
+const std::map<std::string, void (Server::*)(const std::string&)>   Server::InitSetFunctions()
+{
+    std::map<std::string, void (Server::*)(const std::string&)> m;
+    m["port"] = &Server::set_port;
+    m["server_names"] = &Server::set_server_names;
+    return m;
+}
+
+bool Server::HasServerName(const std::string& name) const
+{
+    size_t  pos = name.find(':');
+    std::string name_without_port = name.substr(0, pos);
+    for (std::vector<std::string>::const_iterator it = server_names_.begin(); it != server_names_.end(); ++it)
+        if (*it == name_without_port)
+            return true;
+    return false;
+}
+
+const Location& Server::FindLocation(std::string const &path) const
+{
+    std::vector<Location>::const_iterator   res;
+    size_t  longest = 0;
+    
+    for (std::vector<Location>::const_iterator it = locations_.begin(); it != locations_.end(); ++it) {
+        if (it->StrictCompare(path)) {
+            return *it;
+        } else {
+            size_t  size = it->Compare(path);
+            if (size > longest) {
+                res = it;
+                longest = size;
+            }
+        }
+    }
+    return *res;
+}
+
 void    Server::Print() const
 {
     std::cout   << "host: " << host_ << std::endl
@@ -130,12 +171,4 @@ void    Server::Print() const
         std::cout << std::endl;
         it->Print();
     }
-}
-
-const std::map<std::string, void (Server::*)(const std::string&)>   Server::InitSetFunctions()
-{
-    std::map<std::string, void (Server::*)(const std::string&)> m;
-    m["port"] = &Server::set_port;
-    m["server_names"] = &Server::set_server_names;
-    return m;
 }

@@ -4,6 +4,7 @@
 # include <map>
 # include <string>
 # include <vector>
+
 # include <netdb.h>
 
 # include "Location.hpp"
@@ -22,19 +23,22 @@ class Server {
         const std::string&              get_port() const;
         const std::vector<std::string>& get_server_names() const;
         const std::vector<Location>&    get_locations() const;
+        const struct addrinfo*          get_addr() const;
 
         void    set_host(const std::string& value);
         void    set_port(const std::string& value);
         void    set_server_names(const std::string& value);
         void    set_addr(const struct addrinfo* addr);
 
-        size_t  ServerNamesCount() const;
-        int     SetValue(const std::string& key, const std::string& value);
-        void    AddLocation(const std::string& value);
-        int     SetLastLocation(const std::string& key, const std::string& value);
-        void    SetLastLocationStrict(bool value);
-        void    PopDefaultServerName();
-        void    Print() const;
+        size_t          ServerNamesCount() const;
+        int             SetValue(const std::string& key, const std::string& value);
+        void            AddLocation(const std::string& value);
+        int             SetLastLocation(const std::string& key, const std::string& value);
+        void            SetLastLocationStrict(bool value);
+        void            PopDefaultServerName();
+        bool            HasServerName(const std::string& name) const;
+        const Location& FindLocation(std::string const &) const; 
+        void            Print() const;
 
     private:
         Server& operator=(const Server& rhs);

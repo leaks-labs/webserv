@@ -36,7 +36,7 @@ void    ConnectionAcceptor::HandleEvent(EventTypes::Type event_type)
     try
     {
         new_sfd = acceptor_.Accept();
-        new StreamHandler(new_sfd);
+        new StreamHandler(get_handle(), new_sfd);
     }
     catch(const std::exception& e)
     {

@@ -4,6 +4,8 @@
 #include <sstream>
 #include <stdexcept>
 
+#include "PathFinder.hpp"
+
 const std::map<std::string, void (Location::*)(const std::string&)> Location::set_functions_ = Location::InitSetFunctions();
 const std::map<std::string, int>                                    Location::methods_ref_ = Location::InitMethodsRef();
 const std::map<std::string, int>                                    Location::cgi_ref_ = Location::InitCgiRef();
@@ -12,7 +14,7 @@ const std::map<int, std::string>                                    Location::er
 Location::Location()
     : path_("/"),
       root_("/"), // TODO: change to current directory?
-      default_file_("/data/default.html"),
+      default_file_("index.html"),
       proxy_("false"),
       errors_(errors_ref_),
       cgi_(kCgiPHP),
@@ -84,7 +86,7 @@ int Location::get_methods() const
     return methods_;
 }
 
-int Location::get_bodymax() const
+size_t  Location::get_bodymax() const
 {
     return bodymax_;
 }
@@ -103,14 +105,14 @@ void    Location::set_path(const std::string& value)
 {
     if (!IsAbsolutePath(value))
         throw std::runtime_error("path should start with /");
-    path_ = value;
+    path_ = PathFinder::CanonicalizePath(value);
 }
 
 void    Location::set_root(const std::string& value)
 {
     if (!IsAbsolutePath(value))
         throw std::runtime_error("root should start with /");
-    root_ = value;
+    root_ = PathFinder::CanonicalizePath(value);
 }
 
 void    Location::set_default_file(const std::string& value)
@@ -139,6 +141,7 @@ void    Location::set_errors(const std::string& value)
     path = value.substr(start, end - start);
     if (!IsAbsolutePath(path))
         throw std::runtime_error("errors path should start with /");
+    path = PathFinder::CanonicalizePath(path);
     start = end + 1;
     do {
         end = value.find(' ', start);
@@ -164,7 +167,7 @@ void    Location::set_cgi(const std::string& value)
         std::string res = value.substr(start, end - start);
         std::map<std::string, int>::const_iterator  i = cgi_ref_.find(res);
         if (i == cgi_ref_.end())
-            throw std::runtime_error("cgi is invalid: it should be php, python or none");
+            throw std::runtime_error("cgi is invalid: it should be php-cgi or none");
         else if (i->second == kCgiNone)
             cgi_ = kCgiNone;
         else
@@ -215,6 +218,12 @@ void    Location::set_strict(bool value)
    strict_ = value;
 }
 
+bool    Location::HasMethod(const std::string& value) const
+{
+    std::map<std::string, int>::const_iterator it = methods_ref_.find(value);
+    return (it != methods_ref_.end()) ? ((methods_ & it->second) != 0) : false;
+}
+
 int Location::SetValue(const std::string& key, const std::string& value)
 {
     typedef std::map<std::string, void (Location::*)(const std::string&)>::const_iterator it;
@@ -225,6 +234,16 @@ int Location::SetValue(const std::string& key, const std::string& value)
     (this->*(i->second))(value);
     return kValidKey;
 }
+
+size_t Location::Compare(const std::string& path) const
+{
+    return path.compare(0, path_.size(), path_) == 0 ? path_.size() : 0;
+}
+
+ bool    Location::StrictCompare(const std::string& path) const
+ {
+    return (strict_ && path == path_);
+ }
 
 void    Location::Print() const
 {
@@ -273,8 +292,7 @@ const std::map<std::string, int>    Location::InitCgiRef()
 {
     std::map<std::string, int>  m;
     m["none"] = kCgiNone;
-    m["php"] = kCgiPHP;
-    m["python"] = kCgiPython;
+    m["php-cgi"] = kCgiPHP;
     return m;
 }
 
@@ -283,8 +301,13 @@ const std::map<int, std::string>    Location::InitErrorListRef()
     std::map<int, std::string>  m;
     std::string path = "/errors/defaulterror.html";
     m[400] = path;
-    m[402] = path;
     m[404] = path;
+    m[405] = path;
+    m[408] = path;
+    m[413] = path;
+    m[414] = path;
+    m[431] = path;
+    m[500] = path;
     return m;
 }
 

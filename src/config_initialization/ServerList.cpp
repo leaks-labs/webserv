@@ -1,9 +1,5 @@
 #include "ServerList.hpp"
 
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
 
 ServerList& ServerList::Instance()
 {
@@ -16,49 +12,44 @@ Server& ServerList::operator[](size_t index)
     return servers_[index];
 }
 
-ServerList::Iterator    ServerList::begin()
+ServerList::Iterator    ServerList::Begin()
 {
     return servers_.begin();
 }
 
-ServerList::Iterator    ServerList::end()
+ServerList::Iterator    ServerList::End()
 {
     return servers_.end();
 }
 
-ServerList::ConstIterator   ServerList::begin() const
+ServerList::ConstIterator   ServerList::Begin() const
 {
     return servers_.begin();
 }
 
-ServerList::ConstIterator   ServerList::end() const
+ServerList::ConstIterator   ServerList::End() const
 {
     return servers_.end();
 }
 
-ServerList::ReverseIterator ServerList::rbegin()
+ServerList::ReverseIterator ServerList::Rbegin()
 {
     return servers_.rbegin();
 }
 
-ServerList::ReverseIterator ServerList::rend()
+ServerList::ReverseIterator ServerList::Rend()
 {
     return servers_.rend();
 }
 
-ServerList::ConstReverseIterator    ServerList::rbegin() const
+ServerList::ConstReverseIterator    ServerList::Rbegin() const
 {
     return servers_.rbegin();
 }
 
-ServerList::ConstReverseIterator    ServerList::rend() const
+ServerList::ConstReverseIterator    ServerList::Rend() const
 {
     return servers_.rend();
-}
-
-const   std::vector<Server>&  ServerList::get_servers() const
-{
-    return servers_;
 }
 
 size_t  ServerList::Size() const
@@ -72,6 +63,33 @@ void    ServerList::InitServerList(const std::string& path)
     if (!file.good())
         throw std::runtime_error("opening config_file failed");
     ParseConfigFile(file);
+}
+
+int ServerList::IsSameAddr(const int acceptor_sfd, const struct addrinfo* addr_list) const
+{
+    struct sockaddr_storage addr_buf;
+    socklen_t               len_buf = sizeof(addr_buf);
+    if (getsockname(acceptor_sfd, reinterpret_cast<struct sockaddr*>(&addr_buf), &len_buf) == -1) {
+        perror("ERROR: getsockname()");
+        return -1;
+    }
+    for (const struct addrinfo *tmp = addr_list; tmp != NULL; tmp = tmp->ai_next)
+        if (tmp->ai_addrlen == len_buf && memcmp(tmp->ai_addr, &addr_buf, len_buf) == 0)
+            return 1;
+    return 0;
+}
+
+const Server& ServerList::FindServer(const int acceptor_sfd, const std::string& name) const
+{
+    std::vector<const Server*>  matched;
+    // TODO: if issameaddr failes
+    for (ServerList::ConstIterator it = servers_.begin(); it != servers_.end(); ++it)
+        if (IsSameAddr(acceptor_sfd, it->get_addr()))
+            matched.push_back(&(*it));
+    for (std::vector<const Server*>::const_iterator it = matched.begin(); it != matched.end(); ++it)
+        if ((*it)->HasServerName(name))
+            return **it;
+    return *matched[0];
 }
 
 void    ServerList::Print() const
