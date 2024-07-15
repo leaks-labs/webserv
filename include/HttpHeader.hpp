@@ -13,7 +13,8 @@ class HttpHeader {
 
         ~HttpHeader();
 
-        const std::map<std::string, std::string>& get_header_map() const;
+        const std::map<std::string, std::string>&   get_header_map() const;
+        void                                        set_host(const std::string& host);
 
         void        Parse(const std::string& data);
         bool        NeedBody() const;

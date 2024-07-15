@@ -38,6 +38,11 @@ const std::map<std::string, std::string>& HttpHeader::get_header_map() const
     return header_map_;
 }
 
+void    HttpHeader::set_host(const std::string& host)
+{
+    header_map_["HOST"] = host;
+}
+
 void HttpHeader::Parse(const std::string &data)
 {
     std::vector<std::string> tokens;
