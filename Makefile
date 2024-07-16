@@ -79,6 +79,7 @@ SRCS_FILES:=	config_initialization/AcceptorRecords	\
 				http_messages/HttpRequest				\
 				http_messages/HttpRequestLine			\
 				http_messages/HttpResponse				\
+				http_messages/HttpStatusLine			\
 				InitiationDispatcher					\
 				WebServ
 
