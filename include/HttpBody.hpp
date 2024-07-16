@@ -6,6 +6,9 @@
 
 class HttpBody {
     public :
+        static const int   kModeContentLength = 1;
+        static const int   kModeTransferEncodingChunked = 2;
+
         HttpBody();
         HttpBody(const HttpBody& src);
         HttpBody&   operator=(const HttpBody& rhs);
@@ -13,19 +16,17 @@ class HttpBody {
         ~HttpBody();
 
         const std::string&  get_body() const;
-        bool                IsComplete() const;
-        size_t              get_size() const;
 
-        void    set_required_length(size_t length);
-        void    set_transfer_encoding_chunked(bool is_chunked);
-
-        void    AppendToBody(std::string& message);
+        void    Parse(std::string& message);
+        bool    IsComplete() const;
+        size_t  Size() const;
+        void    SetMode(int mode, size_t content_legnth = 0);
 
     private :
-        std::string body_;
+        bool        is_complete_;
         size_t      required_length_;
         bool        is_transfer_encoding_chunked_;
-        bool        is_complete_;
+        std::string body_;
 };
 
 # endif

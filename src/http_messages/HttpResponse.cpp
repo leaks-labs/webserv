@@ -13,7 +13,7 @@ const std::vector<int>  HttpResponse::code_requiring_close_ = HttpResponse::Init
 
 HttpResponse::HttpResponse(StreamHandler& stream_handler, const HttpRequest& request) : 
     stream_handler_(stream_handler),
-    error_(request.get_status()),
+    error_(request.get_status_code()),
     server_(request.get_server()),
     location_(request.get_location()),
     keep_alive_(request.KeepAlive()),

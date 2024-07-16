@@ -18,16 +18,8 @@ const std::string   HttpRequestLine::kAsteriskForm = "*";
 const std::map<std::string, bool>   HttpRequestLine::method_map = HttpRequestLine::InitMethodMap();
 const std::map<std::string, bool>   HttpRequestLine::target_map = HttpRequestLine::InitTargetMap();
 
-std::string HttpRequestLine::UrlCleaner(const std::string& url)
-{
-    std::string res = url;
-    size_t pos;
-    while ((pos = res.find("%20")) != std::string::npos)
-        res.replace(pos, 3, " ");
-    return PathFinder::CanonicalizePath(res);
-}
-
 HttpRequestLine::HttpRequestLine()
+    : is_complete_(false)
 {
 }
 
@@ -39,10 +31,11 @@ HttpRequestLine::HttpRequestLine(const HttpRequestLine &src)
 HttpRequestLine&    HttpRequestLine::operator=(const HttpRequestLine &rhs)
 {
     if (this != &rhs) {
-        method_ = rhs.get_method();
-        target_ = rhs.get_target();
-        http_version_ = rhs.get_http_version();
-        line_ = rhs.get_line();
+        is_complete_ = rhs.is_complete_;
+        method_ = rhs.method_;
+        target_ = rhs.target_;
+        http_version_ = rhs.http_version_;
+        buffer_ = rhs.buffer_;
     }
     return *this;
 }
@@ -66,25 +59,30 @@ const std::string&  HttpRequestLine::get_http_version() const
     return http_version_;
 }
 
-const std::string&  HttpRequestLine::get_line() const
+void HttpRequestLine::Parse(std::string& message)
 {
-    return line_;
-}
+    buffer_ = message;
+    size_t pos = FindEndOfRequestLine(buffer_);
+    if (pos == kNotFoundEnd) {
+        message.clear();
+        return;
+    }
 
-void HttpRequestLine::Parse(const std::string &request_line)
-{
-    line_ = request_line;
+    buffer_.erase(pos - kTerminatorSize);
+    message.erase(0, pos);
+    is_complete_ = true;
+
     std::vector<std::string> tokens;
-    HttpRequest::Split(request_line, " ", tokens);
+    HttpRequest::Split(buffer_, " ", tokens);
+    buffer_.clear();
+
     if (tokens.size() != 3)
         throw std::runtime_error("400");
-    std::string method(tokens[0]);
-    std::map<std::string, bool>::const_iterator method_it = method_map.find(method);
-    if (method_it == method_map.end())
+    std::map<std::string, bool>::const_iterator method_it = method_map.find(tokens[0]);
+    if (method_it == method_map.end() || !method_it->second)
         throw std::runtime_error("400");
-    if (!method_it->second)
-        throw std::runtime_error("400");
-    method_ = method_it->first;
+    method_ = tokens[0];
+
     target_.set_complete_url(tokens[1]);
     std::map<std::string, bool>::const_iterator target_type_it = InitTargetType(tokens[1]);
     if (target_type_it == target_map.end())
@@ -92,12 +90,30 @@ void HttpRequestLine::Parse(const std::string &request_line)
     if (!target_type_it->second)
         throw std::runtime_error("400");
     target_.set_type(target_type_it->first);
-    std::string http_version(tokens[2]);
-    if (http_version == "HTTP/0.9"|| http_version == "HTTP/1.0")
+
+    if (tokens[2] == "HTTP/0.9"|| tokens[2] == "HTTP/1.0")
         throw std::runtime_error("400");
-    else if (http_version != "HTTP/1.1" && http_version != "HTTP/2" && http_version != "HTTP/3")
+    else if (tokens[2] != "HTTP/1.1" && tokens[2] != "HTTP/2" && tokens[2] != "HTTP/3")
         throw std::runtime_error("400");
-    http_version_ = http_version;
+    http_version_ = tokens[2];
+}
+
+bool    HttpRequestLine::IsComplete() const
+{
+    return is_complete_;
+}
+
+std::string HttpRequestLine::GetFormatedRequestLine() const
+{
+    return method_ + " " + target_.get_complete_url() + " " + http_version_ + "\r\n";
+}
+
+void HttpRequestLine::Print() const
+{
+    std::cout << "\tHttpResquestLine properties:" << std::endl
+        << "\t\tmethod: " << get_method() << std::endl
+        << "\t\ttarget: " << get_target().get_type() << " " << get_target().get_target() << " " << get_target().get_query() << " " << get_target().get_fragment() << std::endl
+        << "\t\tversion: " << get_http_version() << std::endl;
 }
 
 std::map<std::string, bool>::const_iterator HttpRequestLine::InitTargetType(const std::string& target)
@@ -131,12 +147,19 @@ std::map<std::string, bool> HttpRequestLine::InitTargetMap()
     return m;
 }
 
-void HttpRequestLine::Print() const
+size_t  HttpRequestLine::FindEndOfRequestLine(const std::string& buff)
 {
-    std::cout << "\tHttpResquestLine properties:" << std::endl
-        << "\t\tmethod: " << get_method() << std::endl
-        << "\t\ttarget: " << get_target().get_type() << " " << get_target().get_target() << " " << get_target().get_query() << " " << get_target().get_fragment() << std::endl
-        << "\t\tversion: " << get_http_version() << std::endl;
+    size_t  pos = buff.find("\r\n");
+    return pos != std::string::npos ? pos + kTerminatorSize : kNotFoundEnd;
+}
+
+std::string HttpRequestLine::Target::UrlCleaner(const std::string& url)
+{
+    std::string res = url;
+    size_t pos;
+    while ((pos = res.find("%20")) != std::string::npos)
+        res.replace(pos, 3, " ");
+    return PathFinder::CanonicalizePath(res);
 }
 
 HttpRequestLine::Target::Target()
@@ -187,6 +210,11 @@ const std::string&  HttpRequestLine::Target::get_fragment() const
     return fragment_;
 }
 
+const std::string&  HttpRequestLine::Target::get_complete_url() const
+{
+    return complete_url;
+}
+
 void    HttpRequestLine::Target::set_type(const std::string& type)
 {
     type_ = type;
@@ -216,7 +244,7 @@ void    HttpRequestLine::Target::set_complete_url(const std::string& url)
 
     std::string::size_type query_pos = url.find('?');
     std::string::size_type fragment_pos = url.find('#');
-    target_ = HttpRequestLine::UrlCleaner(url.substr(0, query_pos));
+    target_ = UrlCleaner(url.substr(0, query_pos));
     query_ = (query_pos != std::string::npos ? url.substr(query_pos + 1, fragment_pos - query_pos - 1) : "");
     fragment_ = (fragment_pos != std::string::npos ? url.substr(fragment_pos + 1) : "");
 }

@@ -16,7 +16,8 @@ class HttpHeader {
         const std::map<std::string, std::string>&   get_header_map() const;
         void                                        set_host(const std::string& host);
 
-        void        Parse(const std::string& data);
+        void        Parse(std::string& message);
+        bool        IsComplete() const;
         bool        NeedBody() const;
         bool        IsContentLength() const;
         bool        BodyIsTransferChunked() const;
@@ -25,10 +26,16 @@ class HttpHeader {
         void        Print() const;
 
     private:
-        std::pair<std::string, std::string>  ParseOneLine(const std::string& line);
+        static const size_t kNotFoundEnd = 0;
+        static const size_t kTerminatorSize = 4;
 
-        std::map<std::string, std::string>  header_map_;
+        static size_t                               FindEndOfHeader(const std::string& buff);
+        static std::pair<std::string, std::string>  ParseOneLine(const std::string& line);
+
+        bool                                is_complete_;
         bool                                need_body_;
+        std::map<std::string, std::string>  header_map_;
+        std::string                         buffer_;
 };
 
 #endif

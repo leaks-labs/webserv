@@ -4,9 +4,9 @@
 #include <stdexcept>
 
 HttpBody::HttpBody()
-    : required_length_(0),
-      is_transfer_encoding_chunked_(false),
-      is_complete_(false)
+    : is_complete_(false),
+      required_length_(0),
+      is_transfer_encoding_chunked_(false)
 {
 }
 
@@ -18,7 +18,10 @@ HttpBody::HttpBody(const HttpBody& src)
 HttpBody&   HttpBody::operator=(const HttpBody& rhs)
 {
     if (this != &rhs)
-        body_ = rhs.get_body();
+        is_complete_ = rhs.is_complete_;
+        required_length_ = rhs.required_length_;
+        is_transfer_encoding_chunked_ = rhs.is_transfer_encoding_chunked_;
+        body_ = rhs.body_;
     return *this;
 }
 
@@ -31,39 +34,39 @@ const std::string&  HttpBody::get_body() const
     return body_;
 }
 
+void    HttpBody::Parse(std::string& message)
+{
+    if (!is_transfer_encoding_chunked_) {
+        if (required_length_ == 0) {
+            is_complete_ = true;
+            return;
+        }
+        size_t  initial_body_length = body_.length();
+        size_t  missing_bytes = required_length_ - initial_body_length;
+        body_ += message.substr(0, missing_bytes);
+        message.erase(0, missing_bytes);
+        is_complete_ = (body_.length() == required_length_);
+    } else {
+        ; // TODO: implement transfer encoding
+    }
+}
+
 bool    HttpBody::IsComplete() const
 {
     return is_complete_;
 }
 
-size_t  HttpBody::get_size() const
+size_t  HttpBody::Size() const
 {
     return body_.length();
 }
 
-void    HttpBody::set_required_length(size_t length)
+void    HttpBody::SetMode(int mode, size_t content_length)
 {
-    required_length_ = length;
-}
-
-void    HttpBody::set_transfer_encoding_chunked(bool is_chunked)
-{
-    is_transfer_encoding_chunked_ = is_chunked;
-}
-
-void    HttpBody::AppendToBody(std::string& message)
-{
-    if (required_length_ > 0) {
-        size_t  initial_body_length = body_.length();
-        size_t  bytes_to_add = required_length_ - initial_body_length;
-        size_t  message_length = message.length();
-        if (bytes_to_add > message_length)
-            bytes_to_add = message_length;
-        body_ += message.substr(0, bytes_to_add);
-        message.erase(0, bytes_to_add);
-        if (initial_body_length + bytes_to_add == required_length_)
-            is_complete_ = true;
-    } else if (is_transfer_encoding_chunked_) {
-        ; // TODO: implement transfer encoding
-    }
+    if (mode == kModeContentLength)
+        required_length_ = content_length;
+    else if (mode == kModeTransferEncodingChunked)
+        is_transfer_encoding_chunked_ = true;
+    else
+        throw std::invalid_argument("Invalid mode");
 }

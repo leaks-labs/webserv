@@ -8,6 +8,8 @@ class HttpRequestLine {
     public:
         class Target {
             public:
+                static std::string  UrlCleaner(const std::string& url);
+
                 Target();
                 Target(const Target& src);
                 Target& operator=(const Target& rhs);
@@ -18,6 +20,7 @@ class HttpRequestLine {
                 const std::string&  get_target() const;
                 const std::string&  get_query() const;
                 const std::string&  get_fragment() const;
+                const std::string&  get_complete_url() const;
 
                 void    set_type(const std::string& type);
                 void    set_target(const std::string& target);
@@ -42,7 +45,6 @@ class HttpRequestLine {
         static const std::map<std::string, bool>    method_map;
         static const std::map<std::string, bool>    target_map;
 
-        static std::string  UrlCleaner(const std::string& url);
 
         HttpRequestLine();
         HttpRequestLine(const HttpRequestLine& src);
@@ -53,20 +55,27 @@ class HttpRequestLine {
         const std::string&  get_method() const;
         const Target&       get_target() const;
         const std::string&  get_http_version() const;
-        const std::string&  get_line() const;
 
-        void        Parse(const std::string& request_line);
-        void        Print() const;
+        void                Parse(std::string& message);
+        bool                IsComplete() const;
+        std::string         GetFormatedRequestLine() const;
+        void                Print() const;
 
     private:
+        static const int    kNotFoundEnd = 0;
+        static const int    kTerminatorSize = 2;
+
         static std::map<std::string, bool>::const_iterator  InitTargetType(const std::string& target);
         static std::map<std::string, bool>                  InitMethodMap();
         static std::map<std::string, bool>                  InitTargetMap();
 
+        static size_t   FindEndOfRequestLine(const std::string& buff);
+
+        bool        is_complete_;
         std::string method_;
         Target      target_;
         std::string http_version_;
-        std::string line_;
+        std::string buffer_;
 };
 
 # endif

@@ -11,7 +11,8 @@
 // TODO: remove
 
 HttpHeader::HttpHeader()
-    : need_body_(false)
+    : is_complete_(false),
+      need_body_(false)
 {
 }
 
@@ -23,8 +24,10 @@ HttpHeader::HttpHeader(const HttpHeader &src)
 HttpHeader& HttpHeader::operator=(const HttpHeader &rhs)
 {
     if (this != &rhs) {
-        header_map_ = rhs.get_header_map();
-        need_body_ = rhs.NeedBody();
+        is_complete_ = rhs.is_complete_;
+        need_body_ = rhs.need_body_;
+        header_map_ = rhs.header_map_;
+        buffer_ = rhs.buffer_;
     }
     return *this;
 }
@@ -43,10 +46,22 @@ void    HttpHeader::set_host(const std::string& host)
     header_map_["HOST"] = host;
 }
 
-void HttpHeader::Parse(const std::string &data)
+void HttpHeader::Parse(std::string& message)
 {
+    buffer_ = message;
+    size_t pos = FindEndOfHeader(buffer_);
+    if (pos == kNotFoundEnd) {
+        message.clear();
+        return;
+    }
+
+    buffer_.erase(pos - kTerminatorSize + 2);
+    message.erase(0, pos);
+    is_complete_ = true;
+
     std::vector<std::string> tokens;
-    HttpRequest::Split(data, "\r\n", tokens);
+    HttpRequest::Split(buffer_, "\r\n", tokens);
+    buffer_.clear();
 
     for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); ++it) {
         std::pair<std::string, std::string> one_line = ParseOneLine(*it);
@@ -68,10 +83,15 @@ void HttpHeader::Parse(const std::string &data)
     }
     if (header_map_.find("HOST") == header_map_.end())
         throw std::runtime_error("400");
-    std::map<std::string, std::string>::iterator cont_lent_it = header_map_.find("CONTENT-LENGTH");
-    if ((cont_lent_it != header_map_.end() && GetContentLength() > 0)
-        || (cont_lent_it == header_map_.end() && BodyIsTransferChunked()))
+    bool    is_content_length = IsContentLength();
+    if ((is_content_length && GetContentLength() > 0)
+        || (!is_content_length && BodyIsTransferChunked()))
         need_body_ = true;
+}
+
+bool    HttpHeader::IsComplete() const
+{
+    return is_complete_;
 }
 
 bool    HttpHeader::NeedBody() const
@@ -108,6 +128,7 @@ std::string HttpHeader::GetFormatedHeader() const
     typedef std::map<std::string, std::string>::const_iterator iterator;
     for (iterator it = header_map_.begin(); it != header_map_.end(); ++it)
         header += it->first + ": " + it->second + "\r\n";
+    header += "\r\n";
     return header;
 }
 
@@ -119,6 +140,12 @@ void HttpHeader::Print() const
         std::cout << "\t\tthe header map is empty" << std::endl;
     for (iterator it = header_map_.begin(); it != header_map_.end(); it++)
         std::cout << "\t\t" << it->first << ": " << it->second << std::endl;
+}
+
+size_t  HttpHeader::FindEndOfHeader(const std::string& buff)
+{
+    size_t  pos = buff.find("\r\n\r\n");
+    return pos != std::string::npos ? pos + kTerminatorSize : kNotFoundEnd;
 }
 
 std::pair<std::string, std::string>  HttpHeader::ParseOneLine(const std::string& line)
