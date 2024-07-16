@@ -43,11 +43,6 @@ HttpResponse::~HttpResponse()
 {
 }
 
-std::string&    HttpResponse::get_response()
-{
-    return response_;
-}
-
 const std::string&  HttpResponse::get_cgi_path() const
 {
     return cgi_path_;
@@ -63,14 +58,19 @@ const std::string&  HttpResponse::get_query() const
     return request_.get_request_line().get_target().get_query();
 }
 
+const std::vector<std::string>& HttpResponse::get_env() const
+{
+    return env_;
+}
+
 std::string&    HttpResponse::get_request_body()
 {
     return request_.get_body();
 }
 
-const std::vector<std::string>& HttpResponse::get_env() const
+std::string&    HttpResponse::get_response()
 {
-    return env_;
+    return response_;
 }
 
 void    HttpResponse::set_status_line(const std::string& str)
@@ -143,18 +143,6 @@ std::vector<int> HttpResponse::InitCodeRequiringClose()
     return res;
 }
 
-std::string HttpResponse::BuildPath()
-{
-    HttpRequestLine::Target&    target_ = request_.get_request_line().get_target();
-    const Location&             location_ = request_.get_location();
-    if (target_.get_target()[target_.get_target().size() - 1] == '/' && location_.get_listing() == false)
-        target_.set_target(target_.get_target() + location_.get_default_file());
-    std::string res = PathFinder::CanonicalizePath(location_.get_root() + target_.get_target());
-    if (!PathFinder::PathExist(res))
-        error_ = 404;
-    return res;
-}
-
 std::string HttpResponse::FindExtension(const std::string& str)
 {
     size_t pos = str.rfind('.');
@@ -173,6 +161,18 @@ std::string HttpResponse::GetCgiPath(const std::string& ext)
 {
     PathFinder& finder = PathFinder::Instance();
     return ext == "php" ? finder.GetPhp() : "none";
+}
+
+std::string HttpResponse::BuildPath()
+{
+    HttpRequestLine::Target&    target_ = request_.get_request_line().get_target();
+    const Location&             location_ = request_.get_location();
+    if (target_.get_target()[target_.get_target().size() - 1] == '/' && location_.get_listing() == false)
+        target_.set_target(target_.get_target() + location_.get_default_file());
+    std::string res = PathFinder::CanonicalizePath(location_.get_root() + target_.get_target());
+    if (!PathFinder::PathExist(res))
+        error_ = 404;
+    return res;
 }
 
 void HttpResponse::Get()
