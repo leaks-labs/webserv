@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+#include "HttpRequest.hpp"
+
 // TODO: to be removed
 #include <iostream>
 // TODO: to be removed
@@ -82,11 +84,38 @@ const std::vector<int>& HttpStatusLine::get_codes_requiring_close() const
     return codes_requiring_close_;
 }
 
-// void    HttpStatusLine::Parse(std::string& message)
-// {
-//     (void)message;
-//     // TODO: Implement
-// }
+void    HttpStatusLine::Parse(std::string& message)
+{
+    buffer_ += message;
+    // TODO: set a size limit??
+    size_t pos = FindEndOfStatusLine(buffer_);
+    if (pos == kNotFoundEnd) {
+        message.clear();
+        return;
+    }
+    buffer_.erase(pos - kTerminatorSize);
+    message.erase(0, pos);
+    is_complete_ = true;
+
+    std::vector<std::string> tokens;
+    if (HttpRequest::Split(buffer_, " ", tokens) == -1)
+        throw std::runtime_error("502");
+    buffer_.clear();
+    if (tokens.size() != 2 && tokens.size() != 3)
+        throw std::runtime_error("502");
+    if (tokens[0] != "HTTP/0.9"&& tokens[0] != "HTTP/1.0"
+        && tokens[0] != "HTTP/1.1" && tokens[0] != "HTTP/2" && tokens[0] != "HTTP/3")
+        throw std::runtime_error("502");
+    http_version_ = tokens[0];
+    std::istringstream iss(tokens[1]);
+    iss >> std::noskipws >> status_code_;
+    if (iss.fail() || !iss.eof() || status_code_ < 100 || status_code_ > 599)
+        throw std::runtime_error("502");
+    if (tokens.size() == 3)
+        reason_phrase_ = tokens[2];
+    else
+        SetCodeAndPhrase(status_code_);
+}
 
 void    HttpStatusLine::SetCodeAndPhrase(int code)
 {

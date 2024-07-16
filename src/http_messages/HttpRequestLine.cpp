@@ -78,12 +78,10 @@ void HttpRequestLine::Parse(std::string& message)
     buffer_.erase(pos - kTerminatorSize);
     message.erase(0, pos);
     is_complete_ = true;
-
     std::vector<std::string> tokens;
     if (HttpRequest::Split(buffer_, " ", tokens) == -1)
         throw std::runtime_error("400");
     buffer_.clear();
-
     if (tokens.size() != 3)
         throw std::runtime_error("400");
     std::map<std::string, bool>::const_iterator method_it = method_map.find(tokens[0]);

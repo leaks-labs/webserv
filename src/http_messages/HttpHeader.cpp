@@ -58,11 +58,9 @@ void HttpHeader::Parse(std::string& message, int mode)
         message.clear();
         return;
     }
-
     buffer_.erase(pos - kTerminatorSize + 2);
     message.erase(0, pos);
     is_complete_ = true;
-
     std::vector<std::string> tokens;
     int err = HttpRequest::Split(buffer_, "\r\n", tokens);
     if (err == -1)

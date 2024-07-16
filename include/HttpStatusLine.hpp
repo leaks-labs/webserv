@@ -22,7 +22,7 @@ class HttpStatusLine {
         const std::string&                  get_reason_phrase() const;
         const std::vector<int>&             get_codes_requiring_close() const;
 
-        // void        Parse(std::string& message);
+        void        Parse(std::string& message);
         void        SetCodeAndPhrase(int code);
         bool        IsComplete() const;
         std::string GetFormatedStatusLine() const;
@@ -35,11 +35,10 @@ class HttpStatusLine {
 
         static const std::vector<int>           InitCodesRequiringClose();
         static const std::map<int, std::string> InitStatusCodeMap();
+        static size_t                           FindEndOfStatusLine(const std::string& buff);
 
         static const int    kNotFoundEnd = 0;
         static const int    kTerminatorSize = 2;
-
-        static size_t   FindEndOfStatusLine(const std::string& buff);
 
         bool        is_complete_;
         std::string http_version_;

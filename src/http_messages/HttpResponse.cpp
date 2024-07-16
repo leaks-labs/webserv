@@ -104,7 +104,6 @@ bool HttpResponse::IsComplete() const
 void HttpResponse::SetComplete()
 {
     response_ = status_line_.GetFormatedStatusLine() + header_.GetFormatedHeader() + body_.get_body();
-    // std::cout << "+++++++++++++" << std::endl << response_ << std::endl << "+++++++++++++" << std::endl;
     status_line_.Clear();
     header_.Clear();
     body_.Clear();
@@ -241,7 +240,7 @@ void HttpResponse::LaunchCgiHandler()
 
 void    HttpResponse::FinalizeResponse()
 {
-    status_line_.SetCodeAndPhrase(status_line_.get_status_code());
+    UpdateReason();
     if (status_line_.get_status_code() != 204)
         AddHeaderContentLength();
     SetComplete();
