@@ -9,8 +9,6 @@
 #include "PathFinder.hpp"
 #include "StreamHandler.hpp"
 
-const std::vector<int>  HttpResponse::code_requiring_close_ = HttpResponse::InitCodeRequiringClose();
-
 HttpResponse::HttpResponse(StreamHandler& stream_handler, HttpRequest& request)
     : complete_(false),
       request_(request),
@@ -128,7 +126,8 @@ void    HttpResponse::set_header(std::string& str)
 
 bool    HttpResponse::IsAskingToCloseConnection() const
 {
-    return (std::find(code_requiring_close_.begin(), code_requiring_close_.end(), status_line_.get_status_code()) != code_requiring_close_.end() || !keep_alive_);
+    const std::vector<int>& vec = status_line_.get_codes_requiring_close();
+    return (std::find(vec.begin(), vec.end(), status_line_.get_status_code()) != vec.end() || !keep_alive_);
 }
 
 void    HttpResponse::ClearHeader()
@@ -139,18 +138,6 @@ void    HttpResponse::ClearHeader()
 void    HttpResponse::UpdateReason()
 {
     status_line_.SetCodeAndPhrase(status_line_.get_status_code());
-}
-
-std::vector<int> HttpResponse::InitCodeRequiringClose()
-{
-    std::vector<int>    res;
-    res.push_back(400);
-    res.push_back(408);
-    res.push_back(413);
-    res.push_back(414);
-    res.push_back(431);
-    res.push_back(500);
-    return res;
 }
 
 std::string HttpResponse::FindExtension(const std::string& str)

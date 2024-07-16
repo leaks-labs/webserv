@@ -13,8 +13,6 @@
 
 class HttpRequest {
     public :
-        static const std::map<int, std::string> status_map;
-
         static int  Split(const std::string& str, const std::string& delim, std::vector<std::string>& tokens);
 
         HttpRequest(int acceptor_fd);
@@ -39,8 +37,6 @@ class HttpRequest {
         bool        KeepAlive() const;
 
     private:
-        static std::map<int, std::string> InitStatusMap();
-
         HttpRequest();
 
         int                 acceptor_fd_;

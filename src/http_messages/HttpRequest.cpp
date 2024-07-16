@@ -3,8 +3,6 @@
 #include <sstream>
 #include <iostream>
 
-const std::map<int, std::string>    HttpRequest::status_map = HttpRequest::InitStatusMap();
-
 int HttpRequest::Split(const std::string& str, const std::string& delim, std::vector<std::string>& tokens)
 {
     size_t start = 0, end;
@@ -158,27 +156,4 @@ bool    HttpRequest::KeepAlive() const
     {
         return true;
     }
-}
-
-std::map<int, std::string>  HttpRequest::InitStatusMap()
-{
-    std::map<int, std::string>  m;
-    m[200] = "OK";
-    // m[201] = "CREATED";
-    m[204] = "No Content";
-    // m[301] = "Moved Permanently";
-    // m[302] = "Found";
-    // m[304] = "Not Modified";
-    m[400] = "Bad Request";
-    // m[401] = "Unauthorized";
-    // m[403] = "Forbidden";
-    m[404] = "Not Found";
-    m[405] = "Method Not Allowed";
-    // m[407] = "Proxy Authentication Required";
-    m[408] = "Request Timeout";
-    m[413] = "Content Too Large";
-    m[414] = "URI Too Long";
-    m[431] = "Request Header Fields Too Large";
-    m[500] = "Internal Server Error";
-    return m;
 }

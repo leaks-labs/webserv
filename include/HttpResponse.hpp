@@ -35,10 +35,6 @@ class HttpResponse {
         void    UpdateReason();
 
     private:
-        static const std::vector<int>   code_requiring_close_;
-
-        static std::vector<int> InitCodeRequiringClose();
-
         static std::string  FindExtension(const std::string& str);
         static bool         IsCgiFile(const std::string& path);
         static std::string  GetCgiPath(const std::string& ext);

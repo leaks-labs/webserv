@@ -2,7 +2,17 @@
 
 #include <sstream>
 
-#include "HttpRequest.hpp"
+// TODO: to be removed
+#include <iostream>
+// TODO: to be removed
+
+const std::vector<int>              HttpStatusLine::codes_requiring_close_ = HttpStatusLine::InitCodesRequiringClose();
+const std::map<int, std::string>    HttpStatusLine::status_map_ = HttpStatusLine::InitStatusMap();
+
+const std::map<int, std::string>&   HttpStatusLine::get_status_map()
+{
+    return status_map_;
+}
 
 HttpStatusLine::HttpStatusLine()
     : is_complete_(false),
@@ -67,6 +77,11 @@ const std::string&  HttpStatusLine::get_reason_phrase() const
     return reason_phrase_;
 }
 
+const std::vector<int>& HttpStatusLine::get_codes_requiring_close() const
+{
+    return codes_requiring_close_;
+}
+
 // void    HttpStatusLine::Parse(std::string& message)
 // {
 //     (void)message;
@@ -75,10 +90,9 @@ const std::string&  HttpStatusLine::get_reason_phrase() const
 
 void    HttpStatusLine::SetCodeAndPhrase(int code)
 {
-    const std::map<int, std::string>&   status_map = HttpRequest::status_map;
-    std::map<int, std::string>::const_iterator it = status_map.find(code);
+    std::map<int, std::string>::const_iterator it = status_map_.find(code);
     status_code_ = code;
-    if (it != status_map.end())
+    if (it != status_map_.end())
         reason_phrase_ = it->second;
     else
         reason_phrase_ = "Unknown Status Code";
@@ -106,6 +120,41 @@ void    HttpStatusLine::Clear()
 void    HttpStatusLine::Print() const
 {
     std::cout << "HTTP Status Line: " << GetFormatedStatusLine();
+}
+
+const std::vector<int>  HttpStatusLine::InitCodesRequiringClose()
+{
+    std::vector<int>    res;
+    res.push_back(400);
+    res.push_back(408);
+    res.push_back(413);
+    res.push_back(414);
+    res.push_back(431);
+    res.push_back(500);
+    return res;
+}
+
+const std::map<int, std::string>  HttpStatusLine::InitStatusMap()
+{
+    std::map<int, std::string>  m;
+    m[200] = "OK";
+    // m[201] = "CREATED";
+    m[204] = "No Content";
+    // m[301] = "Moved Permanently";
+    // m[302] = "Found";
+    // m[304] = "Not Modified";
+    m[400] = "Bad Request";
+    // m[401] = "Unauthorized";
+    // m[403] = "Forbidden";
+    m[404] = "Not Found";
+    m[405] = "Method Not Allowed";
+    // m[407] = "Proxy Authentication Required";
+    m[408] = "Request Timeout";
+    m[413] = "Content Too Large";
+    m[414] = "URI Too Long";
+    m[431] = "Request Header Fields Too Large";
+    m[500] = "Internal Server Error";
+    return m;
 }
 
 size_t  HttpStatusLine::FindEndOfStatusLine(const std::string& buff)
