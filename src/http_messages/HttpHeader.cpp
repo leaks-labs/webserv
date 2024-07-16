@@ -120,7 +120,6 @@ size_t  HttpHeader::GetContentLength() const
     iss >> std::noskipws >> contentLength;
     if (iss.fail() || !iss.eof())
         throw std::runtime_error("String to size_t conversion failed");
-    // TODO: change error message
     return contentLength;
 }
 
