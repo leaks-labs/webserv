@@ -13,8 +13,6 @@ class HttpResponse {
 
         ~HttpResponse();
 
-        const Location&                 get_location()const;
-        int                             get_error() const;
         std::string&                    get_response();
         const std::string&              get_cgi_path() const;
         const std::string&              get_path() const;

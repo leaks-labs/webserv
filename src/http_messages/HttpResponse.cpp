@@ -16,8 +16,6 @@ HttpResponse::HttpResponse(StreamHandler& stream_handler, HttpRequest& request)
       request_(request),
       stream_handler_(stream_handler),
       error_(request.get_status_code()),
-    //   server_(request.get_server()),
-    //   location_(request.get_location()),
       keep_alive_(request.KeepAlive()),
       path_(BuildPath()),
       cgi_path_(GetCgiPath(FindExtension(path_))),
@@ -30,8 +28,6 @@ HttpResponse::HttpResponse(const HttpResponse& src)
       request_(src.request_),
       stream_handler_(src.stream_handler_),
       error_(src.error_),
-    //   server_(src.server_),
-    //   location_(src.location_),
       keep_alive_(src.keep_alive_),
       path_(src.path_),
       cgi_path_(src.cgi_path_),
@@ -45,16 +41,6 @@ HttpResponse::HttpResponse(const HttpResponse& src)
 
 HttpResponse::~HttpResponse()
 {
-}
-
-const Location& HttpResponse::get_location() const 
-{
-    return request_.get_location();
-}
-
-int HttpResponse::get_error() const 
-{
-    return error_;
 }
 
 std::string&    HttpResponse::get_response()
