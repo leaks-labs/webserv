@@ -135,13 +135,12 @@ void CgiHandler::ExecCGI()
         if (chdir(response_.get_path().substr(0, response_.get_path().rfind("/") + 1).c_str()) == -1)
             throw std::runtime_error("Cgi : chdir failed " + std::string(strerror(errno)));
         execve(cmd[0], cmd.data(), env.data());
-        std::cerr << "execve failed" << std::endl;
         throw std::runtime_error("Cgi : execve failed " + std::string(strerror(errno)));
         // if execve failed, the content of the socket will be empty
     }
     catch(const std::exception& e)
     {
-        std::cout << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
         stream_child_.Close();
         if (err_out != -1)
             close(STDOUT_FILENO);
