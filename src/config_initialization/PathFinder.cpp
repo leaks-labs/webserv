@@ -7,8 +7,6 @@
 
 #include <sys/stat.h>
 
-#include <iostream>
-
 const std::string   PathFinder::kPhpBinName = "php-cgi";
 
 PathFinder& PathFinder::Instance()
