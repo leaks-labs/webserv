@@ -46,10 +46,12 @@ void    HttpHeader::set_host(const std::string& host)
     header_map_["HOST"] = host;
 }
 
-void HttpHeader::Parse(std::string& message)
+void HttpHeader::Parse(std::string& message, int mode)
 {
+    if (mode != kParseRequest && mode != kParseResponse)
+        throw std::runtime_error("500");
     buffer_ += message;
-    if (buffer_.size() > kMaxHeaderSize)
+    if (mode == kParseRequest && buffer_.size() > kMaxHeaderSize) // TODO: maybe add a limit for response too?
         throw std::runtime_error("431");
     size_t pos = FindEndOfHeader(buffer_);
     if (pos == kNotFoundEnd) {
@@ -70,20 +72,20 @@ void HttpHeader::Parse(std::string& message)
         
         if (one_line.first == "CONTENT-LENGTH") {
             if (one_line.second.find_first_not_of("0123456789") != std::string::npos)
-                throw std::runtime_error("400");
+                mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
         } else if (one_line.first == "TRANSFER-ENCODING") {
             if (one_line.second != "chunked" && one_line.second != "compress" && one_line.second != "deflate" && one_line.second != "gzip")
-                throw std::runtime_error("400");
+                mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
         } else if (one_line.first == "CONNECTION") {
             if (one_line.second != "keep-alive" && one_line.second != "close")
-                throw std::runtime_error("400");
+                mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
         }
 
         if (header_map_.find(one_line.first) != header_map_.end())
-            throw std::runtime_error("400");
+            mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
         header_map_[one_line.first] = one_line.second;
     }
-    if (header_map_.find("HOST") == header_map_.end())
+    if (mode == kParseRequest && header_map_.find("HOST") == header_map_.end())
         throw std::runtime_error("400");
     bool    is_content_length = IsContentLength();
     if ((is_content_length && GetContentLength() > 0)

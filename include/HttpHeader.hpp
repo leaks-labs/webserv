@@ -7,6 +7,9 @@
 
 class HttpHeader {
     public:
+        static const int    kParseRequest = 1;
+        static const int    kParseResponse = 2;
+
         HttpHeader();
         HttpHeader(const HttpHeader& src);
         HttpHeader& operator=(const HttpHeader& rhs);
@@ -16,7 +19,7 @@ class HttpHeader {
         const std::map<std::string, std::string>&   get_header_map() const;
         void                                        set_host(const std::string& host);
 
-        void        Parse(std::string& message);
+        void        Parse(std::string& message, int mode);
         bool        IsComplete() const;
         bool        NeedBody() const;
         bool        IsContentLength() const;

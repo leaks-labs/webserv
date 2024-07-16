@@ -124,7 +124,7 @@ void HttpResponse::AddHeaderContentLength()
 
 void    HttpResponse::set_header(std::string& str)
 {
-    header_.Parse(str);
+    header_.Parse(str, HttpHeader::kParseResponse);
 }
 
 bool    HttpResponse::IsAskingToCloseConnection() const

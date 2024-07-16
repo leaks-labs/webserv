@@ -113,7 +113,7 @@ void    HttpRequest::AppendToRequest(std::string& message)
         if (!request_line_.IsComplete())
             request_line_.Parse(message);
         if (!message.empty() && !header_.IsComplete()) {
-            header_.Parse(message);
+            header_.Parse(message, HttpHeader::kParseRequest);
             if (header_.IsComplete()) {
                 if (!header_.NeedBody())
                     is_complete_ = true;
