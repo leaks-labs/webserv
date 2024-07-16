@@ -25,7 +25,7 @@ HttpResponse::HttpResponse(StreamHandler& stream_handler, const HttpRequest& req
     cgi_path_(GetCgiPath(FindExtension(path_))),
     env_(SetEnv()),
     complete_(false)
-{   
+{
 }
 
 HttpResponse::HttpResponse(const HttpResponse& src)
@@ -291,6 +291,7 @@ std::vector<std::string> HttpResponse::SetEnv()
     std::vector<std::string>    res;
     const std::map<std::string, std::string>&   map = request_header_.get_header_map();
     res.push_back("REQUEST_METHOD=" + method_);
+    //res.push_back("PATH_INFO=" + );
     res.push_back("SCRIPT_FILENAME=" + path_);
     std::map<std::string, std::string>::const_iterator it = map.find("CONTENT-TYPE");
     std::string content_type = it == map.end() ? "text/html" : it->second;

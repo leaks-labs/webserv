@@ -115,10 +115,13 @@ void CgiHandler::ExecCGI()
     try
     {
         stream_main_.Close();
-        std::vector<char*>  cmd(2);
+        std::vector<char*>  cmd(3);
         const std::vector<std::string>&  env_src = response_.get_env();
         std::vector<char*>  env(env_src.size() + 1);
         cmd[0] = const_cast<char*>(response_.get_cgi_path().c_str());
+        std::string path = response_.get_path();
+        size_t pos= path.rfind("/") + 1;
+        cmd[1] = const_cast<char*>(path.substr(pos, path.size() - pos).c_str());
         std::vector<char*>::iterator it_dest = env.begin();
         for (std::vector<std::string>::const_iterator it_src = env_src.begin(); it_src != env_src.end(); ++it_src, ++it_dest)
             *it_dest = const_cast<char*>(it_src->c_str());
@@ -129,7 +132,7 @@ void CgiHandler::ExecCGI()
         if (err_in == -1 || err_out == -1)
             throw std::runtime_error("Cgi : dup2 failed " + std::string(strerror(errno)));
         // TODO: chdir to the root or to the directory where the .php is?
-        if (chdir(response_.get_location().get_root().c_str()) == -1)
+        if (chdir(response_.get_path().substr(0, response_.get_path().rfind("/") + 1).c_str()) == -1)
             throw std::runtime_error("Cgi : chdir failed " + std::string(strerror(errno)));
         execve(cmd[0], cmd.data(), env.data());
         std::cerr << "execve failed" << std::endl;
