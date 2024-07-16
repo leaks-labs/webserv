@@ -161,13 +161,27 @@ void    CgiHandler::ReturnToStreamHandler()
 {
     // TODO: or update the response with a 500 error or something, if the body is not valid
     // TODO: for now just presume all is ok
-    response_.set_status_line("HTTP/1.1 200 OK");
-    size_t  pos = cgi_buffer.find("\r\n\r\n");
-    response_.AppendToHeader(cgi_buffer.substr(0, pos + 2));
-    cgi_buffer.erase(0, pos + 4);
-    response_.set_body(cgi_buffer);
-    response_.AddHeaderContentLength();
-    response_.SetComplete();
+    try
+    {
+        response_.set_header(cgi_buffer);
+        response_.set_body(cgi_buffer);
+        response_.AddHeaderContentLength();
+        // TODO: set the right status code, if there was an error or not
+        response_.set_status_line(200);
+        response_.SetComplete();
+    }
+    catch(const std::exception& e)
+    {
+        std::istringstream iss(e.what());
+        int code;
+        if (!(iss >> code))
+            code = 500;
+        response_.AddErrorPageToBody(code);
+        response_.ClearHeader();
+        response_.AddHeaderContentLength();
+        response_.UpdateReason();
+        response_.SetComplete();
+    }
     int err = stream_handler_.ReRegister();
     InitiationDispatcher::Instance().RemoveHandler(this);
     if (err == -1)
