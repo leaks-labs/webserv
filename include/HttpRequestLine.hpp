@@ -28,7 +28,17 @@ class HttpRequestLine {
                 void    set_fragment(const std::string& fragment);
                 void    set_complete_url(const std::string& url);
 
+                void    InitTargetType(const std::string& target);
+
             private:
+                static const std::string    kOriginForm;
+                static const std::string    kAbsoluteForm;
+                static const std::string    kAsteriskForm;
+
+                static const std::map<std::string, bool>    target_map;
+
+                static std::map<std::string, bool>                  InitTargetMap();
+
                 void    UpdateCompleteUrl();
 
                 std::string type_;
@@ -38,14 +48,7 @@ class HttpRequestLine {
                 std::string complete_url;
         };
 
-        static const int    kMaxRequestLineSize = 8192;
-
-        static const std::string    kOriginForm;
-        static const std::string    kAbsoluteForm;
-        static const std::string    kAsteriskForm;
-
         static const std::map<std::string, bool>    method_map;
-        static const std::map<std::string, bool>    target_map;
 
         HttpRequestLine();
         HttpRequestLine(const HttpRequestLine& src);
@@ -63,12 +66,12 @@ class HttpRequestLine {
         void                Print() const;
 
     private:
+        static const int    kMaxRequestLineSize = 8192;
+
         static const int    kNotFoundEnd = 0;
         static const int    kTerminatorSize = 2;
 
-        static std::map<std::string, bool>::const_iterator  InitTargetType(const std::string& target);
-        static std::map<std::string, bool>                  InitMethodMap();
-        static std::map<std::string, bool>                  InitTargetMap();
+        static std::map<std::string, bool>  InitMethodMap();
 
         static size_t   FindEndOfRequestLine(const std::string& buff);
 

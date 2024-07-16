@@ -11,12 +11,12 @@
 #include <iostream>
 // TODO: to be removed
 
-const std::string   HttpRequestLine::kOriginForm = "/";
-const std::string   HttpRequestLine::kAbsoluteForm = "http";
-const std::string   HttpRequestLine::kAsteriskForm = "*";
+const std::string   HttpRequestLine::Target::kOriginForm = "/";
+const std::string   HttpRequestLine::Target::kAbsoluteForm = "http";
+const std::string   HttpRequestLine::Target::kAsteriskForm = "*";
 
 const std::map<std::string, bool>   HttpRequestLine::method_map = HttpRequestLine::InitMethodMap();
-const std::map<std::string, bool>   HttpRequestLine::target_map = HttpRequestLine::InitTargetMap();
+const std::map<std::string, bool>   HttpRequestLine::Target::target_map = HttpRequestLine::Target::InitTargetMap();
 
 HttpRequestLine::HttpRequestLine()
     : is_complete_(false)
@@ -84,15 +84,8 @@ void HttpRequestLine::Parse(std::string& message)
     if (method_it == method_map.end() || !method_it->second)
         throw std::runtime_error("400");
     method_ = tokens[0];
-
+    target_.InitTargetType(tokens[1]);
     target_.set_complete_url(tokens[1]);
-    std::map<std::string, bool>::const_iterator target_type_it = InitTargetType(tokens[1]);
-    if (target_type_it == target_map.end())
-        throw std::runtime_error("400");
-    if (!target_type_it->second)
-        throw std::runtime_error("400");
-    target_.set_type(target_type_it->first);
-
     if (tokens[2] == "HTTP/0.9"|| tokens[2] == "HTTP/1.0")
         throw std::runtime_error("400");
     else if (tokens[2] != "HTTP/1.1" && tokens[2] != "HTTP/2" && tokens[2] != "HTTP/3")
@@ -118,15 +111,6 @@ void HttpRequestLine::Print() const
         << "\t\tversion: " << get_http_version() << std::endl;
 }
 
-std::map<std::string, bool>::const_iterator HttpRequestLine::InitTargetType(const std::string& target)
-{
-    std::map<std::string, bool>::const_iterator it = target_map.begin();
-    for (; it != target_map.end(); ++it)
-        if (target.compare(0, it->first.length(), it->first) == 0)
-            break;
-    return it;
-}
-
 std::map<std::string, bool> HttpRequestLine::InitMethodMap() {
     std::map<std::string, bool> m;
     m["OPTIONS"] =  false;
@@ -137,15 +121,6 @@ std::map<std::string, bool> HttpRequestLine::InitMethodMap() {
     m["DELETE"] =   true;
     m["TRACE"] =    false;
     m["CONNECT"] =  false;
-    return m;
-}
-
-std::map<std::string, bool> HttpRequestLine::InitTargetMap()
-{
-    std::map<std::string, bool> m;
-    m[kOriginForm] =    true;
-    m[kAbsoluteForm] =  false;
-    m[kAsteriskForm] =  false;
     return m;
 }
 
@@ -249,6 +224,26 @@ void    HttpRequestLine::Target::set_complete_url(const std::string& url)
     target_ = UrlCleaner(url.substr(0, query_pos));
     query_ = (query_pos != std::string::npos ? url.substr(query_pos + 1, fragment_pos - query_pos - 1) : "");
     fragment_ = (fragment_pos != std::string::npos ? url.substr(fragment_pos + 1) : "");
+}
+
+void    HttpRequestLine::Target::InitTargetType(const std::string& target)
+{
+    std::map<std::string, bool>::const_iterator it = target_map.begin();
+    for (; it != target_map.end(); ++it)
+        if (target.compare(0, it->first.length(), it->first) == 0)
+            break;
+    if (it == target_map.end() || !it->second)
+        throw std::runtime_error("400");
+    type_ = it->first;
+}
+
+std::map<std::string, bool> HttpRequestLine::Target::InitTargetMap()
+{
+    std::map<std::string, bool> m;
+    m[kOriginForm] =    true;
+    m[kAbsoluteForm] =  false;
+    m[kAsteriskForm] =  false;
+    return m;
 }
 
 void    HttpRequestLine::Target::UpdateCompleteUrl()
