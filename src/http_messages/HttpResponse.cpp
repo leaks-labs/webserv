@@ -270,7 +270,9 @@ std::vector<std::string> HttpResponse::SetEnv()
     std::vector<std::string>    res;
     const std::map<std::string, std::string>&   map = request_.get_header().get_header_map();
     res.push_back("REQUEST_METHOD=" + request_.get_request_line().get_method());
-    res.push_back("PATH_INFO=" + request_.get_server().get_path_info());
+    std::string path_info = request_.get_location().get_path_info();
+    if (path_info != "none")
+        res.push_back("PATH_INFO=" + path_info);
     res.push_back("SCRIPT_FILENAME=" + path_);
     std::map<std::string, std::string>::const_iterator it = map.find("CONTENT-TYPE");
     std::string content_type = it == map.end() ? "text/html" : it->second;

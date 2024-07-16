@@ -4,7 +4,7 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST'){
     exit;
 }
 if (empty($_SERVER['PATH_INFO'])){
-    echo 'path_info is not defined in the server config';
+    echo 'upload unavalaible: path_info is not defined in the server config';
     exit;
 }
 if (!isset($_FILES['file']) || $_FILES['file']['error'] != UPLOAD_ERR_OK) {

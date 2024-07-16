@@ -21,7 +21,8 @@ Location::Location()
       methods_(kMethodGet | kMethodPost | kMethodDelete),
       bodymax_(0),
       listing_(true),
-      strict_(false)
+      strict_(false),
+      path_info_("none")
 {
 }
 
@@ -43,6 +44,7 @@ Location&   Location::operator=(Location const& rhs)
         strict_ = rhs.get_strict();
         errors_ = rhs.get_errors();
         bodymax_ = rhs.get_bodymax();
+        path_info_ = rhs.get_path_info();
     }
     return *this;
 }
@@ -99,6 +101,11 @@ bool    Location::get_listing() const
 bool    Location::get_strict() const
 {
     return strict_;
+}
+
+std::string const&  Location::get_path_info() const
+{
+    return path_info_;
 }
 
 void    Location::set_path(const std::string& value)
@@ -218,6 +225,15 @@ void    Location::set_strict(bool value)
    strict_ = value;
 }
 
+void    Location::set_path_info(std::string const & value)
+{
+    if(value.empty() || (value[0] != '/' && value != "none"))
+        throw std::runtime_error("path_info is invalid");
+    path_info_ = value;
+    if (path_info_[path_info_.size() - 1] != '/' && path_info_ != "none")
+        path_info_ += "/";
+}
+
 bool    Location::HasMethod(const std::string& value) const
 {
     std::map<std::string, int>::const_iterator it = methods_ref_.find(value);
@@ -258,6 +274,7 @@ void    Location::Print() const
                 << "\tlisting: " << listing_ << std::endl
                 << "\tstrict: " << strict_ << std::endl
                 << "\tbodymax: " << bodymax_ << std::endl
+                << "\tpath_info: " << path_info_ << std::endl
                 << "\terrors: " << std::endl;
 
     for (iterator i = errors_.begin(); i != errors_.end(); ++i)
@@ -275,6 +292,7 @@ const std::map<std::string, void (Location::*)(const std::string&)> Location::In
     m["methods"] = &Location::set_methods;
     m["bodymax"] = &Location::set_bodymax;
     m["listing"] = &Location::set_listing;
+    m["path_info"] = &Location::set_path_info;
     return m;
 }
 
