@@ -99,6 +99,5 @@ int StreamHandler::SendFirstResponse()
 void    StreamHandler::ConvertRequestToResponse()
 {
     response_queue_.push_back(HttpResponse(*this, request_queue_.front()));
-    // request_queue_.pop_front();
     response_queue_.front().Execute();
 }
