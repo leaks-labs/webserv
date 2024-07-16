@@ -163,10 +163,11 @@ void    CgiHandler::ReturnToStreamHandler()
     // TODO: for now just presume all is ok
     try
     {
-        response_.set_status_line(200);
         response_.set_header(cgi_buffer);
         response_.set_body(cgi_buffer);
         response_.AddHeaderContentLength();
+        // TODO: set the right status code, if there was an error or not
+        response_.set_status_line(200);
         response_.SetComplete();
     }
     catch(const std::exception& e)
