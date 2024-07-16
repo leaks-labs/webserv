@@ -47,7 +47,6 @@ class HttpRequestLine {
         static const std::map<std::string, bool>    method_map;
         static const std::map<std::string, bool>    target_map;
 
-
         HttpRequestLine();
         HttpRequestLine(const HttpRequestLine& src);
         HttpRequestLine& operator=(const HttpRequestLine& rhs);
