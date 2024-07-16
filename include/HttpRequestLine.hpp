@@ -38,6 +38,8 @@ class HttpRequestLine {
                 std::string complete_url;
         };
 
+        static const int    kMaxRequestLineSize = 8192;
+
         static const std::string    kOriginForm;
         static const std::string    kAbsoluteForm;
         static const std::string    kAsteriskForm;

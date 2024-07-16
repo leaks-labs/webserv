@@ -48,7 +48,9 @@ void    HttpHeader::set_host(const std::string& host)
 
 void HttpHeader::Parse(std::string& message)
 {
-    buffer_ = message;
+    buffer_ += message;
+    if (buffer_.size() > kMaxHeaderSize)
+        throw std::runtime_error("431");
     size_t pos = FindEndOfHeader(buffer_);
     if (pos == kNotFoundEnd) {
         message.clear();

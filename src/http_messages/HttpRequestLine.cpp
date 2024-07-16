@@ -61,7 +61,9 @@ const std::string&  HttpRequestLine::get_http_version() const
 
 void HttpRequestLine::Parse(std::string& message)
 {
-    buffer_ = message;
+    buffer_ += message;
+    if (buffer_.size() > kMaxRequestLineSize)
+        throw std::runtime_error("414");
     size_t pos = FindEndOfRequestLine(buffer_);
     if (pos == kNotFoundEnd) {
         message.clear();

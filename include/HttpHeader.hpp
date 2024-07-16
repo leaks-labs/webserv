@@ -26,6 +26,8 @@ class HttpHeader {
         void        Print() const;
 
     private:
+        static const int    kMaxHeaderSize = 32768;
+
         static const size_t kNotFoundEnd = 0;
         static const size_t kTerminatorSize = 4;
 
