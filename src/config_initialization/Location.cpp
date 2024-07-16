@@ -311,6 +311,7 @@ const std::map<int, std::string>    Location::InitErrorListRef()
     m[500] = path;
     m[501] = path;
     m[502] = path;
+    m[505] = path;
     return m;
 }
 

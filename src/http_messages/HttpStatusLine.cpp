@@ -132,6 +132,8 @@ const std::vector<int>  HttpStatusLine::InitCodesRequiringClose()
     res.push_back(431);
     res.push_back(500);
     res.push_back(501);
+    res.push_back(502);
+    res.push_back(505);
     return res;
 }
 
@@ -155,6 +157,7 @@ const std::map<int, std::string>  HttpStatusLine::InitStatusCodeMap()
     m[500] = "Internal Server Error";
     m[501] = "Internal Server Error";
     m[502] = "Bad Gateway";
+    m[505] = "HTTP Version Not Supported";
     return m;
 }
 

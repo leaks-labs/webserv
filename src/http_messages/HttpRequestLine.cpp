@@ -92,10 +92,11 @@ void HttpRequestLine::Parse(std::string& message)
     method_ = tokens[0];
     target_.InitTargetType(tokens[1]);
     target_.set_complete_url(tokens[1]);
-    if (tokens[2] == "HTTP/0.9"|| tokens[2] == "HTTP/1.0")
+    if (tokens[2] != "HTTP/0.9"&& tokens[2] != "HTTP/1.0"
+        && tokens[2] != "HTTP/1.1" && tokens[2] != "HTTP/2" && tokens[2] != "HTTP/3")
         throw std::runtime_error("400");
-    else if (tokens[2] != "HTTP/1.1" && tokens[2] != "HTTP/2" && tokens[2] != "HTTP/3")
-        throw std::runtime_error("400");
+    else if (tokens[2] != "HTTP/1.1")
+        throw std::runtime_error("505");
     http_version_ = tokens[2];
 }
 
