@@ -7,7 +7,7 @@
 
 class HttpStatusLine {
     public:
-        static const std::map<int, std::string>&    get_status_map();
+        static const std::map<int, std::string>&    get_status_code_map();
 
         HttpStatusLine();
         HttpStatusLine(int code);
@@ -31,10 +31,10 @@ class HttpStatusLine {
 
     private:
         static const std::vector<int>           codes_requiring_close_;
-        static const std::map<int, std::string> status_map_;
+        static const std::map<int, std::string> status_code_map_;
 
         static const std::vector<int>           InitCodesRequiringClose();
-        static const std::map<int, std::string> InitStatusMap();
+        static const std::map<int, std::string> InitStatusCodeMap();
 
         static const int    kNotFoundEnd = 0;
         static const int    kTerminatorSize = 2;

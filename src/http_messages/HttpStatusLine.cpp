@@ -7,11 +7,11 @@
 // TODO: to be removed
 
 const std::vector<int>              HttpStatusLine::codes_requiring_close_ = HttpStatusLine::InitCodesRequiringClose();
-const std::map<int, std::string>    HttpStatusLine::status_map_ = HttpStatusLine::InitStatusMap();
+const std::map<int, std::string>    HttpStatusLine::status_code_map_ = HttpStatusLine::InitStatusCodeMap();
 
-const std::map<int, std::string>&   HttpStatusLine::get_status_map()
+const std::map<int, std::string>&   HttpStatusLine::get_status_code_map()
 {
-    return status_map_;
+    return status_code_map_;
 }
 
 HttpStatusLine::HttpStatusLine()
@@ -90,9 +90,9 @@ const std::vector<int>& HttpStatusLine::get_codes_requiring_close() const
 
 void    HttpStatusLine::SetCodeAndPhrase(int code)
 {
-    std::map<int, std::string>::const_iterator it = status_map_.find(code);
+    std::map<int, std::string>::const_iterator it = status_code_map_.find(code);
     status_code_ = code;
-    if (it != status_map_.end())
+    if (it != status_code_map_.end())
         reason_phrase_ = it->second;
     else
         reason_phrase_ = "Unknown Status Code";
@@ -134,7 +134,7 @@ const std::vector<int>  HttpStatusLine::InitCodesRequiringClose()
     return res;
 }
 
-const std::map<int, std::string>  HttpStatusLine::InitStatusMap()
+const std::map<int, std::string>  HttpStatusLine::InitStatusCodeMap()
 {
     std::map<int, std::string>  m;
     m[200] = "OK";
