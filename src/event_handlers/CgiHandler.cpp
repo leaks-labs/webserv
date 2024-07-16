@@ -163,7 +163,9 @@ void    CgiHandler::ReturnToStreamHandler()
     {
         if (error_occured_while_handle_event_)
             throw std::runtime_error("500");
-        response_.set_header(cgi_buffer);
+        response_.ParseHeader(cgi_buffer);
+        if (!response_.IsComplete())
+            throw std::runtime_error("502");
         response_.set_body(cgi_buffer);
         response_.AddHeaderContentLength();
         // TODO: set the right status code,

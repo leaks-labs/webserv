@@ -22,10 +22,10 @@ class HttpResponse {
         std::string&                    get_response();
 
         void    set_status_line(int code);
-        void    set_header(std::string& str);
         void    set_body(const std::string& str);
 
         void    Execute();
+        void    ParseHeader(std::string& str);
         bool    IsComplete() const;
         void    SetComplete();
         void    AddHeaderContentLength();
@@ -33,6 +33,7 @@ class HttpResponse {
         void    ClearHeader();
         void    UpdateReason();
         void    SetResponseToErrorPage(const int error);
+        bool    HeaderIsComplete() const;
 
     private:
         static std::string  FindExtension(const std::string& str);

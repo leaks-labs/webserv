@@ -99,6 +99,11 @@ void    HttpResponse::Execute()
         throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
 }
 
+void    HttpResponse::ParseHeader(std::string& str)
+{
+    header_.Parse(str, HttpHeader::kParseResponse);
+}
+
 bool HttpResponse::IsComplete() const
 {
     return complete_;
@@ -123,11 +128,6 @@ void HttpResponse::AddHeaderContentLength()
     header_.AddOneHeader("CONTENT-LENGTH", body_size_str);
 }
 
-void    HttpResponse::set_header(std::string& str)
-{
-    header_.Parse(str, HttpHeader::kParseResponse);
-}
-
 bool    HttpResponse::IsAskingToCloseConnection() const
 {
     const std::vector<int>& vec = status_line_.get_codes_requiring_close();
@@ -144,18 +144,23 @@ void    HttpResponse::UpdateReason()
     set_status_line(status_line_.get_status_code());
 }
 
-std::string HttpResponse::FindExtension(const std::string& str)
-{
-    size_t pos = str.rfind('.');
-    return (pos == std::string::npos) ? "" : str.substr(pos + 1);
-}
-
 void    HttpResponse::SetResponseToErrorPage(const int error)
 {
     set_status_line(error);
     AddErrorPageToBody(error);
     ClearHeader();
     FinalizeResponse();
+}
+
+bool    HttpResponse::HeaderIsComplete() const
+{
+    return header_.IsComplete();
+}
+
+std::string HttpResponse::FindExtension(const std::string& str)
+{
+    size_t pos = str.rfind('.');
+    return (pos == std::string::npos) ? "" : str.substr(pos + 1);
 }
 
 bool HttpResponse::IsCgiFile(const std::string& path)
