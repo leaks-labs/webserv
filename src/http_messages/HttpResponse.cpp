@@ -23,9 +23,9 @@ HttpResponse::HttpResponse(StreamHandler& stream_handler, const HttpRequest& req
     request_body_(request.get_body().get_body()),
     path_(BuildPath()),
     cgi_path_(GetCgiPath(FindExtension(path_))),
-    env_(SetEnv(request)),
+    env_(SetEnv()),
     complete_(false)
-{   
+{
 }
 
 HttpResponse::HttpResponse(const HttpResponse& src)
@@ -283,7 +283,7 @@ void    HttpResponse::FinalizeResponse()
         throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
 }
 
-std::vector<std::string> HttpResponse::SetEnv(const HttpRequest& request)
+std::vector<std::string> HttpResponse::SetEnv()
 {
     if (error_ != 200)
         return std::vector<std::string>();
@@ -291,6 +291,7 @@ std::vector<std::string> HttpResponse::SetEnv(const HttpRequest& request)
     std::vector<std::string>    res;
     const std::map<std::string, std::string>&   map = request_header_.get_header_map();
     res.push_back("REQUEST_METHOD=" + method_);
+    //res.push_back("PATH_INFO=" + );
     res.push_back("SCRIPT_FILENAME=" + path_);
     std::map<std::string, std::string>::const_iterator it = map.find("CONTENT-TYPE");
     std::string content_type = it == map.end() ? "text/html" : it->second;
@@ -298,6 +299,8 @@ std::vector<std::string> HttpResponse::SetEnv(const HttpRequest& request)
     std::string content_length = it == map.end() ? "0" : it->second;
     res.push_back("CONTENT_TYPE=" + content_type);
     res.push_back("CONTENT_LENGTH=" + content_length);
+    if(!get_query().empty())
+        res.push_back("QUERY_STRING=" + get_query());
     res.push_back("REDIRECT_STATUS=200");
     return res;
 }
