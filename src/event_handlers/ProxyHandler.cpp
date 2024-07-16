@@ -48,12 +48,11 @@ ProxyHandler::ProxyHandler(StreamHandler& stream_handler, const struct addrinfo&
         throw std::runtime_error("connect() failed to connect to the remote host: " + std::string(strerror(errno)));
     if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent | EventTypes::kWriteEvent) == -1)
         throw std::runtime_error("Failed to register ProxyHandler with InitiationDispatcher");
-    if (InitiationDispatcher::Instance().DeactivateHandler(stream_handler) == -1) {
-        InitiationDispatcher::Instance().DeactivateHandler(*this);
-        // TODO: remove entry
-        throw std::runtime_error("Failed to deactivate StreamHandler with InitiationDispatcher");
-    }
 
+    if (stream_handler.UnRegister() == -1) {
+        InitiationDispatcher::Instance().RemoveHandler(this);
+        throw std::runtime_error("Failed to unregister StreamHandler");
+    }
     // TODO: or update the response with a 500 error or something instead of throwing?
 }
 
