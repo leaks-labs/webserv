@@ -8,8 +8,6 @@
 #include "Server.hpp"
 #include "WebServ.hpp"
 
-#include "PathFinder.hpp"
-
 int main(int argc, char** argv)
 {
 	try
