@@ -234,12 +234,13 @@ void HttpResponse::AddListingPageToBody()
 
 void HttpResponse::AddErrorPageToBody(const int error)
 {
-    std::map<int, std::string>::const_iterator it = request_.get_location().get_errors().find(error);
-    if (it == request_.get_location().get_errors().end()) {
+    const std::map<int, std::string>&   errors_files = request_.get_location().get_errors();
+    std::map<int, std::string>::const_iterator it = errors_files.find(error);
+    if (it == errors_files.end()) {
         HTMLPage    error_page;
         body_ = error_page.GetErrorPage(error);
     } else {
-        path_ = request_.get_location().get_errors().find(error)->second;
+        path_ = errors_files.find(error)->second;
         std::ifstream ifs(path_.c_str());
         // TODO: check if a infinite loop is possible
         if(ifs.good())
