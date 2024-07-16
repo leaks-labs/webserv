@@ -18,12 +18,13 @@ HttpBody::HttpBody(const HttpBody& src)
 
 HttpBody&   HttpBody::operator=(const HttpBody& rhs)
 {
-    if (this != &rhs)
+    if (this != &rhs) {
         is_complete_ = rhs.is_complete_;
         max_body_size_ = rhs.max_body_size_;
         required_length_ = rhs.required_length_;
         is_transfer_encoding_chunked_ = rhs.is_transfer_encoding_chunked_;
         body_ = rhs.body_;
+    }
     return *this;
 }
 
