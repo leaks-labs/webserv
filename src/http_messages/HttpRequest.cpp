@@ -132,9 +132,9 @@ void    HttpRequest::AppendToRequest(std::string& message)
                 if (!header_.NeedBody())
                     is_complete_ = true;
                 else if (header_.IsContentLength())
-                    body_.SetMode(HttpBody::kModeContentLength, header_.GetContentLength());
+                    body_.SetMode(HttpBody::kModeContentLength, location_->get_bodymax(), header_.GetContentLength());
                 else
-                    body_.SetMode(HttpBody::kModeTransferEncodingChunked);
+                    body_.SetMode(HttpBody::kModeTransferEncodingChunked,location_->get_bodymax());
             }
         }
         if (!message.empty() && !body_.IsComplete())

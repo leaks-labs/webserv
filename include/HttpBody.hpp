@@ -20,10 +20,13 @@ class HttpBody {
         void    Parse(std::string& message);
         bool    IsComplete() const;
         size_t  Size() const;
-        void    SetMode(int mode, size_t content_legnth = 0);
+        void    SetMode(int mode, size_t max_body_size = kMaxBodySize, size_t content_legnth = 0);
 
     private :
+        static const int    kMaxBodySize = 1024;
+
         bool        is_complete_;
+        size_t      max_body_size_;
         size_t      required_length_;
         bool        is_transfer_encoding_chunked_;
         std::string body_;
