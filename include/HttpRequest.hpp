@@ -27,8 +27,10 @@ class HttpRequest {
         const Server&           get_server() const;
         const Location&         get_location() const;
         const HttpRequestLine&  get_request_line() const;
+        HttpRequestLine&        get_request_line();
         const HttpHeader&       get_header() const;
         const HttpBody&         get_body() const;
+        std::string&            get_body();
         std::string             get_host() const;
 
         void        AppendToRequest(std::string& message);

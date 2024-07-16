@@ -36,6 +36,11 @@ const std::string&  HttpBody::get_body() const
     return body_;
 }
 
+std::string&    HttpBody::get_body()
+{
+    return body_;
+}
+
 void    HttpBody::Parse(std::string& message)
 {
     if (!is_transfer_encoding_chunked_) {

@@ -16,6 +16,7 @@ class HttpBody {
         ~HttpBody();
 
         const std::string&  get_body() const;
+        std::string&        get_body();
 
         void    Parse(std::string& message);
         bool    IsComplete() const;

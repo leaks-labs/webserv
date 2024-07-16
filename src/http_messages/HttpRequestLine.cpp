@@ -54,6 +54,11 @@ const HttpRequestLine::Target&   HttpRequestLine::get_target() const
     return target_;
 }
 
+HttpRequestLine::Target&    HttpRequestLine::get_target()
+{
+    return target_;
+}
+
 const std::string&  HttpRequestLine::get_http_version() const
 {
     return http_version_;

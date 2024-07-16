@@ -58,6 +58,7 @@ class HttpRequestLine {
 
         const std::string&  get_method() const;
         const Target&       get_target() const;
+        Target&             get_target();
         const std::string&  get_http_version() const;
 
         void                Parse(std::string& message);

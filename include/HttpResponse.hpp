@@ -8,7 +8,7 @@ class StreamHandler;
 
 class HttpResponse {
     public :
-        HttpResponse(StreamHandler& stream_handler, const HttpRequest& request);
+        HttpResponse(StreamHandler& stream_handler, HttpRequest& request);
         HttpResponse(const HttpResponse& src);
 
         ~HttpResponse();
@@ -54,22 +54,21 @@ class HttpResponse {
         void                        FinalizeResponse();
         std::vector<std::string>    SetEnv();
 
+        bool                        complete_;
+        HttpRequest&                request_;
         StreamHandler&              stream_handler_;
         int                         error_;
-        const Server&               server_;
-        const Location&             location_;
+
+        // const Server&               server_;
+        // const Location&             location_;
         bool                        keep_alive_;
-        std::string                 method_;
-        HttpRequestLine::Target     target_;
-        HttpHeader                  request_header_;
-        std::string                 request_body_;
         std::string                 path_;
+        const std::string           cgi_path_;
+        std::vector<std::string>    env_;
+
         std::string                 status_line_;
         std::string                 header_;
         std::string                 body_;
-        const std::string           cgi_path_;
-        std::vector<std::string>    env_;
-        bool                        complete_;
         std::string                 response_;
 };
 

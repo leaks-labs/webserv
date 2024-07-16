@@ -74,6 +74,11 @@ const HttpRequestLine&  HttpRequest::get_request_line() const
     return request_line_;
 }
 
+HttpRequestLine&    HttpRequest::get_request_line()
+{
+    return request_line_;
+}
+
 const HttpHeader&   HttpRequest::get_header() const
 {
     return header_;
@@ -82,6 +87,11 @@ const HttpHeader&   HttpRequest::get_header() const
 const HttpBody& HttpRequest::get_body() const
 {
     return body_;
+}
+
+std::string&    HttpRequest::get_body()
+{
+    return body_.get_body();
 }
 
 std::string HttpRequest::get_host() const

@@ -11,40 +11,34 @@
 
 const std::vector<int>  HttpResponse::code_requiring_close_ = HttpResponse::InitCodeRequiringClose();
 
-HttpResponse::HttpResponse(StreamHandler& stream_handler, const HttpRequest& request) : 
-    stream_handler_(stream_handler),
-    error_(request.get_status_code()),
-    server_(request.get_server()),
-    location_(request.get_location()),
-    keep_alive_(request.KeepAlive()),
-    method_(request.get_request_line().get_method()),
-    target_(request.get_request_line().get_target()),
-    request_header_(request.get_header()),
-    request_body_(request.get_body().get_body()),
-    path_(BuildPath()),
-    cgi_path_(GetCgiPath(FindExtension(path_))),
-    env_(SetEnv()),
-    complete_(false)
+HttpResponse::HttpResponse(StreamHandler& stream_handler, HttpRequest& request)
+    : complete_(false),
+      request_(request),
+      stream_handler_(stream_handler),
+      error_(request.get_status_code()),
+    //   server_(request.get_server()),
+    //   location_(request.get_location()),
+      keep_alive_(request.KeepAlive()),
+      path_(BuildPath()),
+      cgi_path_(GetCgiPath(FindExtension(path_))),
+      env_(SetEnv())
 {
 }
 
 HttpResponse::HttpResponse(const HttpResponse& src)
-    : stream_handler_(src.stream_handler_),
+    : complete_(src.complete_),
+      request_(src.request_),
+      stream_handler_(src.stream_handler_),
       error_(src.error_),
-      server_(src.server_),
-      location_(src.location_),
+    //   server_(src.server_),
+    //   location_(src.location_),
       keep_alive_(src.keep_alive_),
-      method_(src.method_),
-      target_(src.target_),
-      request_header_(src.request_header_),
-      request_body_(src.request_body_),
       path_(src.path_),
+      cgi_path_(src.cgi_path_),
+      env_(src.env_),
       status_line_(src.status_line_),
       header_(src.header_),
       body_(src.body_),
-      cgi_path_(src.cgi_path_),
-      env_(src.env_),
-      complete_(src.complete_),
       response_(src.response_)
 {
 }
@@ -55,7 +49,7 @@ HttpResponse::~HttpResponse()
 
 const Location& HttpResponse::get_location() const 
 {
-    return location_;
+    return request_.get_location();
 }
 
 int HttpResponse::get_error() const 
@@ -80,12 +74,12 @@ const std::string&  HttpResponse::get_path() const
 
 const std::string&  HttpResponse::get_query() const
 {
-    return target_.get_query();
+    return request_.get_request_line().get_target().get_query();
 }
 
 std::string&    HttpResponse::get_request_body()
 {
-    return request_body_;
+    return request_.get_body();
 }
 
 const std::vector<std::string>& HttpResponse::get_env() const
@@ -105,13 +99,13 @@ void    HttpResponse::set_body(const std::string& str)
 
 void    HttpResponse::Execute()
 {
-    if (error_ == 200 && location_.HasMethod(method_) == false)
+    if (error_ == 200 && request_.get_location().HasMethod(request_.get_request_line().get_method()) == false)
         error_ = 405;
     if (error_ != 200) {
         AddErrorPageToBody(error_);
         FinalizeResponse();
     }
-    else if (method_ == "DELETE")
+    else if (request_.get_request_line().get_method() == "DELETE")
         Delete();
     else if (IsCgiFile(path_))
         LaunchCgiHandler();
@@ -165,6 +159,8 @@ std::vector<int> HttpResponse::InitCodeRequiringClose()
 
 std::string HttpResponse::BuildPath()
 {
+    HttpRequestLine::Target&    target_ = request_.get_request_line().get_target();
+    const Location&             location_ = request_.get_location();
     if (target_.get_target()[target_.get_target().size() - 1] == '/' && location_.get_listing() == false)
         target_.set_target(target_.get_target() + location_.get_default_file());
     std::string res = PathFinder::CanonicalizePath(location_.get_root() + target_.get_target());
@@ -227,7 +223,7 @@ void HttpResponse::AddFileToBody()
 
 void HttpResponse::AddListingPageToBody()
 {
-    Directory dir(path_, target_.get_target(), location_.get_root());
+    Directory dir(path_, request_.get_request_line().get_target().get_target(), request_.get_location().get_root());
     if (dir.IsOpen()) {
         body_ =  dir.GetHTML();
     } else {
@@ -238,12 +234,12 @@ void HttpResponse::AddListingPageToBody()
 
 void HttpResponse::AddErrorPageToBody(const int error)
 {
-    std::map<int, std::string>::const_iterator it = location_.get_errors().find(error);
-    if (it == location_.get_errors().end()) {
+    std::map<int, std::string>::const_iterator it = request_.get_location().get_errors().find(error);
+    if (it == request_.get_location().get_errors().end()) {
         HTMLPage    error_page;
         body_ = error_page.GetErrorPage(error);
     } else {
-        path_ = location_.get_errors().find(error)->second;
+        path_ = request_.get_location().get_errors().find(error)->second;
         std::ifstream ifs(path_.c_str());
         // TODO: check if a infinite loop is possible
         if(ifs.good())
@@ -289,8 +285,8 @@ std::vector<std::string> HttpResponse::SetEnv()
         return std::vector<std::string>();
 
     std::vector<std::string>    res;
-    const std::map<std::string, std::string>&   map = request_header_.get_header_map();
-    res.push_back("REQUEST_METHOD=" + method_);
+    const std::map<std::string, std::string>&   map = request_.get_header().get_header_map();
+    res.push_back("REQUEST_METHOD=" + request_.get_request_line().get_method());
     //res.push_back("PATH_INFO=" + );
     res.push_back("SCRIPT_FILENAME=" + path_);
     std::map<std::string, std::string>::const_iterator it = map.find("CONTENT-TYPE");
