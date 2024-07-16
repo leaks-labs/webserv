@@ -37,6 +37,11 @@ const std::string&  Server::get_port() const
     return port_;
 }
 
+const std::string&  Server::get_path_info() const
+{
+    return path_info_;
+}
+
 const std::vector<std::string>& Server::get_server_names() const 
 {
     return server_names_;
@@ -82,6 +87,16 @@ void    Server::set_addr(const struct addrinfo* addrinfo)
 {
     addr_ = addrinfo;
 }
+
+void    Server::set_path_info(std::string const & value)
+{
+    if(value.empty() || value[0] != '/')
+        throw std::runtime_error("path_info is invalid");
+    path_info_ = value;
+    if (path_info_[path_info_.size() - 1] != '/')
+        path_info_ += "/";
+}
+
 
 size_t  Server::ServerNamesCount() const
 {
@@ -129,6 +144,7 @@ const std::map<std::string, void (Server::*)(const std::string&)>   Server::Init
     std::map<std::string, void (Server::*)(const std::string&)> m;
     m["port"] = &Server::set_port;
     m["server_names"] = &Server::set_server_names;
+    m["path_info"] = &Server::set_path_info;
     return m;
 }
 

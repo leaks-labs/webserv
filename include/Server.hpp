@@ -24,11 +24,13 @@ class Server {
         const std::vector<std::string>& get_server_names() const;
         const std::vector<Location>&    get_locations() const;
         const struct addrinfo*          get_addr() const;
+        const std::string&              get_path_info() const;
 
         void    set_host(const std::string& value);
         void    set_port(const std::string& value);
         void    set_server_names(const std::string& value);
         void    set_addr(const struct addrinfo* addr);
+        void    set_path_info(const std::string& value);
 
         size_t          ServerNamesCount() const;
         int             SetValue(const std::string& key, const std::string& value);
@@ -52,6 +54,7 @@ class Server {
         std::vector<std::string>    server_names_;
         std::vector<Location>       locations_;
         const struct addrinfo*      addr_;
+        std::string                 path_info_;
 };
 
 #endif // SERVER_HPP_
