@@ -238,18 +238,6 @@ void HttpResponse::AddErrorPageToBody(const int error)
     }
 }
 
-// void    HttpResponse::CreateStatusLine()
-// {
-//     typedef std::map<int, std::string>::const_iterator iterator;
-
-//     std::ostringstream oss;
-//     oss << error_;
-//     std::string code_str = oss.str();
-
-//     iterator it = HttpRequest::status_map.find(error_);
-//     status_line_ = "HTTP/1.1 " + code_str + " " + it->second + "\r\n";
-// }
-
 void HttpResponse::LaunchCgiHandler()
 {
     new CgiHandler(stream_handler_, *this);
