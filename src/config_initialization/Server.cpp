@@ -142,7 +142,7 @@ bool Server::HasServerName(const std::string& name) const
     return false;
 }
 
-const Location& Server::FindLocation(std::string const &path) const
+const Location& Server::FindLocation(const std::string&path) const
 {
     std::vector<Location>::const_iterator   res;
     size_t  longest = 0;

@@ -113,6 +113,8 @@ void    HttpRequest::AppendToRequest(std::string& message)
         if (!message.empty() && !header_.IsComplete()) {
             header_.Parse(message, HttpHeader::kParseRequest);
             if (header_.IsComplete()) {
+                server_ = &ServerList::Instance().FindServer(acceptor_fd_, get_host());
+                location_ = &server_->FindLocation(request_line_.get_target().get_target());
                 if (!header_.NeedBody())
                     is_complete_ = true;
                 else if (header_.IsContentLength())

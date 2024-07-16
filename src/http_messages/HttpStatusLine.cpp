@@ -96,7 +96,6 @@ void    HttpStatusLine::Parse(std::string& message)
     buffer_.erase(pos - kTerminatorSize);
     message.erase(0, pos);
     is_complete_ = true;
-
     std::vector<std::string> tokens;
     if (HttpRequest::Split(buffer_, " ", tokens) == -1)
         throw std::runtime_error("502");
