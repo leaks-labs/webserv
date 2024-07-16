@@ -58,14 +58,10 @@ class HttpResponse {
         HttpRequest&                request_;
         StreamHandler&              stream_handler_;
         int                         error_;
-
-        // const Server&               server_;
-        // const Location&             location_;
         bool                        keep_alive_;
         std::string                 path_;
         const std::string           cgi_path_;
         std::vector<std::string>    env_;
-
         std::string                 status_line_;
         std::string                 header_;
         std::string                 body_;

@@ -88,6 +88,7 @@ int StreamHandler::SendFirstResponse()
         if (response_queue_.front().AskToCloseConnection())
             return kCloseConnection;
         response_queue_.pop_front();
+        request_queue_.pop_front();
         if ((request_queue_.empty() || !request_queue_.front().IsComplete())
             && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
             throw std::runtime_error("Failed to delete write filter for a socket");
@@ -98,6 +99,6 @@ int StreamHandler::SendFirstResponse()
 void    StreamHandler::ConvertRequestToResponse()
 {
     response_queue_.push_back(HttpResponse(*this, request_queue_.front()));
-    request_queue_.pop_front();
+    // request_queue_.pop_front();
     response_queue_.front().Execute();
 }
