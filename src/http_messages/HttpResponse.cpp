@@ -126,7 +126,7 @@ void    HttpResponse::AppendToHeader(const std::string& str)
     header_ += str;
 }
 
-bool    HttpResponse::AskToCloseConnection() const
+bool    HttpResponse::IsAskingToCloseConnection() const
 {
     return (std::find(code_requiring_close_.begin(), code_requiring_close_.end(), error_) != code_requiring_close_.end() || !keep_alive_);
 }
@@ -155,7 +155,7 @@ std::string HttpResponse::BuildPath()
     return res;
 }
 
-std::string HttpResponse::FindExtension(std::string const & str) const
+std::string HttpResponse::FindExtension(const std::string& str)
 {
     size_t pos = str.rfind('.');
     if (pos == std::string::npos)
@@ -163,13 +163,13 @@ std::string HttpResponse::FindExtension(std::string const & str) const
     return str.substr(pos + 1);
 }
 
-bool HttpResponse::IsCgiFile(std::string const & path) const
+bool HttpResponse::IsCgiFile(const std::string& path)
 {
     std::string extension = FindExtension(path);
     return (extension == "php");
 }
 
-std::string HttpResponse::GetCgiPath(std::string const & ext) const
+std::string HttpResponse::GetCgiPath(const std::string& ext)
 {
     PathFinder& finder = PathFinder::Instance();
     return ext == "php" ? finder.GetPhp() : "none";

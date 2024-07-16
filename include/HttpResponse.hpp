@@ -13,12 +13,12 @@ class HttpResponse {
 
         ~HttpResponse();
 
-        std::string&                    get_response();
         const std::string&              get_cgi_path() const;
         const std::string&              get_path() const;
         const std::string&              get_query() const;
-        std::string&                    get_request_body();
         const std::vector<std::string>& get_env() const;
+        std::string&                    get_request_body();
+        std::string&                    get_response();
 
         void    set_status_line(const std::string& str);
         void    set_body(const std::string& str);
@@ -28,20 +28,21 @@ class HttpResponse {
         void    SetComplete();
         void    AddHeaderContentLength();
         void    AppendToHeader(const std::string& str);
-        bool    AskToCloseConnection() const;
+        bool    IsAskingToCloseConnection() const;
 
     private:
         static const std::vector<int>   code_requiring_close_;
 
         static std::vector<int> InitCodeRequiringClose();
 
+        static std::string  FindExtension(const std::string& str);
+        static bool         IsCgiFile(const std::string& path);
+        static std::string  GetCgiPath(const std::string& ext);
+
         HttpResponse();
         HttpResponse&   operator=(const HttpResponse& rhs);
 
         std::string                 BuildPath();
-        std::string                 FindExtension(const std::string& str) const;
-        bool                        IsCgiFile(const std::string& path) const;
-        std::string                 GetCgiPath(const std::string& ext) const;
         void                        Get();
         void                        Delete();
         void                        AddFileToBody();
