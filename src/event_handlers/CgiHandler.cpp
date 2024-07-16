@@ -163,7 +163,7 @@ void    CgiHandler::ReturnToStreamHandler()
     // TODO: for now just presume all is ok
     response_.set_status_line("HTTP/1.1 200 OK");
     size_t  pos = cgi_buffer.find("\r\n\r\n");
-    response_.AppendToHeader(cgi_buffer.substr(0, pos + 2));
+    // response_.set_header(cgi_buffer.substr(0, pos + 2));
     cgi_buffer.erase(0, pos + 4);
     response_.set_body(cgi_buffer);
     response_.AddHeaderContentLength();

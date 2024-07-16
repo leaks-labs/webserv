@@ -75,12 +75,12 @@ std::string&    HttpResponse::get_response()
 
 void    HttpResponse::set_status_line(const std::string& str)
 {
-    status_line_ = str;
+    status_line_ = str + "\r\n";
 }
 
 void    HttpResponse::set_body(const std::string& str)
 {
-    body_ = str;
+    body_.set_body(str);
 }
 
 void    HttpResponse::Execute()
@@ -106,24 +106,25 @@ bool HttpResponse::IsComplete() const
 
 void HttpResponse::SetComplete()
 {
-    response_ = status_line_ + "\r\n" + header_ + "\r\n" + body_;
+    response_ = status_line_ + header_.GetFormatedHeader() + body_.get_body();
+    // std::cout << "+++++++++++++" << std::endl << response_ << std::endl << "+++++++++++++" << std::endl;
     status_line_.clear();
-    header_.clear();
-    body_.clear();
+    header_.Clear();
+    body_.Clear();
     complete_ = true;
 }
 
 void HttpResponse::AddHeaderContentLength()
 {
     std::ostringstream oss;
-    oss << body_.size();
+    oss << body_.Size();
     std::string body_size_str = oss.str();
-    header_ += "Content-Length: " + body_size_str + "\r\n";
+    header_.AddOneHeader("CONTENT-LENGTH", body_size_str);
 }
 
-void    HttpResponse::AppendToHeader(const std::string& str)
+void    HttpResponse::set_header(std::string& str)
 {
-    header_ += str;
+    header_.Parse(str);
 }
 
 bool    HttpResponse::IsAskingToCloseConnection() const
@@ -200,7 +201,7 @@ void HttpResponse::AddFileToBody()
     if (ifs.good()) {
         std::ostringstream buffer;
         buffer << ifs.rdbuf();
-        body_ = buffer.str();
+        body_.set_body(buffer.str());
     } else {
         error_ = 404; // TODO: check if it's the right error
         AddErrorPageToBody(error_);
@@ -211,7 +212,7 @@ void HttpResponse::AddListingPageToBody()
 {
     Directory dir(path_, request_.get_request_line().get_target().get_target(), request_.get_location().get_root());
     if (dir.IsOpen()) {
-        body_ =  dir.GetHTML();
+        body_.set_body(dir.GetHTML());
     } else {
         error_ = 404; // TODO: check if it's the right error
         return AddErrorPageToBody(error_);
@@ -224,7 +225,7 @@ void HttpResponse::AddErrorPageToBody(const int error)
     std::map<int, std::string>::const_iterator it = errors_files.find(error);
     if (it == errors_files.end()) {
         HTMLPage    error_page;
-        body_ = error_page.GetErrorPage(error);
+        body_.set_body(error_page.GetErrorPage(error));
     } else {
         path_ = errors_files.find(error)->second;
         std::ifstream ifs(path_.c_str());
@@ -233,7 +234,7 @@ void HttpResponse::AddErrorPageToBody(const int error)
             AddFileToBody();
         else {
             HTMLPage    error_page;
-            body_ = error_page.GetErrorPage(error);
+            body_.set_body(error_page.GetErrorPage(error));
         }
     }
 }
@@ -247,7 +248,7 @@ void    HttpResponse::CreateStatusLine()
     std::string code_str = oss.str();
 
     iterator it = HttpRequest::status_map.find(error_);
-    status_line_ = "HTTP/1.1 " + code_str + " " + it->second;
+    status_line_ = "HTTP/1.1 " + code_str + " " + it->second + "\r\n";
 }
 
 void HttpResponse::LaunchCgiHandler()

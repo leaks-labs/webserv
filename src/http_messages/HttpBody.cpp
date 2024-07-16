@@ -41,6 +41,11 @@ std::string&    HttpBody::get_body()
     return body_;
 }
 
+void    HttpBody::set_body(const std::string& str)
+{
+    body_ = str;
+}
+
 void    HttpBody::Parse(std::string& message)
 {
     if (!is_transfer_encoding_chunked_) {
@@ -79,4 +84,10 @@ void    HttpBody::SetMode(int mode, size_t max_body_size, size_t content_length)
         is_transfer_encoding_chunked_ = true;
     else
         throw std::invalid_argument("Invalid mode");
+}
+
+void    HttpBody::Clear()
+{
+    is_complete_ = false;
+    body_.clear();
 }

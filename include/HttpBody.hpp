@@ -18,10 +18,13 @@ class HttpBody {
         const std::string&  get_body() const;
         std::string&        get_body();
 
+        void    set_body(const std::string& str);
+
         void    Parse(std::string& message);
         bool    IsComplete() const;
         size_t  Size() const;
         void    SetMode(int mode, size_t max_body_size = kMaxBodySize, size_t content_legnth = 0);
+        void    Clear();
 
     private :
         static const int    kMaxBodySize = 1024;

@@ -21,13 +21,13 @@ class HttpResponse {
         std::string&                    get_response();
 
         void    set_status_line(const std::string& str);
+        void    set_header(std::string& str);
         void    set_body(const std::string& str);
 
         void    Execute();
         bool    IsComplete() const;
         void    SetComplete();
         void    AddHeaderContentLength();
-        void    AppendToHeader(const std::string& str);
         bool    IsAskingToCloseConnection() const;
 
     private:
@@ -62,8 +62,8 @@ class HttpResponse {
         const std::string           cgi_path_;
         std::vector<std::string>    env_;
         std::string                 status_line_;
-        std::string                 header_;
-        std::string                 body_;
+        HttpHeader                  header_;
+        HttpBody                    body_;
         std::string                 response_;
 };
 

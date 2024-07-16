@@ -133,6 +133,19 @@ std::string HttpHeader::GetFormatedHeader() const
     return header;
 }
 
+void    HttpHeader::AddOneHeader(const std::string& key, const std::string& value)
+{
+    header_map_[key] = value;
+}
+
+void    HttpHeader::Clear()
+{
+    is_complete_ = false;
+    need_body_ = false;
+    header_map_.clear();
+    buffer_.clear();
+}
+
 void HttpHeader::Print() const
 {
     std::cout << "\tHttpHeader properties: " << std::endl;

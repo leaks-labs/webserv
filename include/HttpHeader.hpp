@@ -23,6 +23,8 @@ class HttpHeader {
         bool        BodyIsTransferChunked() const;
         size_t      GetContentLength() const;
         std::string GetFormatedHeader() const;
+        void        AddOneHeader(const std::string& key, const std::string& value);
+        void        Clear();
         void        Print() const;
 
     private:
