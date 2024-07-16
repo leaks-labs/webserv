@@ -24,6 +24,7 @@ CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse& response)
       stream_child_(sfd_pair_.second),
       pid_child_(fork())
 {
+    //std::cout << "\tCGI BODY:"<< response_.get_request_body() << std::endl;
     if (pid_child_ == -1)
         throw std::runtime_error("Failed to fork: " + std::string(strerror(errno)));
     if (pid_child_ == 0)
@@ -114,14 +115,11 @@ void CgiHandler::ExecCGI()
     try
     {
         stream_main_.Close();
-        std::vector<char*>  cmd(3);
+        std::vector<char*>  cmd(2);
         const std::vector<std::string>&  env_src = response_.get_env();
         std::vector<char*>  env(env_src.size() + 1);
         cmd[0] = const_cast<char*>(response_.get_cgi_path().c_str());
-        cmd[1] = const_cast<char*>(response_.get_query().c_str());
-        for (std::vector<char*>::const_iterator cmd_it = cmd.begin(); cmd_it != cmd.end(); ++cmd_it)
-            std::cout << *cmd_it << std::endl;
-        std::vector<char*>::iterator it_dest = cmd.begin();
+        std::vector<char*>::iterator it_dest = env.begin();
         for (std::vector<std::string>::const_iterator it_src = env_src.begin(); it_src != env_src.end(); ++it_src, ++it_dest)
             *it_dest = const_cast<char*>(it_src->c_str());
         err_out = dup2(stream_child_.get_sfd(), STDOUT_FILENO);
@@ -134,6 +132,7 @@ void CgiHandler::ExecCGI()
         if (chdir(response_.get_location().get_root().c_str()) == -1)
             throw std::runtime_error("Cgi : chdir failed " + std::string(strerror(errno)));
         execve(cmd[0], cmd.data(), env.data());
+        std::cerr << "execve failed" << std::endl;
         throw std::runtime_error("Cgi : execve failed " + std::string(strerror(errno)));
         // if execve failed, the content of the socket will be empty
     }
