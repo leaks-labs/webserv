@@ -131,6 +131,7 @@ const std::vector<int>  HttpStatusLine::InitCodesRequiringClose()
     res.push_back(414);
     res.push_back(431);
     res.push_back(500);
+    res.push_back(501);
     return res;
 }
 
@@ -144,16 +145,16 @@ const std::map<int, std::string>  HttpStatusLine::InitStatusCodeMap()
     // m[302] = "Found";
     // m[304] = "Not Modified";
     m[400] = "Bad Request";
-    // m[401] = "Unauthorized";
-    // m[403] = "Forbidden";
+    m[403] = "Forbidden";
     m[404] = "Not Found";
     m[405] = "Method Not Allowed";
-    // m[407] = "Proxy Authentication Required";
     m[408] = "Request Timeout";
     m[413] = "Content Too Large";
     m[414] = "URI Too Long";
     m[431] = "Request Header Fields Too Large";
     m[500] = "Internal Server Error";
+    m[501] = "Internal Server Error";
+    m[502] = "Bad Gateway";
     return m;
 }
 

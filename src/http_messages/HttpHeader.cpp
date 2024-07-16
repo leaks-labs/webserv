@@ -78,6 +78,8 @@ void HttpHeader::Parse(std::string& message, int mode)
         } else if (one_line.first == "TRANSFER-ENCODING") {
             if (one_line.second != "chunked" && one_line.second != "compress" && one_line.second != "deflate" && one_line.second != "gzip")
                 mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
+            else if (one_line.second != "chunked")
+                throw std::runtime_error("501");
         } else if (one_line.first == "CONNECTION") {
             if (one_line.second != "keep-alive" && one_line.second != "close")
                 mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
