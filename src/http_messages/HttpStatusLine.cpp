@@ -141,11 +141,8 @@ const std::map<int, std::string>  HttpStatusLine::InitStatusCodeMap()
 {
     std::map<int, std::string>  m;
     m[200] = "OK";
-    // m[201] = "CREATED";
+    // m[201] = "Created";
     m[204] = "No Content";
-    // m[301] = "Moved Permanently";
-    // m[302] = "Found";
-    // m[304] = "Not Modified";
     m[400] = "Bad Request";
     m[403] = "Forbidden";
     m[404] = "Not Found";
