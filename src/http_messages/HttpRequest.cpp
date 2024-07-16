@@ -131,7 +131,8 @@ void    HttpRequest::AppendToRequest(std::string& message)
     catch (const std::exception &e) {
         std::istringstream iss(e.what());
         int code;
-        if (!(iss >> code))
+        iss >> std::noskipws >> code;
+        if (iss.fail() || !iss.eof() || code < 100 || code > 599)
             code = 500;
         status_code_ = code;
         is_complete_ = true;

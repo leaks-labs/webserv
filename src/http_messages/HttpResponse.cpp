@@ -83,17 +83,20 @@ void    HttpResponse::set_body(const std::string& str)
 void    HttpResponse::Execute()
 {
     if (status_line_.get_status_code() == 200 && request_.get_location().HasMethod(request_.get_request_line().get_method()) == false)
-        status_line_.SetCodeAndPhrase(405);
+        set_status_line(405);
     if (status_line_.get_status_code() != 200) {
         AddErrorPageToBody(status_line_.get_status_code());
-        FinalizeResponse();
-    }
-    else if (request_.get_request_line().get_method() == "DELETE")
+    } else if (request_.get_request_line().get_method() == "DELETE") {
         Delete();
-    else if (IsCgiFile(path_))
+    } else if (IsCgiFile(path_)) {
         LaunchCgiHandler();
-    else
+        return;
+    } else {
         Get();
+    }
+    FinalizeResponse();
+    if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
+        throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
 }
 
 bool HttpResponse::IsComplete() const
@@ -138,7 +141,7 @@ void    HttpResponse::ClearHeader()
 
 void    HttpResponse::UpdateReason()
 {
-    status_line_.SetCodeAndPhrase(status_line_.get_status_code());
+    set_status_line(status_line_.get_status_code());
 }
 
 std::string HttpResponse::FindExtension(const std::string& str)
@@ -149,13 +152,11 @@ std::string HttpResponse::FindExtension(const std::string& str)
 
 void    HttpResponse::SetResponseToErrorPage(const int error)
 {
+    set_status_line(error);
     AddErrorPageToBody(error);
     ClearHeader();
-    AddHeaderContentLength();
-    UpdateReason();
-    SetComplete();
+    FinalizeResponse();
 }
-
 
 bool HttpResponse::IsCgiFile(const std::string& path)
 {
@@ -177,7 +178,7 @@ std::string HttpResponse::BuildPath()
         target_.set_target(target_.get_target() + location_.get_default_file());
     std::string res = PathFinder::CanonicalizePath(location_.get_root() + target_.get_target());
     if (!PathFinder::PathExist(res))
-        status_line_.SetCodeAndPhrase(404);
+        set_status_line(404);
     return res;
 }
 
@@ -187,17 +188,16 @@ void HttpResponse::Get()
         AddListingPageToBody();
     else
         AddFileToBody();
-    FinalizeResponse();
 }
 
 void    HttpResponse::Delete()
 {
     if (std::remove(path_.c_str()) != 0) {
-        status_line_.SetCodeAndPhrase(403);
+        set_status_line(403);
         AddErrorPageToBody(status_line_.get_status_code());
+    } else {
+    set_status_line(204);
     }
-    status_line_.SetCodeAndPhrase(204);
-    FinalizeResponse();
 }
 
 void HttpResponse::AddFileToBody()
@@ -208,7 +208,7 @@ void HttpResponse::AddFileToBody()
         buffer << ifs.rdbuf();
         body_.set_body(buffer.str());
     } else {
-        status_line_.SetCodeAndPhrase(404);
+        set_status_line(404);
         AddErrorPageToBody(status_line_.get_status_code());
     }
 }
@@ -219,7 +219,7 @@ void HttpResponse::AddListingPageToBody()
     if (dir.IsOpen()) {
         body_.set_body(dir.GetHTML());
     } else {
-        status_line_.SetCodeAndPhrase(404);
+        set_status_line(404);
         return AddErrorPageToBody(status_line_.get_status_code());
     }
 }
@@ -246,8 +246,21 @@ void HttpResponse::AddErrorPageToBody(const int error)
 
 void HttpResponse::LaunchCgiHandler()
 {
-    new CgiHandler(stream_handler_, *this);
-    // TODO: handle the new fail
+    try
+    {
+        new CgiHandler(stream_handler_, *this);
+    }
+    catch(const std::exception& e)
+    {
+        std::istringstream iss(e.what());
+        int code;
+        iss >> std::noskipws >> code;
+        if (iss.fail() || !iss.eof() || code < 100 || code > 599)
+            code = 500;
+        SetResponseToErrorPage(code);
+        if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
+            throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
+    }
 }
 
 void    HttpResponse::FinalizeResponse()
@@ -255,8 +268,6 @@ void    HttpResponse::FinalizeResponse()
     UpdateReason();
     AddHeaderContentLength();
     SetComplete();
-    if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
-        throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
 }
 
 std::vector<std::string> HttpResponse::SetEnv()
