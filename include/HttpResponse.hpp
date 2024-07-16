@@ -2,6 +2,7 @@
 # define HTTP_RESPONSE_HPP_
 
 # include "HttpRequest.hpp"
+# include "HttpStatusLine.hpp"
 # include "ServerList.hpp"
 
 class StreamHandler;
@@ -61,7 +62,7 @@ class HttpResponse {
         std::string                 path_;
         const std::string           cgi_path_;
         std::vector<std::string>    env_;
-        std::string                 status_line_;
+        HttpStatusLine              status_line_;
         HttpHeader                  header_;
         HttpBody                    body_;
         std::string                 response_;

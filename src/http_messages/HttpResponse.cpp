@@ -73,10 +73,11 @@ std::string&    HttpResponse::get_response()
     return response_;
 }
 
-void    HttpResponse::set_status_line(const std::string& str)
-{
-    status_line_ = str + "\r\n";
-}
+// void    HttpResponse::set_status_line(const std::string& str)
+// {
+//     status_line_.Parse(str);
+//     status_line_ = str + "\r\n";
+// }
 
 void    HttpResponse::set_body(const std::string& str)
 {
@@ -106,7 +107,7 @@ bool HttpResponse::IsComplete() const
 
 void HttpResponse::SetComplete()
 {
-    response_ = status_line_ + header_.GetFormatedHeader() + body_.get_body();
+    response_ = status_line_.GetFormatedStatusLine() + header_.GetFormatedHeader() + body_.get_body();
     // std::cout << "+++++++++++++" << std::endl << response_ << std::endl << "+++++++++++++" << std::endl;
     status_line_.clear();
     header_.Clear();
