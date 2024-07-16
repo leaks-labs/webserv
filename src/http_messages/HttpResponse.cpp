@@ -112,6 +112,8 @@ void HttpResponse::SetComplete()
 
 void HttpResponse::AddHeaderContentLength()
 {
+    if (status_line_.get_status_code() == 204)
+        return;
     std::ostringstream oss;
     oss << body_.Size();
     std::string body_size_str = oss.str();
@@ -144,6 +146,16 @@ std::string HttpResponse::FindExtension(const std::string& str)
     size_t pos = str.rfind('.');
     return (pos == std::string::npos) ? "" : str.substr(pos + 1);
 }
+
+void    HttpResponse::SetResponseToErrorPage(const int error)
+{
+    AddErrorPageToBody(error);
+    ClearHeader();
+    AddHeaderContentLength();
+    UpdateReason();
+    SetComplete();
+}
+
 
 bool HttpResponse::IsCgiFile(const std::string& path)
 {
@@ -241,8 +253,7 @@ void HttpResponse::LaunchCgiHandler()
 void    HttpResponse::FinalizeResponse()
 {
     UpdateReason();
-    if (status_line_.get_status_code() != 204)
-        AddHeaderContentLength();
+    AddHeaderContentLength();
     SetComplete();
     if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
         throw std::runtime_error("Failed to add write filter to InitiationDispatcher");

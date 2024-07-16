@@ -24,7 +24,6 @@ CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse& response)
       stream_child_(sfd_pair_.second),
       pid_child_(fork())
 {
-    //std::cout << "\tCGI BODY:"<< response_.get_request_body() << std::endl;
     if (pid_child_ == -1)
         throw std::runtime_error("Failed to fork: " + std::string(strerror(errno)));
     if (pid_child_ == 0)
@@ -176,11 +175,7 @@ void    CgiHandler::ReturnToStreamHandler()
         int code;
         if (!(iss >> code))
             code = 500;
-        response_.AddErrorPageToBody(code);
-        response_.ClearHeader();
-        response_.AddHeaderContentLength();
-        response_.UpdateReason();
-        response_.SetComplete();
+        response_.SetResponseToErrorPage(code);
     }
     int err = stream_handler_.ReRegister();
     InitiationDispatcher::Instance().RemoveHandler(this);

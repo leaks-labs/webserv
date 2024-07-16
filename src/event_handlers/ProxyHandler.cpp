@@ -29,8 +29,9 @@ struct addrinfo*    ProxyHandler::ConvertToAddrInfo(const std::string& url)
     return res;
 }
 
-ProxyHandler::ProxyHandler(StreamHandler& stream_handler, const struct addrinfo& address)
+ProxyHandler::ProxyHandler(StreamHandler& stream_handler, const struct addrinfo& address, HttpResponse& response)
     : stream_handler_(stream_handler),
+      response_(response),
 #ifdef __APPLE__
       stream_(socket(address.ai_family, address.ai_socktype, address.ai_protocol))
 #elif __linux__

@@ -2,6 +2,7 @@
 # define PROXY_HANDLER_HPP_
 
 # include "EventHandler.hpp"
+# include "HttpResponse.hpp"
 # include "StreamHandler.hpp"
 # include "Stream.hpp"
 
@@ -13,7 +14,7 @@ class ProxyHandler : public EventHandler {
     public:
         static struct addrinfo* ConvertToAddrInfo(const std::string& url);
 
-        ProxyHandler(StreamHandler& stream_handler,  const struct addrinfo& address);
+        ProxyHandler(StreamHandler& stream_handler,  const struct addrinfo& address, HttpResponse& response);
 
         virtual ~ProxyHandler();
 
@@ -30,6 +31,7 @@ class ProxyHandler : public EventHandler {
         void    ReturnToStreamHandler();
 
         StreamHandler&  stream_handler_;
+        HttpResponse&   response_;
         Stream          stream_;
 };
 

@@ -30,9 +30,9 @@ class HttpResponse {
         void    SetComplete();
         void    AddHeaderContentLength();
         bool    IsAskingToCloseConnection() const;
-        void    AddErrorPageToBody(const int error);
         void    ClearHeader();
         void    UpdateReason();
+        void    SetResponseToErrorPage(const int error);
 
     private:
         static std::string  FindExtension(const std::string& str);
@@ -47,6 +47,7 @@ class HttpResponse {
         void                        Delete();
         void                        AddFileToBody();
         void                        AddListingPageToBody();
+        void                        AddErrorPageToBody(const int error);
         void                        LaunchCgiHandler();
         void                        FinalizeResponse();
         std::vector<std::string>    SetEnv();
