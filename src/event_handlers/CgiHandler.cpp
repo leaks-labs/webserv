@@ -24,6 +24,7 @@ CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse& response)
       stream_child_(sfd_pair_.second),
       pid_child_(fork())
 {
+    //std::cout << "\tCGI BODY:"<< response_.get_request_body() << std::endl;
     if (pid_child_ == -1)
         throw std::runtime_error("Failed to fork: " + std::string(strerror(errno)));
     if (pid_child_ == 0)
@@ -118,10 +119,10 @@ void CgiHandler::ExecCGI()
         const std::vector<std::string>&  env_src = response_.get_env();
         std::vector<char*>  env(env_src.size() + 1);
         cmd[0] = const_cast<char*>(response_.get_cgi_path().c_str());
-        cmd[1] = const_cast<char*>(response_.get_query().c_str());
-        for (std::vector<char*>::const_iterator cmd_it = cmd.begin(); cmd_it != cmd.end(); ++cmd_it)
-            std::cout << *cmd_it << std::endl;
-        std::vector<char*>::iterator it_dest = cmd.begin();
+        std::string path = response_.get_path();
+        size_t pos= path.rfind("/") + 1;
+        cmd[1] = const_cast<char*>(path.substr(pos, path.size() - pos).c_str());
+        std::vector<char*>::iterator it_dest = env.begin();
         for (std::vector<std::string>::const_iterator it_src = env_src.begin(); it_src != env_src.end(); ++it_src, ++it_dest)
             *it_dest = const_cast<char*>(it_src->c_str());
         err_out = dup2(stream_child_.get_sfd(), STDOUT_FILENO);
@@ -131,7 +132,7 @@ void CgiHandler::ExecCGI()
         if (err_in == -1 || err_out == -1)
             throw std::runtime_error("Cgi : dup2 failed " + std::string(strerror(errno)));
         // TODO: chdir to the root or to the directory where the .php is?
-        if (chdir(response_.get_location().get_root().c_str()) == -1)
+        if (chdir(response_.get_path().substr(0, response_.get_path().rfind("/") + 1).c_str()) == -1)
             throw std::runtime_error("Cgi : chdir failed " + std::string(strerror(errno)));
         execve(cmd[0], cmd.data(), env.data());
         throw std::runtime_error("Cgi : execve failed " + std::string(strerror(errno)));
@@ -139,7 +140,7 @@ void CgiHandler::ExecCGI()
     }
     catch(const std::exception& e)
     {
-        std::cout << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
         stream_child_.Close();
         if (err_out != -1)
             close(STDOUT_FILENO);

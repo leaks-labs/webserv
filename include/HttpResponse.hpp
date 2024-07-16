@@ -52,7 +52,7 @@ class HttpResponse {
         void                        CreateStatusLine();
         void                        LaunchCgiHandler();
         void                        FinalizeResponse();
-        std::vector<std::string>    SetEnv(const HttpRequest& request);
+        std::vector<std::string>    SetEnv();
 
         StreamHandler&              stream_handler_;
         int                         error_;

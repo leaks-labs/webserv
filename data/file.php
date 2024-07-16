@@ -13,7 +13,7 @@ if (strpos($file_type, 'text') !== false) {
     echo htmlspecialchars($file_content);
     echo "</pre>\n";
 } elseif (strpos($file_type, 'image') !== false) {
-    echo "<img src='data:$file_type;base64," . base64_encode($file_content) . "' alt='$file_name'>\n";
+    echo "<img src='data:$file_type;base64," . base64_encode($file_content) . "' alt='$file'>\n";
 } else {
     echo "<p>Le type de fichier n'est pas pris en charge pour l'affichage direct.</p>\n";
 }

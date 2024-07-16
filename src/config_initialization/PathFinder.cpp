@@ -76,7 +76,7 @@ PathFinder::PathFinder()
         folder = value.substr(start, end - start);
         if (folder.empty())
             folder = ".";
-        path = folder + kPhpBinName;
+        path = folder + "/" + kPhpBinName;
         if (PathIsExecutable(path)) {
             php_ = path;
             break;
