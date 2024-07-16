@@ -80,7 +80,8 @@ void HttpRequestLine::Parse(std::string& message)
     is_complete_ = true;
 
     std::vector<std::string> tokens;
-    HttpRequest::Split(buffer_, " ", tokens);
+    if (HttpRequest::Split(buffer_, " ", tokens) == -1)
+        throw std::runtime_error("400");
     buffer_.clear();
 
     if (tokens.size() != 3)

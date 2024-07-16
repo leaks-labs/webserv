@@ -15,7 +15,7 @@ class HttpRequest {
     public :
         static const std::map<int, std::string> status_map;
 
-        static void     Split(const std::string& str, const std::string& delim, std::vector<std::string>& tokens);
+        static int  Split(const std::string& str, const std::string& delim, std::vector<std::string>& tokens);
 
         HttpRequest(int acceptor_fd);
         HttpRequest(const HttpRequest& src);

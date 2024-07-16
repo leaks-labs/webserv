@@ -64,7 +64,9 @@ void HttpHeader::Parse(std::string& message, int mode)
     is_complete_ = true;
 
     std::vector<std::string> tokens;
-    HttpRequest::Split(buffer_, "\r\n", tokens);
+    int err = HttpRequest::Split(buffer_, "\r\n", tokens);
+    if (err == -1)
+        mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
     buffer_.clear();
 
     for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); ++it) {

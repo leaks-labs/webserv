@@ -5,7 +5,7 @@
 
 const std::map<int, std::string>    HttpRequest::status_map = HttpRequest::InitStatusMap();
 
-void    HttpRequest::Split(const std::string& str, const std::string& delim, std::vector<std::string>& tokens)
+int HttpRequest::Split(const std::string& str, const std::string& delim, std::vector<std::string>& tokens)
 {
     size_t start = 0, end;
     std::string token;
@@ -13,12 +13,12 @@ void    HttpRequest::Split(const std::string& str, const std::string& delim, std
         end = str.find(delim, start);
         std::string token = str.substr(start, end - start);
         if (token.empty())
-            throw std::runtime_error("400");
-            // TODO: or something else
+            return -1;
         else
             tokens.push_back(token);
         start = end + delim.length();
     } while (end != std::string::npos && start < str.length());
+    return 0;
 }
 
 HttpRequest::HttpRequest(int acceptor_fd)
