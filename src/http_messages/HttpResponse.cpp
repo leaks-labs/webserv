@@ -109,7 +109,7 @@ void HttpResponse::SetComplete()
 {
     response_ = status_line_.GetFormatedStatusLine() + header_.GetFormatedHeader() + body_.get_body();
     // std::cout << "+++++++++++++" << std::endl << response_ << std::endl << "+++++++++++++" << std::endl;
-    status_line_.clear();
+    status_line_.Clear();
     header_.Clear();
     body_.Clear();
     complete_ = true;
@@ -148,9 +148,7 @@ std::vector<int> HttpResponse::InitCodeRequiringClose()
 std::string HttpResponse::FindExtension(const std::string& str)
 {
     size_t pos = str.rfind('.');
-    if (pos == std::string::npos)
-        return "";
-    return str.substr(pos + 1);
+    return (pos == std::string::npos) ? "" : str.substr(pos + 1);
 }
 
 bool HttpResponse::IsCgiFile(const std::string& path)
@@ -240,17 +238,17 @@ void HttpResponse::AddErrorPageToBody(const int error)
     }
 }
 
-void    HttpResponse::CreateStatusLine()
-{
-    typedef std::map<int, std::string>::const_iterator iterator;
+// void    HttpResponse::CreateStatusLine()
+// {
+//     typedef std::map<int, std::string>::const_iterator iterator;
 
-    std::ostringstream oss;
-    oss << error_;
-    std::string code_str = oss.str();
+//     std::ostringstream oss;
+//     oss << error_;
+//     std::string code_str = oss.str();
 
-    iterator it = HttpRequest::status_map.find(error_);
-    status_line_ = "HTTP/1.1 " + code_str + " " + it->second + "\r\n";
-}
+//     iterator it = HttpRequest::status_map.find(error_);
+//     status_line_ = "HTTP/1.1 " + code_str + " " + it->second + "\r\n";
+// }
 
 void HttpResponse::LaunchCgiHandler()
 {
@@ -260,7 +258,7 @@ void HttpResponse::LaunchCgiHandler()
 
 void    HttpResponse::FinalizeResponse()
 {
-    CreateStatusLine();
+    status_line_.SetCodeAndPhrase(error_);
     if (error_ != 204)
         AddHeaderContentLength();
     SetComplete();

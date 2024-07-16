@@ -49,7 +49,7 @@ class HttpResponse {
         void                        AddFileToBody();
         void                        AddListingPageToBody();
         void                        AddErrorPageToBody(const int error);
-        void                        CreateStatusLine();
+        // void                        CreateStatusLine();
         void                        LaunchCgiHandler();
         void                        FinalizeResponse();
         std::vector<std::string>    SetEnv();
