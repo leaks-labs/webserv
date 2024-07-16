@@ -73,11 +73,10 @@ std::string&    HttpResponse::get_response()
     return response_;
 }
 
-// void    HttpResponse::set_status_line(const std::string& str)
-// {
-//     status_line_.Parse(str);
-//     status_line_ = str + "\r\n";
-// }
+void    HttpResponse::set_status_line(int code)
+{
+    status_line_.SetCodeAndPhrase(code);
+}
 
 void    HttpResponse::set_body(const std::string& str)
 {

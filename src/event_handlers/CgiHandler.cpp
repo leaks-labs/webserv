@@ -161,7 +161,7 @@ void    CgiHandler::ReturnToStreamHandler()
 {
     // TODO: or update the response with a 500 error or something, if the body is not valid
     // TODO: for now just presume all is ok
-    response_.set_status_line("HTTP/1.1 200 OK");
+    response_.set_status_line(200);
     size_t  pos = cgi_buffer.find("\r\n\r\n");
     // response_.set_header(cgi_buffer.substr(0, pos + 2));
     cgi_buffer.erase(0, pos + 4);

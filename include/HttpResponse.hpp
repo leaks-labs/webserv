@@ -21,7 +21,7 @@ class HttpResponse {
         std::string&                    get_request_body();
         std::string&                    get_response();
 
-        void    set_status_line(const std::string& str);
+        void    set_status_line(int code);
         void    set_header(std::string& str);
         void    set_body(const std::string& str);
 
