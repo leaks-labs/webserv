@@ -15,7 +15,7 @@ HttpResponse::HttpResponse(StreamHandler& stream_handler, HttpRequest& request)
     : complete_(false),
       request_(request),
       stream_handler_(stream_handler),
-      error_(request.get_status_code()),
+      status_line_(request.get_status_code()),
       keep_alive_(request.KeepAlive()),
       path_(BuildPath()),
       cgi_path_(GetCgiPath(FindExtension(path_))),
@@ -27,12 +27,11 @@ HttpResponse::HttpResponse(const HttpResponse& src)
     : complete_(src.complete_),
       request_(src.request_),
       stream_handler_(src.stream_handler_),
-      error_(src.error_),
+      status_line_(src.status_line_),
       keep_alive_(src.keep_alive_),
       path_(src.path_),
       cgi_path_(src.cgi_path_),
       env_(src.env_),
-      status_line_(src.status_line_),
       header_(src.header_),
       body_(src.body_),
       response_(src.response_)
@@ -85,10 +84,10 @@ void    HttpResponse::set_body(const std::string& str)
 
 void    HttpResponse::Execute()
 {
-    if (error_ == 200 && request_.get_location().HasMethod(request_.get_request_line().get_method()) == false)
-        error_ = 405;
-    if (error_ != 200) {
-        AddErrorPageToBody(error_);
+    if (status_line_.get_status_code() == 200 && request_.get_location().HasMethod(request_.get_request_line().get_method()) == false)
+        status_line_.SetCodeAndPhrase(405);
+    if (status_line_.get_status_code() != 200) {
+        AddErrorPageToBody(status_line_.get_status_code());
         FinalizeResponse();
     }
     else if (request_.get_request_line().get_method() == "DELETE")
@@ -129,7 +128,17 @@ void    HttpResponse::set_header(std::string& str)
 
 bool    HttpResponse::IsAskingToCloseConnection() const
 {
-    return (std::find(code_requiring_close_.begin(), code_requiring_close_.end(), error_) != code_requiring_close_.end() || !keep_alive_);
+    return (std::find(code_requiring_close_.begin(), code_requiring_close_.end(), status_line_.get_status_code()) != code_requiring_close_.end() || !keep_alive_);
+}
+
+void    HttpResponse::ClearHeader()
+{
+    header_.Clear();
+}
+
+void    HttpResponse::UpdateReason()
+{
+    status_line_.SetCodeAndPhrase(status_line_.get_status_code());
 }
 
 std::vector<int> HttpResponse::InitCodeRequiringClose()
@@ -170,7 +179,7 @@ std::string HttpResponse::BuildPath()
         target_.set_target(target_.get_target() + location_.get_default_file());
     std::string res = PathFinder::CanonicalizePath(location_.get_root() + target_.get_target());
     if (!PathFinder::PathExist(res))
-        error_ = 404;
+        status_line_.SetCodeAndPhrase(404);
     return res;
 }
 
@@ -186,10 +195,10 @@ void HttpResponse::Get()
 void    HttpResponse::Delete()
 {
     if (std::remove(path_.c_str()) != 0) {
-        error_ = 404; // TODO: change to the right error
-        AddErrorPageToBody(error_);
+        status_line_.SetCodeAndPhrase(403);
+        AddErrorPageToBody(status_line_.get_status_code());
     }
-    error_ = 204;
+    status_line_.SetCodeAndPhrase(204);
     FinalizeResponse();
 }
 
@@ -201,8 +210,8 @@ void HttpResponse::AddFileToBody()
         buffer << ifs.rdbuf();
         body_.set_body(buffer.str());
     } else {
-        error_ = 404; // TODO: check if it's the right error
-        AddErrorPageToBody(error_);
+        status_line_.SetCodeAndPhrase(404);
+        AddErrorPageToBody(status_line_.get_status_code());
     }
 }
 
@@ -212,8 +221,8 @@ void HttpResponse::AddListingPageToBody()
     if (dir.IsOpen()) {
         body_.set_body(dir.GetHTML());
     } else {
-        error_ = 404; // TODO: check if it's the right error
-        return AddErrorPageToBody(error_);
+        status_line_.SetCodeAndPhrase(404);
+        return AddErrorPageToBody(status_line_.get_status_code());
     }
 }
 
@@ -245,8 +254,8 @@ void HttpResponse::LaunchCgiHandler()
 
 void    HttpResponse::FinalizeResponse()
 {
-    status_line_.SetCodeAndPhrase(error_);
-    if (error_ != 204)
+    status_line_.SetCodeAndPhrase(status_line_.get_status_code());
+    if (status_line_.get_status_code() != 204)
         AddHeaderContentLength();
     SetComplete();
     if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
@@ -255,7 +264,7 @@ void    HttpResponse::FinalizeResponse()
 
 std::vector<std::string> HttpResponse::SetEnv()
 {
-    if (error_ != 200)
+    if (status_line_.get_status_code() != 200)
         return std::vector<std::string>();
 
     std::vector<std::string>    res;

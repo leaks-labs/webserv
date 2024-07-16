@@ -175,20 +175,12 @@ void    CgiHandler::ReturnToStreamHandler()
         int code;
         if (!(iss >> code))
             code = 500;
-        response_.set_status_line(code);
-        response_.
+        response_.AddErrorPageToBody(code);
+        response_.ClearHeader();
+        response_.AddHeaderContentLength();
+        response_.UpdateReason();
+        response_.SetComplete();
     }
-    
-
-
-
-
-    // size_t  pos = cgi_buffer.find("\r\n\r\n");
-    // response_.set_header(cgi_buffer.substr(0, pos + 2));
-    // cgi_buffer.erase(0, pos + 4);
-    // response_.set_body(cgi_buffer);
-    // response_.AddHeaderContentLength();
-    response_.SetComplete();
     int err = stream_handler_.ReRegister();
     InitiationDispatcher::Instance().RemoveHandler(this);
     if (err == -1)

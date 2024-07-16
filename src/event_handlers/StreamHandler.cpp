@@ -83,7 +83,6 @@ void   StreamHandler::AddToRequestQueue()
 
 int StreamHandler::SendFirstResponse()
 {
-    std::cout << "+++++++++++++" << std::endl << response_queue_.front().get_response() << std::endl << "+++++++++++++" << std::endl;
     stream_.Send(response_queue_.front().get_response());
     if (response_queue_.front().get_response().empty()) {
         if (response_queue_.front().IsAskingToCloseConnection())

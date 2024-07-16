@@ -30,6 +30,9 @@ class HttpResponse {
         void    SetComplete();
         void    AddHeaderContentLength();
         bool    IsAskingToCloseConnection() const;
+        void    AddErrorPageToBody(const int error);
+        void    ClearHeader();
+        void    UpdateReason();
 
     private:
         static const std::vector<int>   code_requiring_close_;
@@ -48,7 +51,6 @@ class HttpResponse {
         void                        Delete();
         void                        AddFileToBody();
         void                        AddListingPageToBody();
-        void                        AddErrorPageToBody(const int error);
         void                        LaunchCgiHandler();
         void                        FinalizeResponse();
         std::vector<std::string>    SetEnv();
@@ -56,12 +58,11 @@ class HttpResponse {
         bool                        complete_;
         HttpRequest&                request_;
         StreamHandler&              stream_handler_;
-        int                         error_;
+        HttpStatusLine              status_line_;
         bool                        keep_alive_;
         std::string                 path_;
         const std::string           cgi_path_;
         std::vector<std::string>    env_;
-        HttpStatusLine              status_line_;
         HttpHeader                  header_;
         HttpBody                    body_;
         std::string                 response_;
