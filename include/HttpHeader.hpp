@@ -34,6 +34,7 @@ class HttpHeader {
         static const int    kMaxHeaderSize = 32768;
 
         static std::pair<std::string, std::string>  ParseOneLine(const std::string& line);
+        void                                        ToLower(std::string& str);
 
         bool                                is_complete_;
         bool                                need_body_;

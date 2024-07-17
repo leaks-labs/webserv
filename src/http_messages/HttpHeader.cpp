@@ -76,11 +76,13 @@ void HttpHeader::Parse(std::string& message, int mode)
             if (one_line.second.find_first_not_of("0123456789") != std::string::npos)
                 mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
         } else if (one_line.first == "TRANSFER-ENCODING") {
+            ToLower(one_line.second);
             if (one_line.second != "chunked" && one_line.second != "compress" && one_line.second != "deflate" && one_line.second != "gzip")
                 mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
             else if (one_line.second != "chunked")
                 throw std::runtime_error("501");
         } else if (one_line.first == "CONNECTION") {
+            ToLower(one_line.second);
             if (one_line.second != "keep-alive" && one_line.second != "close")
                 mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
         }
@@ -178,4 +180,9 @@ std::pair<std::string, std::string>  HttpHeader::ParseOneLine(const std::string&
         throw std::runtime_error("400");
     std::transform(key.begin(), key.end(), key.begin(), ::toupper);
     return std::make_pair(key, value);
+}
+
+void    HttpHeader::ToLower(std::string& str)
+{
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 }
