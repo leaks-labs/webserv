@@ -8,7 +8,6 @@ listing true
 
 root /
 cgi php-cgi
-proxy false
 
 > /data
 methods GET POST
