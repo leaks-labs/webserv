@@ -231,7 +231,11 @@ void    Location::set_path_info(const std::string& value)
     if(value == "none")
         path_info_ = value;
     else
+    {
         path_info_ = finder.CanonicalizePath(value);
+        if(path_info_[path_info_.size() - 1] != '/')
+            path_info_ += "/";
+    }
 }
 
 bool    Location::HasMethod(const std::string& value) const
