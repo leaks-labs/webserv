@@ -227,7 +227,7 @@ void    Location::set_strict(bool value)
 
 void    Location::set_path_info(const std::string& value)
 {
-    PathFinder & finder = PathFinder::Instance();
+    PathFinder&    finder = PathFinder::Instance();
     if(value == "none")
         path_info_ = value;
     else
