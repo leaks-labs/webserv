@@ -61,6 +61,7 @@ class HttpResponse {
         void                        LaunchProxyHandler();
         void                        FinalizeResponse();
         std::vector<std::string>    SetEnv();
+        bool                        HasRightToModify(const std::string& path);
 
         bool                        complete_;
         HttpRequest&                request_;

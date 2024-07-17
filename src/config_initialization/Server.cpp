@@ -1,5 +1,6 @@
 #include "Server.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 
@@ -122,6 +123,12 @@ void    Server::PopDefaultServerName()
 {
     if (!server_names_.empty())
         server_names_.erase(server_names_.begin());
+}
+
+void    Server::RotateLocations()
+{
+    if (locations_.size() > 1)
+        std::rotate(locations_.begin(), locations_.begin() + 1, locations_.end());
 }
 
 const std::map<std::string, void (Server::*)(const std::string&)>   Server::InitSetFunctions()

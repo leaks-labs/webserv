@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <cstdio>
 
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "CgiHandler.hpp"
 #include "Directory.hpp"
 #include "InitiationDispatcher.hpp"
@@ -241,23 +244,32 @@ void HttpResponse::Get()
 
 void    HttpResponse::Delete()
 {
-    if (std::remove(path_.c_str()) != 0) {
+    if (!HasRightToModify(path_)) {
         set_status_line(403);
         AddErrorPageToBody(status_line_.get_status_code());
+    } else if (std::remove(path_.c_str()) != 0) {
+        set_status_line(500);
+        AddErrorPageToBody(status_line_.get_status_code());
     } else {
-    set_status_line(204);
+        set_status_line(204);
     }
 }
 
 void HttpResponse::AddFileToBody()
 {
+    struct stat buffer;
+    if ((stat(path_.c_str(), &buffer) == 0 && !S_ISREG(buffer.st_mode)) || access(path_.c_str(), R_OK) == -1) {
+        set_status_line(403);
+        AddErrorPageToBody(status_line_.get_status_code());
+        return;
+    }
     std::ifstream ifs(path_.c_str());
     if (ifs.good()) {
         std::ostringstream buffer;
         buffer << ifs.rdbuf();
         body_.set_body(buffer.str());
     } else {
-        set_status_line(404);
+        set_status_line(500);
         AddErrorPageToBody(status_line_.get_status_code());
     }
 }
@@ -368,4 +380,13 @@ std::vector<std::string> HttpResponse::SetEnv()
         res.push_back("QUERY_STRING=" + get_query());
     res.push_back("REDIRECT_STATUS=200");
     return res;
+}
+
+bool    HttpResponse::HasRightToModify(const std::string& path)
+{
+    std::string parent_dir = path.substr(0, path.find_last_of('/'));
+    if (parent_dir.empty())
+        parent_dir = "/";
+    struct stat statbuf;
+    return (access(path.c_str(), W_OK) == 0 && stat(parent_dir.c_str(), &statbuf) == 0 && access(parent_dir.c_str(), W_OK) == 0);
 }
