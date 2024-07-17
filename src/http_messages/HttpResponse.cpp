@@ -18,11 +18,14 @@ HttpResponse::HttpResponse(StreamHandler& stream_handler, HttpRequest& request)
       request_(request),
       stream_handler_(stream_handler),
       status_line_(request.get_status_code()),
-      keep_alive_(request.KeepAlive()),
-      path_(BuildPath()),
-      cgi_path_(GetCgiPath(FindExtension(path_))),
-      env_(SetEnv())
+      keep_alive_(request.KeepAlive())
 {
+    if (status_line_.get_status_code() == 200 && request.get_location().get_proxy().empty())
+        path_ = BuildPath();
+    if (status_line_.get_status_code() == 200 && IsCgiFile(path_)) {
+        cgi_path_ = GetCgiPath(FindExtension(path_));
+        env_ = SetEnv();
+    }
 }
 
 HttpResponse::HttpResponse(const HttpResponse& src)
@@ -186,9 +189,19 @@ bool    HttpResponse::IsAskingToCloseConnection() const
     return (std::find(vec.begin(), vec.end(), status_line_.get_status_code()) != vec.end() || !keep_alive_);
 }
 
+void    HttpResponse::ClearStatusLine()
+{
+    status_line_.Clear();
+}
+
 void    HttpResponse::ClearHeader()
 {
     header_.Clear();
+}
+
+void    HttpResponse::ClearBody()
+{
+    body_.Clear();
 }
 
 void    HttpResponse::UpdateReason()
@@ -329,7 +342,7 @@ void    HttpResponse::LaunchProxyHandler()
     struct addrinfo* addr = NULL;
     try
     {
-        std::string host = request_.get_host();
+        std::string host = request_.get_location().get_proxy();
         size_t  pos = host.find(':');
         std::string host_without_port = host.substr(0, pos);
         addr = ProxyHandler::ConvertToAddrInfo(host_without_port);

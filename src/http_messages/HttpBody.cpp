@@ -95,5 +95,8 @@ void    HttpBody::SetMode(int mode, size_t max_body_size, size_t content_length)
 void    HttpBody::Clear()
 {
     is_complete_ = false;
+    max_body_size_ = kMaxBodySize;
+    required_length_ = 0;
+    is_transfer_encoding_chunked_ = false;
     body_.clear();
 }

@@ -39,7 +39,9 @@ class HttpResponse {
         void    SetComplete();
         void    AddHeaderContentLength();
         bool    IsAskingToCloseConnection() const;
+        void    ClearStatusLine();
         void    ClearHeader();
+        void    ClearBody();
         void    UpdateReason();
         void    SetResponseToErrorPage(const int error);
 
@@ -69,7 +71,7 @@ class HttpResponse {
         HttpStatusLine              status_line_;
         bool                        keep_alive_;
         std::string                 path_;
-        const std::string           cgi_path_;
+        std::string                 cgi_path_;
         std::vector<std::string>    env_;
         HttpHeader                  header_;
         HttpBody                    body_;

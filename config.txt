@@ -7,10 +7,8 @@ listing true
 cgi php-cgi
 
 > /data
+root /Users/simonhinfray/Workspace/webserv
 
 > /
+proxy www.stallman.org
 root /
-methods GET
-
-> /other
-proxy otherwebsite.com

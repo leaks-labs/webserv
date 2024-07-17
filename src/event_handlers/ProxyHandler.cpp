@@ -81,6 +81,9 @@ void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
             // TODO: add the string return by Read to the response; for now, just consume data
             buffer_ = stream_.Read();
 
+            response_.ClearStatusLine();
+            response_.ClearHeader();
+            response_.ClearBody();
             if (!response_.StatusLineIsComplete())
                 response_.ParseStatusLine(buffer_);
             if (!buffer_.empty() && !response_.HeaderIsComplete()) {

@@ -25,7 +25,7 @@ HttpStatusLine::HttpStatusLine()
 }
 
 HttpStatusLine::HttpStatusLine(int code)
-    : is_complete_(true),
+    : is_complete_(false),
       http_version_("HTTP/1.1"),
       status_code_(code)
 {
