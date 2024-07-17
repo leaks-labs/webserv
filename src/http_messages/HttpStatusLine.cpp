@@ -102,7 +102,7 @@ void    HttpStatusLine::Parse(std::string& message)
     if (HttpRequest::Split(buffer_, " ", tokens) == -1)
         throw std::runtime_error("502");
     buffer_.clear();
-    if (tokens.size() != 2 && tokens.size() != 3)
+    if (tokens.size() < 2)
         throw std::runtime_error("502");
     if (tokens[0] != "HTTP/0.9"&& tokens[0] != "HTTP/1.0"
         && tokens[0] != "HTTP/1.1" && tokens[0] != "HTTP/2" && tokens[0] != "HTTP/3")
@@ -112,10 +112,17 @@ void    HttpStatusLine::Parse(std::string& message)
     iss >> std::noskipws >> status_code_;
     if (iss.fail() || !iss.eof() || status_code_ < 100 || status_code_ > 599)
         throw std::runtime_error("502");
-    if (tokens.size() == 3)
-        reason_phrase_ = tokens[2];
-    else
+    if (tokens.size() > 2) {
+        std::string reason_phrase;
+        for (size_t i = 2; i < tokens.size(); ++i) {
+            reason_phrase += tokens[i];
+            if (i != tokens.size() - 1)
+                reason_phrase += " ";
+        }
+        reason_phrase_ = reason_phrase;
+    } else {
         SetCodeAndPhrase(status_code_);
+    }
 }
 
 void    HttpStatusLine::SetCodeAndPhrase(int code)

@@ -10,5 +10,5 @@ cgi php-cgi
 root /Users/simonhinfray/Workspace/webserv
 
 > /
-proxy www.stallman.org
+proxy www.wikipedia.org
 root /
