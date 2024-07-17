@@ -90,10 +90,8 @@ void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
             catch(const std::exception& e)
             {
                 error_occured_while_handle_event_ = true;
-                ReturnToStreamHandler();
-                return; // Do NOT remove this return. It is important to be sure to return here.
             }
-            if (response_.BodyIsComplete()) {
+            if (response_.BodyIsComplete() || error_occured_while_handle_event_) {
                 ReturnToStreamHandler();
                 return; // Do NOT remove this return. It is important to be sure to return here.
             }
