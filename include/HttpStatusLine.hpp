@@ -35,10 +35,6 @@ class HttpStatusLine {
 
         static const std::vector<int>           InitCodesRequiringClose();
         static const std::map<int, std::string> InitStatusCodeMap();
-        static size_t                           FindEndOfStatusLine(const std::string& buff);
-
-        static const int    kNotFoundEnd = 0;
-        static const int    kTerminatorSize = 2;
 
         bool        is_complete_;
         std::string http_version_;

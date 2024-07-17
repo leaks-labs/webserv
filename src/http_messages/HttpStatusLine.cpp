@@ -86,15 +86,17 @@ const std::vector<int>& HttpStatusLine::get_codes_requiring_close() const
 
 void    HttpStatusLine::Parse(std::string& message)
 {
+    size_t initial_buffer_size = buffer_.length();
     buffer_ += message;
     // TODO: set a size limit??
-    size_t pos = FindEndOfStatusLine(buffer_);
-    if (pos == kNotFoundEnd) {
+    size_t pos = buffer_.find("\r\n");
+    if (pos == std::string::npos) {
         message.clear();
         return;
     }
-    buffer_.erase(pos - kTerminatorSize);
-    message.erase(0, pos);
+    buffer_.erase(pos);
+    size_t  bytes_to_trim_in_message = buffer_.length() - initial_buffer_size + 2;
+    message.erase(0, bytes_to_trim_in_message);
     is_complete_ = true;
     std::vector<std::string> tokens;
     if (HttpRequest::Split(buffer_, " ", tokens) == -1)
@@ -184,10 +186,4 @@ const std::map<int, std::string>  HttpStatusLine::InitStatusCodeMap()
     m[502] = "Bad Gateway";
     m[505] = "HTTP Version Not Supported";
     return m;
-}
-
-size_t  HttpStatusLine::FindEndOfStatusLine(const std::string& buff)
-{
-    size_t  pos = buff.find("\r\n");
-    return pos != std::string::npos ? pos + kTerminatorSize : kNotFoundEnd;
 }

@@ -69,12 +69,7 @@ class HttpRequestLine {
     private:
         static const int    kMaxRequestLineSize = 8192;
 
-        static const int    kNotFoundEnd = 0;
-        static const int    kTerminatorSize = 2;
-
         static std::map<std::string, bool>  InitMethodMap();
-
-        static size_t   FindEndOfRequestLine(const std::string& buff);
 
         bool        is_complete_;
         std::string method_;

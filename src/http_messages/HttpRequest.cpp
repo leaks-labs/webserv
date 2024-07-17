@@ -15,7 +15,7 @@ int HttpRequest::Split(const std::string& str, const std::string& delim, std::ve
         else
             tokens.push_back(token);
         start = end + delim.length();
-    } while (end != std::string::npos && start < str.length());
+    } while (end != std::string::npos);
     return 0;
 }
 

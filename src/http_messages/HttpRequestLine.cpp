@@ -66,17 +66,19 @@ const std::string&  HttpRequestLine::get_http_version() const
 
 void HttpRequestLine::Parse(std::string& message)
 {
+    size_t initial_buffer_size = buffer_.length();
     buffer_ += message;
     if (buffer_.size() > kMaxRequestLineSize)
         throw std::runtime_error("414");
-    size_t pos = FindEndOfRequestLine(buffer_);
-    if (pos == kNotFoundEnd) {
+    size_t pos = buffer_.find("\r\n");
+    if (pos == std::string::npos) {
         message.clear();
         return;
     }
 
-    buffer_.erase(pos - kTerminatorSize);
-    message.erase(0, pos);
+    buffer_.erase(pos);
+    size_t  bytes_to_trim_in_message = buffer_.length() - initial_buffer_size + 2;
+    message.erase(0, bytes_to_trim_in_message);
     is_complete_ = true;
     std::vector<std::string> tokens;
     if (HttpRequest::Split(buffer_, " ", tokens) == -1)
@@ -127,12 +129,6 @@ std::map<std::string, bool> HttpRequestLine::InitMethodMap() {
     m["TRACE"] =    false;
     m["CONNECT"] =  false;
     return m;
-}
-
-size_t  HttpRequestLine::FindEndOfRequestLine(const std::string& buff)
-{
-    size_t  pos = buff.find("\r\n");
-    return pos != std::string::npos ? pos + kTerminatorSize : kNotFoundEnd;
 }
 
 std::string HttpRequestLine::Target::UrlCleaner(const std::string& url)

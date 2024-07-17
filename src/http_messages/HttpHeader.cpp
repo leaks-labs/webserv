@@ -50,16 +50,18 @@ void HttpHeader::Parse(std::string& message, int mode)
 {
     if (mode != kParseRequest && mode != kParseResponse)
         throw std::runtime_error("500");
+    size_t initial_buffer_size = buffer_.length();
     buffer_ += message;
     if (mode == kParseRequest && buffer_.size() > kMaxHeaderSize) // TODO: maybe add a limit for response too?
         throw std::runtime_error("431");
-    size_t pos = FindEndOfHeader(buffer_);
-    if (pos == kNotFoundEnd) {
+    size_t pos = buffer_.find("\r\n\r\n");
+    if (pos == std::string::npos) {
         message.clear();
         return;
     }
-    buffer_.erase(pos - kTerminatorSize + 2);
-    message.erase(0, pos);
+    buffer_.erase(pos);
+    size_t  bytes_to_trim_in_message = buffer_.length() - initial_buffer_size + 4;
+    message.erase(0, bytes_to_trim_in_message);
     is_complete_ = true;
     std::vector<std::string> tokens;
     int err = HttpRequest::Split(buffer_, "\r\n", tokens);
@@ -158,12 +160,6 @@ void HttpHeader::Print() const
         std::cout << "\t\tthe header map is empty" << std::endl;
     for (iterator it = header_map_.begin(); it != header_map_.end(); it++)
         std::cout << "\t\t" << it->first << ": " << it->second << std::endl;
-}
-
-size_t  HttpHeader::FindEndOfHeader(const std::string& buff)
-{
-    size_t  pos = buff.find("\r\n\r\n");
-    return pos != std::string::npos ? pos + kTerminatorSize : kNotFoundEnd;
 }
 
 std::pair<std::string, std::string>  HttpHeader::ParseOneLine(const std::string& line)
