@@ -225,7 +225,7 @@ void    Location::set_strict(bool value)
    strict_ = value;
 }
 
-void    Location::set_path_info(std::string const & value)
+void    Location::set_path_info(const std::string& value)
 {
     if(value.empty() || (value[0] != '/' && value != "none"))
         throw std::runtime_error("path_info is invalid");
