@@ -33,6 +33,7 @@ class Location {
         size_t                              get_bodymax() const;
         bool                                get_listing() const;
         bool                                get_strict() const;
+        const std::string&                  get_path_info() const;
 
         void    set_path(const std::string& value);
         void    set_root(const std::string& value);
@@ -44,6 +45,7 @@ class Location {
         void    set_bodymax(const std::string& value);
         void    set_listing(const std::string& value);
         void    set_strict(bool value);
+        void    set_path_info(const std::string& value);
 
         bool    HasMethod(const std::string& value) const;
         int     SetValue(const std::string& key, const std::string& value);
@@ -74,6 +76,7 @@ class Location {
         size_t                      bodymax_;
         bool                        listing_;
         bool                        strict_;
+        std::string                 path_info_;
 };
 
 #endif  // LOCATION_HPP_
