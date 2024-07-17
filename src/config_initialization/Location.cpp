@@ -103,7 +103,7 @@ bool    Location::get_strict() const
     return strict_;
 }
 
-std::string const&  Location::get_path_info() const
+const std::string&    Location::get_path_info() const
 {
     return path_info_;
 }
