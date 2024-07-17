@@ -7,6 +7,7 @@
 #include "Directory.hpp"
 #include "InitiationDispatcher.hpp"
 #include "PathFinder.hpp"
+#include "ProxyHandler.hpp"
 #include "StreamHandler.hpp"
 
 HttpResponse::HttpResponse(StreamHandler& stream_handler, HttpRequest& request)
@@ -106,6 +107,9 @@ void    HttpResponse::Execute()
         set_status_line(405);
     if (status_line_.get_status_code() != 200) {
         AddErrorPageToBody(status_line_.get_status_code());
+    } else if (!request_.get_location().get_proxy().empty()) {
+        LaunchProxyHandler();
+        return;
     } else if (request_.get_request_line().get_method() == "DELETE") {
         Delete();
     } else if (IsCgiFile(path_)) {
@@ -297,6 +301,33 @@ void HttpResponse::LaunchCgiHandler()
     }
     catch(const std::exception& e)
     {
+        std::istringstream iss(e.what());
+        int code;
+        iss >> std::noskipws >> code;
+        if (iss.fail() || !iss.eof() || code < 100 || code > 599)
+            code = 500;
+        SetResponseToErrorPage(code);
+        if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
+            throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
+    }
+}
+
+void    HttpResponse::LaunchProxyHandler()
+{
+    struct addrinfo* addr = NULL;
+    try
+    {
+        std::string host = request_.get_host();
+        size_t  pos = host.find(':');
+        std::string host_without_port = host.substr(0, pos);
+        addr = ProxyHandler::ConvertToAddrInfo(host_without_port);
+        new ProxyHandler(stream_handler_, *addr, host_without_port, *this);
+        freeaddrinfo(addr);
+    }
+    catch(const std::exception& e)
+    {
+        if (addr != NULL)
+            freeaddrinfo(addr);
         std::istringstream iss(e.what());
         int code;
         iss >> std::noskipws >> code;

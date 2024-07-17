@@ -31,7 +31,8 @@ struct addrinfo*    ProxyHandler::ConvertToAddrInfo(const std::string& url)
 }
 
 ProxyHandler::ProxyHandler(StreamHandler& stream_handler, const struct addrinfo& address, const std::string& url, HttpResponse& response)
-    : stream_handler_(stream_handler),
+    : error_occured_while_handle_event_(false),
+      stream_handler_(stream_handler),
       response_(response),
 #ifdef __APPLE__
       stream_(socket(address.ai_family, address.ai_socktype, address.ai_protocol))
@@ -54,11 +55,8 @@ ProxyHandler::ProxyHandler(StreamHandler& stream_handler, const struct addrinfo&
         InitiationDispatcher::Instance().RemoveHandler(this);
         throw std::runtime_error("Failed to unregister StreamHandler");
     }
-
     response.set_request_host(url);
     request_ = response.get_complete_request();
-
-    // TODO: or update the response with a 500 error or something instead of throwing?
 }
 
 ProxyHandler::~ProxyHandler()
@@ -77,9 +75,8 @@ void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
         std::cout << "ENTER ProxyHandler: event " << event_type << std::endl;
         if (EventTypes::IsWriteEvent(event_type)) {
             stream_.Send(request_);
-            if (request_.empty() && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1) {
+            if (request_.empty() && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
                 throw std::runtime_error("Failed to delete write filter for a socket");
-            }
         } else if (EventTypes::IsReadEvent(event_type)) {
             // TODO: add the string return by Read to the response; for now, just consume data
             buffer_ = stream_.Read();
@@ -105,20 +102,16 @@ void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
             }
         } else if (EventTypes::IsCloseEvent(event_type)) {
             std::cout << "closing proxy" << std::endl;
-            // TODO: either close this handler because all is alright or update the response with a 500 error or something,
-            // because the response is not complete and that an error occured
             ReturnToStreamHandler();
             return; // Do NOT remove this return. It is important to be sure to return here.
         }
     }
     catch(const std::exception& e)
     {
-        // TODO: update the response with a 500 error or something
-        // error_occured_while_handle_event_ = true;
+        error_occured_while_handle_event_ = true;
         ReturnToStreamHandler();
         return; // Do NOT remove this return. It is important to be sure to return here.
     }
-    
 }
 
 void    ProxyHandler::HandleTimeout()
@@ -128,10 +121,11 @@ void    ProxyHandler::HandleTimeout()
 
 void    ProxyHandler::ReturnToStreamHandler()
 {
-    int err = (InitiationDispatcher::Instance().AddReadFilter(stream_handler_) == -1 || InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1);
-    if (err != 0)
-        InitiationDispatcher::Instance().RemoveHandler(&stream_handler_);
+    if (error_occured_while_handle_event_)
+        throw std::runtime_error("502");
+    response_.SetComplete();
+    int err = stream_handler_.ReRegister();
     InitiationDispatcher::Instance().RemoveHandler(this);
-    if (err != 0)
-        throw std::runtime_error("Failed to reactivate stream handler");
+    if (err == -1)
+        throw std::runtime_error("Failed to reactivate Stream Handler");
 }

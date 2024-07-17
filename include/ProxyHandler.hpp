@@ -30,10 +30,11 @@ class ProxyHandler : public EventHandler {
 
         void    ReturnToStreamHandler();
 
+        bool            error_occured_while_handle_event_;
         StreamHandler&  stream_handler_;
         HttpResponse&   response_;
-        std::string     request_;
         Stream          stream_;
+        std::string     request_;
         std::string     buffer_;
         
 };

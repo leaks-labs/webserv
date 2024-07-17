@@ -58,6 +58,7 @@ class HttpResponse {
         void                        AddListingPageToBody();
         void                        AddErrorPageToBody(const int error);
         void                        LaunchCgiHandler();
+        void                        LaunchProxyHandler();
         void                        FinalizeResponse();
         std::vector<std::string>    SetEnv();
 
