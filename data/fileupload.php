@@ -3,7 +3,7 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST'){
     echo 'method is not post';
     exit;
 }
-if (empty($_SERVER['PATH_INFO'])){
+if (!isset($_SERVER['PATH_INFO'])){
     echo 'upload unavalaible: path_info is not defined in the server config';
     exit;
 }

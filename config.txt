@@ -5,7 +5,7 @@ errors /home/toto/Bureau/19/git_webserv/data/error.html 400 404
 default_file default.html
 bodymax 10000
 listing true
-path_info /home/toto/Bureau/19/git_webserv/data/upload/
+path_info /home/toto/Bureau/19/git_webserv/data/upload
 root /
 cgi php-cgi
 proxy false
