@@ -10,5 +10,4 @@ cgi php-cgi
 root /Users/simonhinfray/Workspace/webserv
 
 > /
-proxy www.wikipedia.org
-root /
+root /Users/simonhinfray/Workspace/webserv
