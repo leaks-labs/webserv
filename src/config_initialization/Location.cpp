@@ -103,7 +103,7 @@ bool    Location::get_strict() const
     return strict_;
 }
 
-std::string const&  Location::get_path_info() const
+const std::string&    Location::get_path_info() const
 {
     return path_info_;
 }
@@ -225,7 +225,7 @@ void    Location::set_strict(bool value)
    strict_ = value;
 }
 
-void    Location::set_path_info(std::string const & value)
+void    Location::set_path_info(const std::string& value)
 {
     PathFinder & finder = PathFinder::Instance();
     if(value == "none")
