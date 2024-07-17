@@ -21,13 +21,20 @@ class HttpResponse {
         std::string&                    get_request_body();
         std::string                     get_complete_request() const;
         std::string&                    get_response();
+        const HttpHeader&               get_header();
+        HttpBody&                       get_body();
 
         void    set_status_line(int code);
         void    set_body(const std::string& str);
         void    set_request_host(const std::string& host);
 
         void    Execute();
+        void    ParseStatusLine(std::string& str);
+        bool    StatusLineIsComplete() const;
         void    ParseHeader(std::string& str);
+        bool    HeaderIsComplete() const;
+        void    ParseBody(std::string& str);
+        bool    BodyIsComplete() const;
         bool    IsComplete() const;
         void    SetComplete();
         void    AddHeaderContentLength();
@@ -35,7 +42,6 @@ class HttpResponse {
         void    ClearHeader();
         void    UpdateReason();
         void    SetResponseToErrorPage(const int error);
-        bool    HeaderIsComplete() const;
 
     private:
         static std::string  FindExtension(const std::string& str);

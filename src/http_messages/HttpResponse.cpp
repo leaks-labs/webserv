@@ -75,6 +75,16 @@ std::string&    HttpResponse::get_response()
     return response_;
 }
 
+const HttpHeader&   HttpResponse::get_header()
+{
+    return header_;
+}
+
+HttpBody&   HttpResponse::get_body()
+{
+    return body_;
+}
+
 void    HttpResponse::set_status_line(int code)
 {
     status_line_.SetCodeAndPhrase(code);
@@ -109,9 +119,34 @@ void    HttpResponse::Execute()
         throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
 }
 
+void    HttpResponse::ParseStatusLine(std::string& str)
+{
+    status_line_.Parse(str);
+}
+
+bool    HttpResponse::StatusLineIsComplete() const
+{
+    return status_line_.IsComplete();
+}
+
 void    HttpResponse::ParseHeader(std::string& str)
 {
     header_.Parse(str, HttpHeader::kParseResponse);
+}
+
+bool    HttpResponse::HeaderIsComplete() const
+{
+    return header_.IsComplete();
+}
+
+void    HttpResponse::ParseBody(std::string& str)
+{
+    body_.Parse(str);
+}
+
+bool    HttpResponse::BodyIsComplete() const
+{
+    return body_.IsComplete();
 }
 
 bool HttpResponse::IsComplete() const
@@ -160,11 +195,6 @@ void    HttpResponse::SetResponseToErrorPage(const int error)
     AddErrorPageToBody(error);
     ClearHeader();
     FinalizeResponse();
-}
-
-bool    HttpResponse::HeaderIsComplete() const
-{
-    return header_.IsComplete();
 }
 
 std::string HttpResponse::FindExtension(const std::string& str)

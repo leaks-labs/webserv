@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "HttpBody.hpp"
 #include "InitiationDispatcher.hpp"
 
 // TODO: to remove
@@ -71,40 +72,53 @@ EventHandler::Handle    ProxyHandler::get_handle(void) const
 
 void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
 {
-    std::cout << "ENTER ProxyHandler: event " << event_type << std::endl;
-    if (EventTypes::IsWriteEvent(event_type)) {
-        // TODO: send the request. For now, just send a string.
-        std::string request = "GET / HTTP/1.1\r\nHost: www.google.com\r\n\r\n";
-        stream_.Send(request);
+    try
+    {
+        std::cout << "ENTER ProxyHandler: event " << event_type << std::endl;
+        if (EventTypes::IsWriteEvent(event_type)) {
+            stream_.Send(request_);
+            if (request_.empty() && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1) {
+                throw std::runtime_error("Failed to delete write filter for a socket");
+            }
+        } else if (EventTypes::IsReadEvent(event_type)) {
+            // TODO: add the string return by Read to the response; for now, just consume data
+            buffer_ = stream_.Read();
 
-        // TODO: modify the filter to remove write filter
-        // only if there is no more response bytes to send for this fd.
-        // For now, just remove the write filter.
-        if (InitiationDispatcher::Instance().DelWriteFilter(*this) == -1) {
-            // TODO: update the response with a 500 error or something
+            if (!response_.StatusLineIsComplete())
+                response_.ParseStatusLine(buffer_);
+            if (!buffer_.empty() && !response_.HeaderIsComplete()) {
+                response_.ParseHeader(buffer_);
+                if (response_.HeaderIsComplete()) {
+                    if (!response_.get_header().NeedBody())
+                        response_.get_body().set_is_complete(true);
+                    else if (response_.get_header().IsContentLength()) // TODO: maybe limit the body size for the response?
+                        response_.get_body().SetMode(HttpBody::kModeContentLength, 0, response_.get_header().GetContentLength());
+                    else
+                        response_.get_body().SetMode(HttpBody::kModeTransferEncodingChunked, 0);
+                }
+            }
+            if (!buffer_.empty() && !response_.BodyIsComplete())
+                response_.ParseBody(buffer_);
+            if (response_.BodyIsComplete()) {
+                ReturnToStreamHandler();
+                return; // Do NOT remove this return. It is important to be sure to return here.
+            }
+        } else if (EventTypes::IsCloseEvent(event_type)) {
+            std::cout << "closing proxy" << std::endl;
+            // TODO: either close this handler because all is alright or update the response with a 500 error or something,
+            // because the response is not complete and that an error occured
             ReturnToStreamHandler();
-            throw std::runtime_error("Failed to delete write filter for a socket");
+            return; // Do NOT remove this return. It is important to be sure to return here.
         }
-    } else if (EventTypes::IsReadEvent(event_type)) {
-        // TODO: add the string return by Read to the response; for now, just consume data
-        stream_.Read();
-
-        // TODO: update the response with a 500 error or something if the response is not valid.
-
-        // TODO: delete this event handler and reactivate the stream handler
-        // only if the response in complete from the backend server.
-        // If the response is not complete, we need to keep the handler alive.
-        // At some point, close if we see that the response is not valid, and update the response with a 500 error or something.
-        // For now, just delete this event handler because the work in intended done.
-        ReturnToStreamHandler();
-        return; // Do NOT remove this return. It is important to be sure to return here.
-    } else if (EventTypes::IsCloseEvent(event_type)) {
-        std::cout << "closing proxy" << std::endl;
-        // TODO: either close this handler because all is alright or update the response with a 500 error or something,
-        // because the response is not complete and that an error occured
+    }
+    catch(const std::exception& e)
+    {
+        // TODO: update the response with a 500 error or something
+        // error_occured_while_handle_event_ = true;
         ReturnToStreamHandler();
         return; // Do NOT remove this return. It is important to be sure to return here.
     }
+    
 }
 
 void    ProxyHandler::HandleTimeout()

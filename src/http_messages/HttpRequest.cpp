@@ -121,7 +121,7 @@ void    HttpRequest::AppendToRequest(std::string& message)
                 server_ = &ServerList::Instance().FindServer(acceptor_fd_, get_host());
                 location_ = &server_->FindLocation(request_line_.get_target().get_target());
                 if (!header_.NeedBody())
-                    is_complete_ = true;
+                    body_.set_is_complete(true);
                 else if (header_.IsContentLength())
                     body_.SetMode(HttpBody::kModeContentLength, location_->get_bodymax(), header_.GetContentLength());
                 else
