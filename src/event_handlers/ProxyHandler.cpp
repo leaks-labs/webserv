@@ -57,6 +57,9 @@ ProxyHandler::ProxyHandler(StreamHandler& stream_handler, const struct addrinfo&
     }
     response.set_request_host(url);
     request_ = response.get_complete_request();
+    response_.ClearStatusLine();
+    response_.ClearHeader();
+    response_.ClearBody();
 }
 
 ProxyHandler::~ProxyHandler()
@@ -70,51 +73,54 @@ EventHandler::Handle    ProxyHandler::get_handle(void) const
 
 void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
 {
-    try
-    {
         std::cout << "ENTER ProxyHandler: event " << event_type << std::endl;
-        if (EventTypes::IsWriteEvent(event_type)) {
-            stream_.Send(request_);
-            if (request_.empty() && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
-                throw std::runtime_error("Failed to delete write filter for a socket");
-        } else if (EventTypes::IsReadEvent(event_type)) {
-            // TODO: add the string return by Read to the response; for now, just consume data
-            buffer_ = stream_.Read();
+        if (EventTypes::IsReadEvent(event_type) || EventTypes::IsWriteEvent(event_type)) {
 
-            response_.ClearStatusLine();
-            response_.ClearHeader();
-            response_.ClearBody();
-            if (!response_.StatusLineIsComplete())
-                response_.ParseStatusLine(buffer_);
-            if (!buffer_.empty() && !response_.HeaderIsComplete()) {
-                response_.ParseHeader(buffer_);
-                if (response_.HeaderIsComplete()) {
-                    if (!response_.get_header().NeedBody())
-                        response_.get_body().set_is_complete(true);
-                    else if (response_.get_header().IsContentLength()) // TODO: maybe limit the body size for the response?
-                        response_.get_body().SetMode(HttpBody::kModeContentLength, 0, response_.get_header().GetContentLength());
-                    else
-                        response_.get_body().SetMode(HttpBody::kModeTransferEncodingChunked, 0);
+            try
+            {
+                if (EventTypes::IsWriteEvent(event_type)) {
+                    stream_.Send(request_);
+                    if (request_.empty() && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
+                        throw std::runtime_error("Failed to delete write filter for a socket");
+                } else if (EventTypes::IsReadEvent(event_type)) {
+                    // TODO: add the string return by Read to the response; for now, just consume data
+                    buffer_ = stream_.Read();
+
+                    if (!response_.StatusLineIsComplete())
+                        response_.ParseStatusLine(buffer_);
+                    if (!buffer_.empty() && !response_.HeaderIsComplete()) {
+                        response_.ParseHeader(buffer_);
+                        if (response_.HeaderIsComplete()) {
+                            if (!response_.get_header().NeedBody())
+                                response_.get_body().set_is_complete(true);
+                            else if (response_.get_header().IsContentLength()) // TODO: maybe limit the body size for the response?
+                                response_.get_body().SetMode(HttpBody::kModeContentLength, 0, response_.get_header().GetContentLength());
+                            else
+                                response_.get_body().SetMode(HttpBody::kModeTransferEncodingChunked, 0);
+                        }
+                    }
+                    if (!buffer_.empty() && !response_.BodyIsComplete())
+                        response_.ParseBody(buffer_);
                 }
             }
-            if (!buffer_.empty() && !response_.BodyIsComplete())
-                response_.ParseBody(buffer_);
+            catch(const std::exception& e)
+            {
+                // std::cerr << "::::::::::::::: " << e.what() << std::endl;
+                error_occured_while_handle_event_ = true;
+                ReturnToStreamHandler();
+                return; // Do NOT remove this return. It is important to be sure to return here.
+            }
+
             if (response_.BodyIsComplete()) {
                 ReturnToStreamHandler();
                 return; // Do NOT remove this return. It is important to be sure to return here.
             }
+
         } else if (EventTypes::IsCloseEvent(event_type)) {
-            std::cout << "closing proxy" << std::endl;
-            ReturnToStreamHandler();
-            return; // Do NOT remove this return. It is important to be sure to return here.
+                std::cout << "closing proxy" << std::endl;
+                ReturnToStreamHandler();
+                return; // Do NOT remove this return. It is important to be sure to return here.
         }
-    }
-    catch(const std::exception& e)
-    {
-        error_occured_while_handle_event_ = true;
-        ReturnToStreamHandler();
-        return; // Do NOT remove this return. It is important to be sure to return here.
-    }
 }
 
 void    ProxyHandler::HandleTimeout()
