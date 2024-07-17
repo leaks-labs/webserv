@@ -122,8 +122,9 @@ void    ProxyHandler::HandleTimeout()
 void    ProxyHandler::ReturnToStreamHandler()
 {
     if (error_occured_while_handle_event_)
-        throw std::runtime_error("502");
-    response_.SetComplete();
+        response_.SetResponseToErrorPage(502);
+    else
+        response_.SetComplete();
     int err = stream_handler_.ReRegister();
     InitiationDispatcher::Instance().RemoveHandler(this);
     if (err == -1)
