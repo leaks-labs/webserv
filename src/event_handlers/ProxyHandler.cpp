@@ -72,13 +72,7 @@ EventHandler::Handle    ProxyHandler::get_handle(void) const
 void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
 {
     std::cout << "ENTER ProxyHandler: event " << event_type << std::endl;
-    if (EventTypes::IsCloseEvent(event_type)) {
-        std::cout << "closing proxy" << std::endl;
-        // TODO: either close this handler because all is alright or update the response with a 500 error or something,
-        // because the response is not complete and that an error occured
-        ReturnToStreamHandler();
-        return; // Do NOT remove this return. It is important to be sure to return here.
-    } else if (EventTypes::IsWriteEvent(event_type)) {
+    if (EventTypes::IsWriteEvent(event_type)) {
         // TODO: send the request. For now, just send a string.
         std::string request = "GET / HTTP/1.1\r\nHost: www.google.com\r\n\r\n";
         stream_.Send(request);
@@ -102,6 +96,12 @@ void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
         // If the response is not complete, we need to keep the handler alive.
         // At some point, close if we see that the response is not valid, and update the response with a 500 error or something.
         // For now, just delete this event handler because the work in intended done.
+        ReturnToStreamHandler();
+        return; // Do NOT remove this return. It is important to be sure to return here.
+    } else if (EventTypes::IsCloseEvent(event_type)) {
+        std::cout << "closing proxy" << std::endl;
+        // TODO: either close this handler because all is alright or update the response with a 500 error or something,
+        // because the response is not complete and that an error occured
         ReturnToStreamHandler();
         return; // Do NOT remove this return. It is important to be sure to return here.
     }
