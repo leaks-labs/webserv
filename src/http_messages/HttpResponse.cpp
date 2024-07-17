@@ -65,6 +65,11 @@ std::string&    HttpResponse::get_request_body()
     return request_.get_body();
 }
 
+std::string     HttpResponse::get_complete_request() const
+{
+    return request_.GetCompleteRequest();
+}
+
 std::string&    HttpResponse::get_response()
 {
     return response_;
@@ -78,6 +83,11 @@ void    HttpResponse::set_status_line(int code)
 void    HttpResponse::set_body(const std::string& str)
 {
     body_.set_body(str);
+}
+
+void    HttpResponse::set_request_host(const std::string& host)
+{
+    request_.set_host(host);
 }
 
 void    HttpResponse::Execute()

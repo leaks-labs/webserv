@@ -19,10 +19,12 @@ class HttpResponse {
         const std::string&              get_query() const;
         const std::vector<std::string>& get_env() const;
         std::string&                    get_request_body();
+        std::string                     get_complete_request() const;
         std::string&                    get_response();
 
         void    set_status_line(int code);
         void    set_body(const std::string& str);
+        void    set_request_host(const std::string& host);
 
         void    Execute();
         void    ParseHeader(std::string& str);

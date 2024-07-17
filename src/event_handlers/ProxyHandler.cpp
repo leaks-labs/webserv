@@ -29,7 +29,7 @@ struct addrinfo*    ProxyHandler::ConvertToAddrInfo(const std::string& url)
     return res;
 }
 
-ProxyHandler::ProxyHandler(StreamHandler& stream_handler, const struct addrinfo& address, HttpResponse& response)
+ProxyHandler::ProxyHandler(StreamHandler& stream_handler, const struct addrinfo& address, const std::string& url, HttpResponse& response)
     : stream_handler_(stream_handler),
       response_(response),
 #ifdef __APPLE__
@@ -53,6 +53,10 @@ ProxyHandler::ProxyHandler(StreamHandler& stream_handler, const struct addrinfo&
         InitiationDispatcher::Instance().RemoveHandler(this);
         throw std::runtime_error("Failed to unregister StreamHandler");
     }
+
+    response.set_request_host(url);
+    request_ = response.get_complete_request();
+
     // TODO: or update the response with a 500 error or something instead of throwing?
 }
 
