@@ -75,7 +75,6 @@ void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
 {
         std::cout << "ENTER ProxyHandler: event " << event_type << std::endl;
         if (EventTypes::IsReadEvent(event_type) || EventTypes::IsWriteEvent(event_type)) {
-
             try
             {
                 if (EventTypes::IsWriteEvent(event_type)) {
@@ -85,37 +84,19 @@ void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
                 } else if (EventTypes::IsReadEvent(event_type)) {
                     // TODO: add the string return by Read to the response; for now, just consume data
                     buffer_ = stream_.Read();
-
-                    if (!response_.StatusLineIsComplete())
-                        response_.ParseStatusLine(buffer_);
-                    if (!buffer_.empty() && !response_.HeaderIsComplete()) {
-                        response_.ParseHeader(buffer_);
-                        if (response_.HeaderIsComplete()) {
-                            if (!response_.get_header().NeedBody())
-                                response_.get_body().set_is_complete(true);
-                            else if (response_.get_header().IsContentLength()) // TODO: maybe limit the body size for the response?
-                                response_.get_body().SetMode(HttpBody::kModeContentLength, 0, response_.get_header().GetContentLength());
-                            else
-                                response_.get_body().SetMode(HttpBody::kModeTransferEncodingChunked, 0);
-                        }
-                    }
-                    if (!buffer_.empty() && !response_.BodyIsComplete())
-                        response_.ParseBody(buffer_);
+                    ParseMessageFromBackendServer();
                 }
             }
             catch(const std::exception& e)
             {
-                // std::cerr << "::::::::::::::: " << e.what() << std::endl;
                 error_occured_while_handle_event_ = true;
                 ReturnToStreamHandler();
                 return; // Do NOT remove this return. It is important to be sure to return here.
             }
-
             if (response_.BodyIsComplete()) {
                 ReturnToStreamHandler();
                 return; // Do NOT remove this return. It is important to be sure to return here.
             }
-
         } else if (EventTypes::IsCloseEvent(event_type)) {
                 std::cout << "closing proxy" << std::endl;
                 ReturnToStreamHandler();
@@ -126,6 +107,25 @@ void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
 void    ProxyHandler::HandleTimeout()
 {
     // TODO: implement
+}
+
+void    ProxyHandler::ParseMessageFromBackendServer()
+{
+    if (!response_.StatusLineIsComplete())
+        response_.ParseStatusLine(buffer_);
+    if (!buffer_.empty() && !response_.HeaderIsComplete()) {
+        response_.ParseHeader(buffer_);
+        if (response_.HeaderIsComplete()) {
+            if (!response_.get_header().NeedBody())
+                response_.get_body().set_is_complete(true);
+            else if (response_.get_header().IsContentLength()) // TODO: maybe limit the body size for the response?
+                response_.get_body().SetMode(HttpBody::kModeContentLength, 0, response_.get_header().GetContentLength());
+            else
+                response_.get_body().SetMode(HttpBody::kModeTransferEncodingChunked, 0);
+        }
+    }
+    if (!buffer_.empty() && !response_.BodyIsComplete())
+        response_.ParseBody(buffer_);
 }
 
 void    ProxyHandler::ReturnToStreamHandler()
