@@ -227,11 +227,11 @@ void    Location::set_strict(bool value)
 
 void    Location::set_path_info(std::string const & value)
 {
-    if(value.empty() || (value[0] != '/' && value != "none"))
-        throw std::runtime_error("path_info is invalid");
-    path_info_ = value;
-    if (path_info_[path_info_.size() - 1] != '/' && path_info_ != "none")
-        path_info_ += "/";
+    PathFinder & finder = PathFinder::Instance();
+    if(value == "none")
+        path_info_ = value;
+    else
+        path_info_ = finder.CanonicalizePath(value);
 }
 
 bool    Location::HasMethod(const std::string& value) const
