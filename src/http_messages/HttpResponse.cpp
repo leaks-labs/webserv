@@ -67,7 +67,7 @@ const std::vector<std::string>& HttpResponse::get_env() const
     return env_;
 }
 
-std::string&    HttpResponse::get_request_body()
+std::string&    HttpResponse::get_request_body_buffer()
 {
     return request_.get_body();
 }
@@ -77,7 +77,7 @@ std::string     HttpResponse::get_complete_request() const
     return request_.GetCompleteRequest();
 }
 
-std::string&    HttpResponse::get_response()
+std::string&    HttpResponse::get_response_buffer()
 {
     return response_;
 }

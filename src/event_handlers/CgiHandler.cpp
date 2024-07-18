@@ -67,7 +67,7 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
             // TODO: what happens if Read() throws?
             cgi_buffer += res;
         } else if (EventTypes::IsWriteEvent(event_type)) {
-            std::string& body = response_.get_request_body();
+            std::string& body = response_.get_request_body_buffer();
             if(!body.empty())
                 stream_main_.Send(body);
             else
