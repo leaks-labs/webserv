@@ -28,16 +28,18 @@ class HttpResponse {
         void        Execute();
         std::string GetCompleteRequet() const;
         void        AppendToResponse(std::string& message);
+
         void        ParseHeader(std::string& str);
         bool        HeaderIsComplete() const;
+        void        ClearHeader();
+        void        UpdateReason();
+
         bool        IsComplete() const;
         void        SetComplete();
         void        AddHeaderContentLength();
         bool        IsAskingToCloseConnection() const;
-        void        Clear();
-        void        ClearHeader();
-        void        UpdateReason();
         void        SetResponseToErrorPage(const int error);
+        void        Clear();
 
     private:
         static std::string  FindExtension(const std::string& str);
