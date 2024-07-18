@@ -28,12 +28,9 @@ class HttpResponse {
         void        Execute();
         std::string GetCompleteRequet() const;
         void        AppendToResponse(std::string& message);
-
         void        ParseHeader(std::string& str);
         bool        HeaderIsComplete() const;
         void        ClearHeader();
-        void        UpdateReason();
-
         bool        IsComplete() const;
         void        SetComplete();
         void        AddHeaderContentLength();
@@ -57,6 +54,7 @@ class HttpResponse {
         void                        AddErrorPageToBody(const int error);
         void                        LaunchCgiHandler();
         void                        LaunchProxyHandler();
+        void                        UpdateReason();
         void                        FinalizeResponse();
         std::vector<std::string>    SetEnv();
         bool                        HasRightToModify(const std::string& path);
