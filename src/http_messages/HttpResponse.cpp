@@ -129,6 +129,27 @@ void    HttpResponse::Execute()
         throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
 }
 
+void    HttpResponse::AppendToResponse(std::string& message)
+{
+    if (!status_line_.IsComplete())
+        status_line_.Parse(message);
+    if (!message.empty() && !header_.IsComplete()) {
+        header_.Parse(message, HttpHeader::kParseResponse);
+        if (header_.IsComplete()) {
+            if (!header_.NeedBody())
+                body_.set_is_complete(true);
+            else if (header_.IsContentLength()) // TODO: maybe limit the body size for the reponse?
+                body_.SetMode(HttpBody::kModeContentLength, 0, header_.GetContentLength());
+            else
+                body_.SetMode(HttpBody::kModeTransferEncodingChunked, 0);
+        }
+    }
+    if (!message.empty() && !body_.IsComplete())
+        body_.Parse(message);
+    if (body_.IsComplete())
+        SetComplete();
+}
+
 void    HttpResponse::ParseStatusLine(std::string& str)
 {
     status_line_.Parse(str);
@@ -211,9 +232,9 @@ void    HttpResponse::UpdateReason()
 
 void    HttpResponse::SetResponseToErrorPage(const int error)
 {
+    ClearHeader();
     set_status_line(error);
     AddErrorPageToBody(error);
-    ClearHeader();
     FinalizeResponse();
 }
 

@@ -29,6 +29,10 @@ class HttpResponse {
         void    set_request_host(const std::string& host);
 
         void    Execute();
+
+
+        void    AppendToResponse(std::string& message);
+
         void    ParseStatusLine(std::string& str);
         bool    StatusLineIsComplete() const;
         void    ParseHeader(std::string& str);

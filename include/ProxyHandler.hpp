@@ -28,7 +28,6 @@ class ProxyHandler : public EventHandler {
         ProxyHandler(const ProxyHandler &src);
         ProxyHandler&   operator=(const ProxyHandler &rhs);
 
-        void    ParseMessageFromBackendServer();
         void    ReturnToStreamHandler();
 
         bool            error_occured_while_handle_event_;

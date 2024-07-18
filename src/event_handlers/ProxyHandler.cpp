@@ -82,16 +82,15 @@ void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
                     if (request_.empty() && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
                         throw std::runtime_error("Failed to delete write filter for a socket");
                 } else if (EventTypes::IsReadEvent(event_type)) {
-                    // TODO: add the string return by Read to the response; for now, just consume data
                     buffer_ = stream_.Read();
-                    ParseMessageFromBackendServer();
+                    response_.AppendToResponse(buffer_);
                 }
             }
             catch(const std::exception& e)
             {
-                error_occured_while_handle_event_ = true;
+                response_.SetResponseToErrorPage(502);
             }
-            if (response_.BodyIsComplete() || error_occured_while_handle_event_) {
+            if (response_.IsComplete()) {
                 ReturnToStreamHandler();
                 return; // Do NOT remove this return. It is important to be sure to return here.
             }
@@ -107,31 +106,8 @@ void    ProxyHandler::HandleTimeout()
     // TODO: implement
 }
 
-void    ProxyHandler::ParseMessageFromBackendServer()
-{
-    if (!response_.StatusLineIsComplete())
-        response_.ParseStatusLine(buffer_);
-    if (!buffer_.empty() && !response_.HeaderIsComplete()) {
-        response_.ParseHeader(buffer_);
-        if (response_.HeaderIsComplete()) {
-            if (!response_.get_header().NeedBody())
-                response_.get_body().set_is_complete(true);
-            else if (response_.get_header().IsContentLength()) // TODO: maybe limit the body size for the response?
-                response_.get_body().SetMode(HttpBody::kModeContentLength, 0, response_.get_header().GetContentLength());
-            else
-                response_.get_body().SetMode(HttpBody::kModeTransferEncodingChunked, 0);
-        }
-    }
-    if (!buffer_.empty() && !response_.BodyIsComplete())
-        response_.ParseBody(buffer_);
-}
-
 void    ProxyHandler::ReturnToStreamHandler()
 {
-    if (error_occured_while_handle_event_)
-        response_.SetResponseToErrorPage(502);
-    else
-        response_.SetComplete();
     int err = stream_handler_.ReRegister();
     InitiationDispatcher::Instance().RemoveHandler(this);
     if (err == -1)
