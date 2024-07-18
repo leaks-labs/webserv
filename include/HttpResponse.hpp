@@ -18,11 +18,9 @@ class HttpResponse {
         const std::string&              get_path() const;
         const std::string&              get_query() const;
         const std::vector<std::string>& get_env() const;
-        std::string&                    get_request_body();
         std::string                     get_complete_request() const;
+        std::string&                    get_request_body();
         std::string&                    get_response();
-        const HttpHeader&               get_header();
-        HttpBody&                       get_body();
 
         void    set_status_line(int code);
         void    set_body(const std::string& str);

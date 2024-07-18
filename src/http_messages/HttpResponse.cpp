@@ -82,16 +82,6 @@ std::string&    HttpResponse::get_response()
     return response_;
 }
 
-const HttpHeader&   HttpResponse::get_header()
-{
-    return header_;
-}
-
-HttpBody&   HttpResponse::get_body()
-{
-    return body_;
-}
-
 void    HttpResponse::set_status_line(int code)
 {
     status_line_.SetCodeAndPhrase(code);
