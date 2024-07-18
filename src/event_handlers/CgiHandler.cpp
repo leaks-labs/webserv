@@ -20,6 +20,7 @@ CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse& response)
     : error_occured_while_handle_event_(false),
       stream_handler_(stream_handler),
       response_(response),
+      data_to_send_to_cgi_(response.get_request_body_buffer()),
       sfd_pair_(InitSocketPair()),
       stream_main_(sfd_pair_.first),
       stream_child_(sfd_pair_.second),
@@ -33,11 +34,6 @@ CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse& response)
     if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kWriteEvent) == -1) {
         KillChild();
         throw std::runtime_error("Failed to register Cgi Handler");
-    }
-    if (stream_handler.UnRegister() == -1) {
-        KillChild();
-        InitiationDispatcher::Instance().RemoveEntry(this);
-        throw std::runtime_error("Failed to unregister Stream Handler");
     }
 }
 
@@ -53,36 +49,32 @@ EventHandler::Handle    CgiHandler::get_handle(void) const
 
 void    CgiHandler::HandleEvent(EventTypes::Type event_type)
 {
-    try
-    {
-        std::cout << "ENTER CgiHandler: event " << event_type << std::endl;
-        if (EventTypes::IsCloseEvent(event_type)) {
-            std::cout << "closing cgi" << std::endl;
-            // TODO: either close this handler because all is alright or update the response with a 500 error or something,
-            // because the result is not complete and that an error occured
-            ReturnToStreamHandler();
-            return; // Do NOT remove this return. It is important to be sure to return here.
-        } else if (EventTypes::IsReadEvent(event_type)) {
-            std::string res = stream_main_.Read();
-            // TODO: what happens if Read() throws?
-            cgi_buffer += res;
-        } else if (EventTypes::IsWriteEvent(event_type)) {
-            std::string& body = response_.get_request_body_buffer();
-            if(!body.empty())
-                stream_main_.Send(body);
-            else
-            {
-                if (InitiationDispatcher::Instance().DelWriteFilter(*this) == -1
-                    || InitiationDispatcher::Instance().AddReadFilter(*this) == -1)
+    std::cout << "ENTER CgiHandler: event " << event_type << std::endl;
+    if (EventTypes::IsCloseReadEvent(event_type)
+        || (EventTypes::IsCloseWriteEvent(event_type) && !data_to_send_to_cgi_.empty())) {
+        std::cout << "closing cgi" << std::endl;
+        ReturnToStreamHandler();
+        return; // Do NOT remove this return. It is important to be sure to return here.
+    } else {
+        try
+        {
+            if (EventTypes::IsReadEvent(event_type)) {
+                std::string res = stream_main_.Read();
+                cgi_buffer += res;
+            } else if (EventTypes::IsWriteEvent(event_type)) {
+                if(!data_to_send_to_cgi_.empty())
+                    stream_main_.Send(data_to_send_to_cgi_);
+                else if (InitiationDispatcher::Instance().SwitchFromWriteToRead(*this) == -1)
                     throw std::runtime_error("Failed to update Cgi Handler filters");
             }
         }
-    }
-    catch(const std::exception& e)
-    {
-        error_occured_while_handle_event_ = true;
-        ReturnToStreamHandler();
-        return; // Do NOT remove this return. It is important to be sure to return here.
+        catch(const std::exception& e)
+        {
+            error_occured_while_handle_event_ = true;
+            ReturnToStreamHandler();
+            return; // Do NOT remove this return. It is important to be sure to return here.
+        }
+        
     }
 }
 
@@ -136,7 +128,6 @@ void CgiHandler::ExecCGI()
             throw std::runtime_error("Cgi : chdir failed " + std::string(strerror(errno)));
         execve(cmd[0], cmd.data(), env.data());
         throw std::runtime_error("Cgi : execve failed " + std::string(strerror(errno)));
-        // if execve failed, the content of the socket will be empty
     }
     catch(const std::exception& e)
     {
@@ -184,7 +175,9 @@ void    CgiHandler::ReturnToStreamHandler()
             code = 500;
         response_.SetResponseToErrorPage(code);
     }
-    int err = stream_handler_.ReRegister();
+    int err = InitiationDispatcher::Instance().AddWriteFilter(stream_handler_);
+    if (err == -1)
+        InitiationDispatcher::Instance().RemoveHandler(&stream_handler_);
     InitiationDispatcher::Instance().RemoveHandler(this);
     if (err == -1)
         throw std::runtime_error("Failed to reactivate Stream Handler");

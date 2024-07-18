@@ -11,3 +11,4 @@ root /Users/simonhinfray/Workspace/webserv
 
 > /
 root /Users/simonhinfray/Workspace/webserv
+proxy www.wikipedia.org

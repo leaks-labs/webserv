@@ -20,7 +20,7 @@ HttpResponse::HttpResponse(StreamHandler& stream_handler, HttpRequest& request)
       status_line_(request.get_status_code()),
       keep_alive_(request.KeepAlive())
 {
-    if (status_line_.get_status_code() == 200 && request.get_location().get_proxy().empty())
+    if (status_line_.get_status_code() == 200 && request.get_location().get_proxy() == "false")
         path_ = BuildPath();
     if (status_line_.get_status_code() == 200 && IsCgiFile(path_)) {
         cgi_path_ = GetCgiPath(FindExtension(path_));
@@ -98,7 +98,7 @@ void    HttpResponse::Execute()
         set_status_line(405);
     if (status_line_.get_status_code() != 200) {
         AddErrorPageToBody(status_line_.get_status_code());
-    } else if (!request_.get_location().get_proxy().empty()) {
+    } else if (request_.get_location().get_proxy() != "false") {
         LaunchProxyHandler();
         return;
     } else if (request_.get_request_line().get_method() == "DELETE") {

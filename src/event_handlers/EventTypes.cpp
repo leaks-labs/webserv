@@ -10,7 +10,12 @@ bool    EventTypes::IsWriteEvent(Type type)
     return ((type & kWriteEvent) != 0);
 }
 
-bool    EventTypes::IsCloseEvent(Type type)
+bool    EventTypes::IsCloseReadEvent(Type type)
 {
-    return ((type & kCloseEvent) != 0);
+    return ((type & kCloseReadEvent) != 0);
+}
+
+bool    EventTypes::IsCloseWriteEvent(Type type)
+{
+    return ((type & kCloseWriteEvent) != 0);
 }

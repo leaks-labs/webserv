@@ -17,7 +17,6 @@ class HttpHeader {
         ~HttpHeader();
 
         const std::map<std::string, std::string>&   get_header_map() const;
-        void                                        set_host(const std::string& host);
 
         void        Parse(std::string& message, int mode);
         bool        IsComplete() const;

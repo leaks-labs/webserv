@@ -15,7 +15,7 @@ Location::Location()
     : path_("/"),
       root_("/"), // TODO: change to current directory?
       default_file_("index.html"),
-      proxy_(""),
+      proxy_("false"),
       errors_(errors_ref_),
       cgi_(kCgiPHP),
       methods_(kMethodGet | kMethodPost | kMethodDelete),

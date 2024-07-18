@@ -25,7 +25,7 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
 {
     try
     {
-        if (EventTypes::IsCloseEvent(event_type)) {
+        if (EventTypes::IsCloseWriteEvent(event_type) || (EventTypes::IsCloseReadEvent(event_type) && response_queue_.empty())) {
             std::cout << "closing stream" << std::endl;
             InitiationDispatcher::Instance().RemoveHandler(this);
             return; // Do NOT remove this return. It is important to be sure to return here.
@@ -52,25 +52,6 @@ void    StreamHandler::HandleTimeout()
     // TODO: implement
 }
 
-int StreamHandler::ReRegister()
-{
-    if (InitiationDispatcher::Instance().AddReadFilter(*this) == -1 
-        || InitiationDispatcher::Instance().AddWriteFilter(*this) == -1) {
-        InitiationDispatcher::Instance().RemoveHandler(this);
-        return -1;
-    }
-    return 0;
-}
-
-int StreamHandler::UnRegister()
-{
-    if (InitiationDispatcher::Instance().DeactivateHandler(*this) == -1) {
-        throw std::runtime_error("Failed to deactivate StreamHandler with InitiationDispatcher");
-        return -1;
-    }
-    return 0;
-}
-
 void   StreamHandler::AddToRequestQueue()
 {
     std::string r = stream_.Read();
@@ -89,15 +70,16 @@ int StreamHandler::SendFirstResponse()
             return kCloseConnection;
         response_queue_.pop_front();
         request_queue_.pop_front();
-        if ((request_queue_.empty() || !request_queue_.front().IsComplete())
-            && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
-            throw std::runtime_error("Failed to delete write filter for a socket");
+        if (InitiationDispatcher::Instance().SwitchFromWriteToRead(*this) == -1)
+            throw std::runtime_error("Failed to delete write filter and add read filter for a socket");
     }
     return kKeepConnection;
 }
 
 void    StreamHandler::ConvertRequestToResponse()
 {
+    if (InitiationDispatcher::Instance().DelReadFilter(*this) == -1)
+        throw std::runtime_error("Failed to delete Read filter for a socket");
     response_queue_.push_back(HttpResponse(*this, request_queue_.front()));
     response_queue_.front().Execute();
 }
