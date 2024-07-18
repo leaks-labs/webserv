@@ -72,11 +72,6 @@ std::string&    HttpResponse::get_request_body_buffer()
     return request_.get_body();
 }
 
-std::string     HttpResponse::GetCompleteRequet() const
-{
-    return request_.GetCompleteRequest();
-}
-
 std::string&    HttpResponse::get_response_buffer()
 {
     return response_;
@@ -119,6 +114,11 @@ void    HttpResponse::Execute()
         throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
 }
 
+std::string     HttpResponse::GetCompleteRequet() const
+{
+    return request_.GetCompleteRequest();
+}
+
 void    HttpResponse::AppendToResponse(std::string& message)
 {
     if (!status_line_.IsComplete())
@@ -148,6 +148,11 @@ void    HttpResponse::ParseHeader(std::string& str)
 bool    HttpResponse::HeaderIsComplete() const
 {
     return header_.IsComplete();
+}
+
+void    HttpResponse::ClearHeader()
+{
+    header_.Clear();
 }
 
 bool HttpResponse::IsComplete() const
@@ -180,6 +185,14 @@ bool    HttpResponse::IsAskingToCloseConnection() const
     return (std::find(vec.begin(), vec.end(), status_line_.get_status_code()) != vec.end() || !keep_alive_);
 }
 
+void    HttpResponse::SetResponseToErrorPage(const int error)
+{
+    ClearHeader();
+    set_status_line(error);
+    AddErrorPageToBody(error);
+    FinalizeResponse();
+}
+
 void    HttpResponse::Clear()
 {
     complete_ = false;
@@ -187,24 +200,6 @@ void    HttpResponse::Clear()
     header_.Clear();
     body_.Clear();
     response_.clear();
-}
-
-void    HttpResponse::ClearHeader()
-{
-    header_.Clear();
-}
-
-void    HttpResponse::UpdateReason()
-{
-    set_status_line(status_line_.get_status_code());
-}
-
-void    HttpResponse::SetResponseToErrorPage(const int error)
-{
-    ClearHeader();
-    set_status_line(error);
-    AddErrorPageToBody(error);
-    FinalizeResponse();
 }
 
 std::string HttpResponse::FindExtension(const std::string& str)
@@ -352,6 +347,11 @@ void    HttpResponse::LaunchProxyHandler()
         if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
             throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
     }
+}
+
+void    HttpResponse::UpdateReason()
+{
+    set_status_line(status_line_.get_status_code());
 }
 
 void    HttpResponse::FinalizeResponse()
