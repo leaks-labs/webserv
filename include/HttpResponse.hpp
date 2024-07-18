@@ -18,7 +18,6 @@ class HttpResponse {
         const std::string&              get_path() const;
         const std::string&              get_query() const;
         const std::vector<std::string>& get_env() const;
-        std::string                     get_complete_request() const;
         std::string&                    get_request_body_buffer();
         std::string&                    get_response_buffer();
 
@@ -26,18 +25,19 @@ class HttpResponse {
         void    set_body(const std::string& str);
         void    set_request_host(const std::string& host);
 
-        void    Execute();
-        void    AppendToResponse(std::string& message);
-        void    ParseHeader(std::string& str);
-        bool    HeaderIsComplete() const;
-        bool    IsComplete() const;
-        void    SetComplete();
-        void    AddHeaderContentLength();
-        bool    IsAskingToCloseConnection() const;
-        void    Clear();
-        void    ClearHeader();
-        void    UpdateReason();
-        void    SetResponseToErrorPage(const int error);
+        void        Execute();
+        std::string GetCompleteRequet() const;
+        void        AppendToResponse(std::string& message);
+        void        ParseHeader(std::string& str);
+        bool        HeaderIsComplete() const;
+        bool        IsComplete() const;
+        void        SetComplete();
+        void        AddHeaderContentLength();
+        bool        IsAskingToCloseConnection() const;
+        void        Clear();
+        void        ClearHeader();
+        void        UpdateReason();
+        void        SetResponseToErrorPage(const int error);
 
     private:
         static std::string  FindExtension(const std::string& str);

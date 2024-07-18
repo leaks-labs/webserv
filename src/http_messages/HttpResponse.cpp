@@ -72,7 +72,7 @@ std::string&    HttpResponse::get_request_body_buffer()
     return request_.get_body();
 }
 
-std::string     HttpResponse::get_complete_request() const
+std::string     HttpResponse::GetCompleteRequet() const
 {
     return request_.GetCompleteRequest();
 }
