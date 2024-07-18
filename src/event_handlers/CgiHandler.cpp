@@ -17,14 +17,14 @@
 // TODO: to remove
 
 CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse& response)
-    : stream_handler_(stream_handler),
+    : error_occured_while_handle_event_(false),
+      stream_handler_(stream_handler),
       response_(response),
       sfd_pair_(InitSocketPair()),
       stream_main_(sfd_pair_.first),
       stream_child_(sfd_pair_.second),
       pid_child_(fork())
 {
-    //std::cout << "\tCGI BODY:"<< response_.get_request_body() << std::endl;
     if (pid_child_ == -1)
         throw std::runtime_error("Failed to fork: " + std::string(strerror(errno)));
     if (pid_child_ == 0)
@@ -39,7 +39,6 @@ CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse& response)
         InitiationDispatcher::Instance().RemoveEntry(this);
         throw std::runtime_error("Failed to unregister Stream Handler");
     }
-    // TODO: or update the response with a 500 error or something instead of throwing?
 }
 
 CgiHandler::~CgiHandler()
@@ -68,7 +67,7 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
             // TODO: what happens if Read() throws?
             cgi_buffer += res;
         } else if (EventTypes::IsWriteEvent(event_type)) {
-            std::string& body = response_.get_request_body();
+            std::string& body = response_.get_request_body_buffer();
             if(!body.empty())
                 stream_main_.Send(body);
             else
@@ -81,6 +80,7 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
     }
     catch(const std::exception& e)
     {
+        error_occured_while_handle_event_ = true;
         ReturnToStreamHandler();
         return; // Do NOT remove this return. It is important to be sure to return here.
     }
@@ -159,14 +159,19 @@ void    CgiHandler::KillChild()
 
 void    CgiHandler::ReturnToStreamHandler()
 {
-    // TODO: or update the response with a 500 error or something, if the body is not valid
-    // TODO: for now just presume all is ok
     try
     {
-        response_.set_header(cgi_buffer);
+        if (error_occured_while_handle_event_)
+            throw std::runtime_error("500");
+        response_.ClearHeader();
+        response_.ParseHeader(cgi_buffer);
+        if (!response_.HeaderIsComplete())
+            throw std::runtime_error("502");
         response_.set_body(cgi_buffer);
         response_.AddHeaderContentLength();
-        // TODO: set the right status code, if there was an error or not
+        // TODO: set the right status code,
+        // if there was an error or not,
+        // and modify the response accordingly
         response_.set_status_line(200);
         response_.SetComplete();
     }
@@ -174,13 +179,10 @@ void    CgiHandler::ReturnToStreamHandler()
     {
         std::istringstream iss(e.what());
         int code;
-        if (!(iss >> code))
+        iss >> std::noskipws >> code;
+        if (iss.fail() || !iss.eof() || code < 100 || code > 599)
             code = 500;
-        response_.AddErrorPageToBody(code);
-        response_.ClearHeader();
-        response_.AddHeaderContentLength();
-        response_.UpdateReason();
-        response_.SetComplete();
+        response_.SetResponseToErrorPage(code);
     }
     int err = stream_handler_.ReRegister();
     InitiationDispatcher::Instance().RemoveHandler(this);

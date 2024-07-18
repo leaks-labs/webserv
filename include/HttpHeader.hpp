@@ -33,11 +33,8 @@ class HttpHeader {
     private:
         static const int    kMaxHeaderSize = 32768;
 
-        static const size_t kNotFoundEnd = 0;
-        static const size_t kTerminatorSize = 4;
-
-        static size_t                               FindEndOfHeader(const std::string& buff);
         static std::pair<std::string, std::string>  ParseOneLine(const std::string& line);
+        void                                        ToLower(std::string& str);
 
         bool                                is_complete_;
         bool                                need_body_;

@@ -50,19 +50,19 @@ void HttpHeader::Parse(std::string& message, int mode)
 {
     if (mode != kParseRequest && mode != kParseResponse)
         throw std::runtime_error("500");
+    size_t initial_buffer_size = buffer_.length();
     buffer_ += message;
     if (mode == kParseRequest && buffer_.size() > kMaxHeaderSize) // TODO: maybe add a limit for response too?
         throw std::runtime_error("431");
-    size_t pos = FindEndOfHeader(buffer_);
-    if (pos == kNotFoundEnd) {
+    size_t pos = buffer_.find("\r\n\r\n");
+    if (pos == std::string::npos) {
         message.clear();
         return;
     }
-
-    buffer_.erase(pos - kTerminatorSize + 2);
-    message.erase(0, pos);
+    buffer_.erase(pos);
+    size_t  bytes_to_trim_in_message = buffer_.length() - initial_buffer_size + 4;
+    message.erase(0, bytes_to_trim_in_message);
     is_complete_ = true;
-
     std::vector<std::string> tokens;
     int err = HttpRequest::Split(buffer_, "\r\n", tokens);
     if (err == -1)
@@ -76,9 +76,13 @@ void HttpHeader::Parse(std::string& message, int mode)
             if (one_line.second.find_first_not_of("0123456789") != std::string::npos)
                 mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
         } else if (one_line.first == "TRANSFER-ENCODING") {
+            ToLower(one_line.second);
             if (one_line.second != "chunked" && one_line.second != "compress" && one_line.second != "deflate" && one_line.second != "gzip")
                 mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
+            else if (one_line.second != "chunked")
+                throw std::runtime_error("501");
         } else if (one_line.first == "CONNECTION") {
+            ToLower(one_line.second);
             if (one_line.second != "keep-alive" && one_line.second != "close")
                 mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
         }
@@ -160,12 +164,6 @@ void HttpHeader::Print() const
         std::cout << "\t\t" << it->first << ": " << it->second << std::endl;
 }
 
-size_t  HttpHeader::FindEndOfHeader(const std::string& buff)
-{
-    size_t  pos = buff.find("\r\n\r\n");
-    return pos != std::string::npos ? pos + kTerminatorSize : kNotFoundEnd;
-}
-
 std::pair<std::string, std::string>  HttpHeader::ParseOneLine(const std::string& line)
 {
     size_t  sep_pos = line.find(":");
@@ -182,4 +180,9 @@ std::pair<std::string, std::string>  HttpHeader::ParseOneLine(const std::string&
         throw std::runtime_error("400");
     std::transform(key.begin(), key.end(), key.begin(), ::toupper);
     return std::make_pair(key, value);
+}
+
+void    HttpHeader::ToLower(std::string& str)
+{
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 }

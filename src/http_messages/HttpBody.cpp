@@ -47,6 +47,11 @@ void    HttpBody::set_body(const std::string& str)
     body_ = str;
 }
 
+void    HttpBody::set_is_complete(bool is_complete)
+{
+    is_complete_ = is_complete;
+}
+
 void    HttpBody::Parse(std::string& message)
 {
     if (!is_transfer_encoding_chunked_) {
@@ -57,7 +62,7 @@ void    HttpBody::Parse(std::string& message)
         size_t  initial_body_length = body_.length();
         size_t  missing_bytes = required_length_ - initial_body_length;
         body_ += message.substr(0, missing_bytes);
-        if (body_.length() > max_body_size_)
+        if (max_body_size_ > 0 && body_.length() > max_body_size_)
             throw std::runtime_error("413");
         message.erase(0, missing_bytes);
         is_complete_ = (body_.length() == required_length_);
@@ -90,5 +95,8 @@ void    HttpBody::SetMode(int mode, size_t max_body_size, size_t content_length)
 void    HttpBody::Clear()
 {
     is_complete_ = false;
+    max_body_size_ = kMaxBodySize;
+    required_length_ = 0;
+    is_transfer_encoding_chunked_ = false;
     body_.clear();
 }

@@ -69,6 +69,7 @@ SRCS_FILES:=	config_initialization/AcceptorRecords	\
 				event_handlers/ConnectionAcceptor		\
 				event_handlers/EventHandler				\
 				event_handlers/EventTypes				\
+				event_handlers/ProxyHandler				\
 				event_handlers/StreamHandler			\
 				handles/Acceptor						\
 				handles/Stream							\

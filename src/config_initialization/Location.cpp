@@ -15,7 +15,7 @@ Location::Location()
     : path_("/"),
       root_("/"), // TODO: change to current directory?
       default_file_("index.html"),
-      proxy_("false"),
+      proxy_(""),
       errors_(errors_ref_),
       cgi_(kCgiPHP),
       methods_(kMethodGet | kMethodPost | kMethodDelete),
@@ -323,6 +323,7 @@ const std::map<int, std::string>    Location::InitErrorListRef()
     std::map<int, std::string>  m;
     std::string path = "/errors/defaulterror.html";
     m[400] = path;
+    m[403] = path;
     m[404] = path;
     m[405] = path;
     m[408] = path;
@@ -330,6 +331,9 @@ const std::map<int, std::string>    Location::InitErrorListRef()
     m[414] = path;
     m[431] = path;
     m[500] = path;
+    m[501] = path;
+    m[502] = path;
+    m[505] = path;
     return m;
 }
 

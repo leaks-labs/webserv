@@ -3,24 +3,29 @@
 #include <algorithm>
 #include <cstdio>
 
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "CgiHandler.hpp"
 #include "Directory.hpp"
 #include "InitiationDispatcher.hpp"
 #include "PathFinder.hpp"
+#include "ProxyHandler.hpp"
 #include "StreamHandler.hpp"
-
-const std::vector<int>  HttpResponse::code_requiring_close_ = HttpResponse::InitCodeRequiringClose();
 
 HttpResponse::HttpResponse(StreamHandler& stream_handler, HttpRequest& request)
     : complete_(false),
       request_(request),
       stream_handler_(stream_handler),
       status_line_(request.get_status_code()),
-      keep_alive_(request.KeepAlive()),
-      path_(BuildPath()),
-      cgi_path_(GetCgiPath(FindExtension(path_))),
-      env_(SetEnv())
+      keep_alive_(request.KeepAlive())
 {
+    if (status_line_.get_status_code() == 200 && request.get_location().get_proxy().empty())
+        path_ = BuildPath();
+    if (status_line_.get_status_code() == 200 && IsCgiFile(path_)) {
+        cgi_path_ = GetCgiPath(FindExtension(path_));
+        env_ = SetEnv();
+    }
 }
 
 HttpResponse::HttpResponse(const HttpResponse& src)
@@ -62,12 +67,12 @@ const std::vector<std::string>& HttpResponse::get_env() const
     return env_;
 }
 
-std::string&    HttpResponse::get_request_body()
+std::string&    HttpResponse::get_request_body_buffer()
 {
     return request_.get_body();
 }
 
-std::string&    HttpResponse::get_response()
+std::string&    HttpResponse::get_response_buffer()
 {
     return response_;
 }
@@ -82,20 +87,72 @@ void    HttpResponse::set_body(const std::string& str)
     body_.set_body(str);
 }
 
+void    HttpResponse::set_request_host(const std::string& host)
+{
+    request_.set_host(host);
+}
+
 void    HttpResponse::Execute()
 {
     if (status_line_.get_status_code() == 200 && request_.get_location().HasMethod(request_.get_request_line().get_method()) == false)
-        status_line_.SetCodeAndPhrase(405);
+        set_status_line(405);
     if (status_line_.get_status_code() != 200) {
         AddErrorPageToBody(status_line_.get_status_code());
-        FinalizeResponse();
-    }
-    else if (request_.get_request_line().get_method() == "DELETE")
+    } else if (!request_.get_location().get_proxy().empty()) {
+        LaunchProxyHandler();
+        return;
+    } else if (request_.get_request_line().get_method() == "DELETE") {
         Delete();
-    else if (IsCgiFile(path_))
+    } else if (IsCgiFile(path_)) {
         LaunchCgiHandler();
-    else
+        return;
+    } else {
         Get();
+    }
+    FinalizeResponse();
+    if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
+        throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
+}
+
+std::string     HttpResponse::GetCompleteRequet() const
+{
+    return request_.GetCompleteRequest();
+}
+
+void    HttpResponse::AppendToResponse(std::string& message)
+{
+    if (!status_line_.IsComplete())
+        status_line_.Parse(message);
+    if (!message.empty() && !header_.IsComplete()) {
+        header_.Parse(message, HttpHeader::kParseResponse);
+        if (header_.IsComplete()) {
+            if (!header_.NeedBody())
+                body_.set_is_complete(true);
+            else if (header_.IsContentLength()) // TODO: maybe limit the body size for the reponse?
+                body_.SetMode(HttpBody::kModeContentLength, 0, header_.GetContentLength());
+            else
+                body_.SetMode(HttpBody::kModeTransferEncodingChunked, 0);
+        }
+    }
+    if (!message.empty() && !body_.IsComplete())
+        body_.Parse(message);
+    if (body_.IsComplete())
+        SetComplete();
+}
+
+void    HttpResponse::ParseHeader(std::string& str)
+{
+    header_.Parse(str, HttpHeader::kParseResponse);
+}
+
+bool    HttpResponse::HeaderIsComplete() const
+{
+    return header_.IsComplete();
+}
+
+void    HttpResponse::ClearHeader()
+{
+    header_.Clear();
 }
 
 bool HttpResponse::IsComplete() const
@@ -106,7 +163,6 @@ bool HttpResponse::IsComplete() const
 void HttpResponse::SetComplete()
 {
     response_ = status_line_.GetFormatedStatusLine() + header_.GetFormatedHeader() + body_.get_body();
-    // std::cout << "+++++++++++++" << std::endl << response_ << std::endl << "+++++++++++++" << std::endl;
     status_line_.Clear();
     header_.Clear();
     body_.Clear();
@@ -115,42 +171,35 @@ void HttpResponse::SetComplete()
 
 void HttpResponse::AddHeaderContentLength()
 {
+    if (status_line_.get_status_code() == 204)
+        return;
     std::ostringstream oss;
     oss << body_.Size();
     std::string body_size_str = oss.str();
     header_.AddOneHeader("CONTENT-LENGTH", body_size_str);
 }
 
-void    HttpResponse::set_header(std::string& str)
-{
-    header_.Parse(str, HttpHeader::kParseResponse);
-}
-
 bool    HttpResponse::IsAskingToCloseConnection() const
 {
-    return (std::find(code_requiring_close_.begin(), code_requiring_close_.end(), status_line_.get_status_code()) != code_requiring_close_.end() || !keep_alive_);
+    const std::vector<int>& vec = status_line_.get_codes_requiring_close();
+    return (std::find(vec.begin(), vec.end(), status_line_.get_status_code()) != vec.end() || !keep_alive_);
 }
 
-void    HttpResponse::ClearHeader()
+void    HttpResponse::SetResponseToErrorPage(const int error)
 {
+    ClearHeader();
+    set_status_line(error);
+    AddErrorPageToBody(error);
+    FinalizeResponse();
+}
+
+void    HttpResponse::Clear()
+{
+    complete_ = false;
+    status_line_.Clear();
     header_.Clear();
-}
-
-void    HttpResponse::UpdateReason()
-{
-    status_line_.SetCodeAndPhrase(status_line_.get_status_code());
-}
-
-std::vector<int> HttpResponse::InitCodeRequiringClose()
-{
-    std::vector<int>    res;
-    res.push_back(400);
-    res.push_back(408);
-    res.push_back(413);
-    res.push_back(414);
-    res.push_back(431);
-    res.push_back(500);
-    return res;
+    body_.Clear();
+    response_.clear();
 }
 
 std::string HttpResponse::FindExtension(const std::string& str)
@@ -179,7 +228,7 @@ std::string HttpResponse::BuildPath()
         target_.set_target(target_.get_target() + location_.get_default_file());
     std::string res = PathFinder::CanonicalizePath(location_.get_root() + target_.get_target());
     if (!PathFinder::PathExist(res))
-        status_line_.SetCodeAndPhrase(404);
+        set_status_line(404);
     return res;
 }
 
@@ -189,28 +238,36 @@ void HttpResponse::Get()
         AddListingPageToBody();
     else
         AddFileToBody();
-    FinalizeResponse();
 }
 
 void    HttpResponse::Delete()
 {
-    if (std::remove(path_.c_str()) != 0) {
-        status_line_.SetCodeAndPhrase(403);
+    if (!HasRightToModify(path_)) {
+        set_status_line(403);
         AddErrorPageToBody(status_line_.get_status_code());
+    } else if (std::remove(path_.c_str()) != 0) {
+        set_status_line(500);
+        AddErrorPageToBody(status_line_.get_status_code());
+    } else {
+        set_status_line(204);
     }
-    status_line_.SetCodeAndPhrase(204);
-    FinalizeResponse();
 }
 
 void HttpResponse::AddFileToBody()
 {
+    struct stat buffer;
+    if ((stat(path_.c_str(), &buffer) == 0 && !S_ISREG(buffer.st_mode)) || access(path_.c_str(), R_OK) == -1) {
+        set_status_line(403);
+        AddErrorPageToBody(status_line_.get_status_code());
+        return;
+    }
     std::ifstream ifs(path_.c_str());
     if (ifs.good()) {
         std::ostringstream buffer;
         buffer << ifs.rdbuf();
         body_.set_body(buffer.str());
     } else {
-        status_line_.SetCodeAndPhrase(404);
+        set_status_line(500);
         AddErrorPageToBody(status_line_.get_status_code());
     }
 }
@@ -221,7 +278,7 @@ void HttpResponse::AddListingPageToBody()
     if (dir.IsOpen()) {
         body_.set_body(dir.GetHTML());
     } else {
-        status_line_.SetCodeAndPhrase(404);
+        set_status_line(404);
         return AddErrorPageToBody(status_line_.get_status_code());
     }
 }
@@ -248,18 +305,60 @@ void HttpResponse::AddErrorPageToBody(const int error)
 
 void HttpResponse::LaunchCgiHandler()
 {
-    new CgiHandler(stream_handler_, *this);
-    // TODO: handle the new fail
+    try
+    {
+        new CgiHandler(stream_handler_, *this);
+    }
+    catch(const std::exception& e)
+    {
+        std::istringstream iss(e.what());
+        int code;
+        iss >> std::noskipws >> code;
+        if (iss.fail() || !iss.eof() || code < 100 || code > 599)
+            code = 500;
+        SetResponseToErrorPage(code);
+        if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
+            throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
+    }
+}
+
+void    HttpResponse::LaunchProxyHandler()
+{
+    struct addrinfo* addr = NULL;
+    try
+    {
+        std::string host = request_.get_location().get_proxy();
+        size_t  pos = host.find(':');
+        std::string host_without_port = host.substr(0, pos);
+        addr = ProxyHandler::ConvertToAddrInfo(host_without_port);
+        new ProxyHandler(stream_handler_, *addr, host_without_port, *this);
+        freeaddrinfo(addr);
+    }
+    catch(const std::exception& e)
+    {
+        if (addr != NULL)
+            freeaddrinfo(addr);
+        std::istringstream iss(e.what());
+        int code;
+        iss >> std::noskipws >> code;
+        if (iss.fail() || !iss.eof() || code < 100 || code > 599)
+            code = 500;
+        SetResponseToErrorPage(code);
+        if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
+            throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
+    }
+}
+
+void    HttpResponse::UpdateReason()
+{
+    set_status_line(status_line_.get_status_code());
 }
 
 void    HttpResponse::FinalizeResponse()
 {
-    status_line_.SetCodeAndPhrase(status_line_.get_status_code());
-    if (status_line_.get_status_code() != 204)
-        AddHeaderContentLength();
+    UpdateReason();
+    AddHeaderContentLength();
     SetComplete();
-    if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
-        throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
 }
 
 std::vector<std::string> HttpResponse::SetEnv()
@@ -284,4 +383,13 @@ std::vector<std::string> HttpResponse::SetEnv()
         res.push_back("QUERY_STRING=" + get_query());
     res.push_back("REDIRECT_STATUS=200");
     return res;
+}
+
+bool    HttpResponse::HasRightToModify(const std::string& path)
+{
+    std::string parent_dir = path.substr(0, path.find_last_of('/'));
+    if (parent_dir.empty())
+        parent_dir = "/";
+    struct stat statbuf;
+    return (access(path.c_str(), W_OK) == 0 && stat(parent_dir.c_str(), &statbuf) == 0 && access(parent_dir.c_str(), W_OK) == 0);
 }

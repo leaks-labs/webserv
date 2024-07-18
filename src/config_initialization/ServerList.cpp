@@ -1,6 +1,5 @@
 #include "ServerList.hpp"
 
-
 ServerList& ServerList::Instance()
 {
     static ServerList   instance;
@@ -152,7 +151,9 @@ void    ServerList::ParseConfigFile(std::ifstream& file)
     }
     if (file.fail() && !file.eof())
         throw std::runtime_error("while reading config file");
-    for (std::vector<Server>::iterator it = servers_.begin(); it != servers_.end(); ++it)
+    for (std::vector<Server>::iterator it = servers_.begin(); it != servers_.end(); ++it) {
         if (it->ServerNamesCount() > 1)
             it->PopDefaultServerName();
+        it->RotateLocations();
+    }
 }

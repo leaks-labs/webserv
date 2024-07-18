@@ -36,6 +36,7 @@ class Server {
         int             SetLastLocation(const std::string& key, const std::string& value);
         void            SetLastLocationStrict(bool value);
         void            PopDefaultServerName();
+        void            RotateLocations();
         bool            HasServerName(const std::string& name) const;
         const Location& FindLocation(std::string const &) const; 
         void            Print() const;

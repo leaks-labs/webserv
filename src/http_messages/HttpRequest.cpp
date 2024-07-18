@@ -3,8 +3,6 @@
 #include <sstream>
 #include <iostream>
 
-const std::map<int, std::string>    HttpRequest::status_map = HttpRequest::InitStatusMap();
-
 int HttpRequest::Split(const std::string& str, const std::string& delim, std::vector<std::string>& tokens)
 {
     size_t start = 0, end;
@@ -17,7 +15,7 @@ int HttpRequest::Split(const std::string& str, const std::string& delim, std::ve
         else
             tokens.push_back(token);
         start = end + delim.length();
-    } while (end != std::string::npos && start < str.length());
+    } while (end != std::string::npos);
     return 0;
 }
 
@@ -106,6 +104,11 @@ std::string HttpRequest::get_host() const
     }
 }
 
+void    HttpRequest::set_host(const std::string& host)
+{
+    header_.set_host(host);
+}
+
 void    HttpRequest::AppendToRequest(std::string& message)
 {
     try
@@ -115,8 +118,10 @@ void    HttpRequest::AppendToRequest(std::string& message)
         if (!message.empty() && !header_.IsComplete()) {
             header_.Parse(message, HttpHeader::kParseRequest);
             if (header_.IsComplete()) {
+                server_ = &ServerList::Instance().FindServer(acceptor_fd_, get_host());
+                location_ = &server_->FindLocation(request_line_.get_target().get_target());
                 if (!header_.NeedBody())
-                    is_complete_ = true;
+                    body_.set_is_complete(true);
                 else if (header_.IsContentLength())
                     body_.SetMode(HttpBody::kModeContentLength, location_->get_bodymax(), header_.GetContentLength());
                 else
@@ -131,7 +136,8 @@ void    HttpRequest::AppendToRequest(std::string& message)
     catch (const std::exception &e) {
         std::istringstream iss(e.what());
         int code;
-        if (!(iss >> code))
+        iss >> std::noskipws >> code;
+        if (iss.fail() || !iss.eof() || code < 100 || code > 599)
             code = 500;
         status_code_ = code;
         is_complete_ = true;
@@ -158,27 +164,4 @@ bool    HttpRequest::KeepAlive() const
     {
         return true;
     }
-}
-
-std::map<int, std::string>  HttpRequest::InitStatusMap()
-{
-    std::map<int, std::string>  m;
-    m[200] = "OK";
-    // m[201] = "CREATED";
-    m[204] = "No Content";
-    // m[301] = "Moved Permanently";
-    // m[302] = "Found";
-    // m[304] = "Not Modified";
-    m[400] = "Bad Request";
-    // m[401] = "Unauthorized";
-    // m[403] = "Forbidden";
-    m[404] = "Not Found";
-    m[405] = "Method Not Allowed";
-    // m[407] = "Proxy Authentication Required";
-    m[408] = "Request Timeout";
-    m[413] = "Content Too Large";
-    m[414] = "URI Too Long";
-    m[431] = "Request Header Fields Too Large";
-    m[500] = "Internal Server Error";
-    return m;
 }

@@ -18,27 +18,27 @@ class HttpResponse {
         const std::string&              get_path() const;
         const std::string&              get_query() const;
         const std::vector<std::string>& get_env() const;
-        std::string&                    get_request_body();
-        std::string&                    get_response();
+        std::string&                    get_request_body_buffer();
+        std::string&                    get_response_buffer();
 
         void    set_status_line(int code);
-        void    set_header(std::string& str);
         void    set_body(const std::string& str);
+        void    set_request_host(const std::string& host);
 
-        void    Execute();
-        bool    IsComplete() const;
-        void    SetComplete();
-        void    AddHeaderContentLength();
-        bool    IsAskingToCloseConnection() const;
-        void    AddErrorPageToBody(const int error);
-        void    ClearHeader();
-        void    UpdateReason();
+        void        Execute();
+        std::string GetCompleteRequet() const;
+        void        AppendToResponse(std::string& message);
+        void        ParseHeader(std::string& str);
+        bool        HeaderIsComplete() const;
+        void        ClearHeader();
+        bool        IsComplete() const;
+        void        SetComplete();
+        void        AddHeaderContentLength();
+        bool        IsAskingToCloseConnection() const;
+        void        SetResponseToErrorPage(const int error);
+        void        Clear();
 
     private:
-        static const std::vector<int>   code_requiring_close_;
-
-        static std::vector<int> InitCodeRequiringClose();
-
         static std::string  FindExtension(const std::string& str);
         static bool         IsCgiFile(const std::string& path);
         static std::string  GetCgiPath(const std::string& ext);
@@ -51,9 +51,13 @@ class HttpResponse {
         void                        Delete();
         void                        AddFileToBody();
         void                        AddListingPageToBody();
+        void                        AddErrorPageToBody(const int error);
         void                        LaunchCgiHandler();
+        void                        LaunchProxyHandler();
+        void                        UpdateReason();
         void                        FinalizeResponse();
         std::vector<std::string>    SetEnv();
+        bool                        HasRightToModify(const std::string& path);
 
         bool                        complete_;
         HttpRequest&                request_;
@@ -61,7 +65,7 @@ class HttpResponse {
         HttpStatusLine              status_line_;
         bool                        keep_alive_;
         std::string                 path_;
-        const std::string           cgi_path_;
+        std::string                 cgi_path_;
         std::vector<std::string>    env_;
         HttpHeader                  header_;
         HttpBody                    body_;

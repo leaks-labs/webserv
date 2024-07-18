@@ -2,7 +2,8 @@
 
 #include <sstream>
 
-#include "HttpRequest.hpp"
+// #include "HttpRequest.hpp"
+#include "HttpStatusLine.hpp"
 
 // TODO: remove this
 #include <iostream>
@@ -14,12 +15,12 @@ std::string HTMLPage::GetErrorPage(int code)
 
     page.AddHeader();
     page.OpenTag("h1");
-    std::map<int, std::string>::const_iterator it = HttpRequest::status_map.find(code);
+    std::map<int, std::string>::const_iterator it = HttpStatusLine::get_status_code_map().find(code);
     std::ostringstream iss;
     iss << code;
     std::string code_str = iss.str();
     std::string str;
-    if (it == HttpRequest::status_map.end())
+    if (it == HttpStatusLine::get_status_code_map().end())
         str = "Error " + code_str + " : unkown problem";
     else
         str = "Error " + code_str + " : " + it->second;

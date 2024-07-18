@@ -66,24 +66,24 @@ const std::string&  HttpRequestLine::get_http_version() const
 
 void HttpRequestLine::Parse(std::string& message)
 {
+    size_t initial_buffer_size = buffer_.length();
     buffer_ += message;
     if (buffer_.size() > kMaxRequestLineSize)
         throw std::runtime_error("414");
-    size_t pos = FindEndOfRequestLine(buffer_);
-    if (pos == kNotFoundEnd) {
+    size_t pos = buffer_.find("\r\n");
+    if (pos == std::string::npos) {
         message.clear();
         return;
     }
 
-    buffer_.erase(pos - kTerminatorSize);
-    message.erase(0, pos);
+    buffer_.erase(pos);
+    size_t  bytes_to_trim_in_message = buffer_.length() - initial_buffer_size + 2;
+    message.erase(0, bytes_to_trim_in_message);
     is_complete_ = true;
-
     std::vector<std::string> tokens;
     if (HttpRequest::Split(buffer_, " ", tokens) == -1)
         throw std::runtime_error("400");
     buffer_.clear();
-
     if (tokens.size() != 3)
         throw std::runtime_error("400");
     std::map<std::string, bool>::const_iterator method_it = method_map.find(tokens[0]);
@@ -92,10 +92,11 @@ void HttpRequestLine::Parse(std::string& message)
     method_ = tokens[0];
     target_.InitTargetType(tokens[1]);
     target_.set_complete_url(tokens[1]);
-    if (tokens[2] == "HTTP/0.9"|| tokens[2] == "HTTP/1.0")
+    if (tokens[2] != "HTTP/0.9"&& tokens[2] != "HTTP/1.0"
+        && tokens[2] != "HTTP/1.1" && tokens[2] != "HTTP/2" && tokens[2] != "HTTP/3")
         throw std::runtime_error("400");
-    else if (tokens[2] != "HTTP/1.1" && tokens[2] != "HTTP/2" && tokens[2] != "HTTP/3")
-        throw std::runtime_error("400");
+    else if (tokens[2] != "HTTP/1.1")
+        throw std::runtime_error("505");
     http_version_ = tokens[2];
 }
 
@@ -128,12 +129,6 @@ std::map<std::string, bool> HttpRequestLine::InitMethodMap() {
     m["TRACE"] =    false;
     m["CONNECT"] =  false;
     return m;
-}
-
-size_t  HttpRequestLine::FindEndOfRequestLine(const std::string& buff)
-{
-    size_t  pos = buff.find("\r\n");
-    return pos != std::string::npos ? pos + kTerminatorSize : kNotFoundEnd;
 }
 
 std::string HttpRequestLine::Target::UrlCleaner(const std::string& url)

@@ -1,5 +1,6 @@
 #include "Server.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 
@@ -124,6 +125,12 @@ void    Server::PopDefaultServerName()
         server_names_.erase(server_names_.begin());
 }
 
+void    Server::RotateLocations()
+{
+    if (locations_.size() > 1)
+        std::rotate(locations_.begin(), locations_.begin() + 1, locations_.end());
+}
+
 const std::map<std::string, void (Server::*)(const std::string&)>   Server::InitSetFunctions()
 {
     std::map<std::string, void (Server::*)(const std::string&)> m;
@@ -142,7 +149,7 @@ bool Server::HasServerName(const std::string& name) const
     return false;
 }
 
-const Location& Server::FindLocation(std::string const &path) const
+const Location& Server::FindLocation(const std::string&path) const
 {
     std::vector<Location>::const_iterator   res;
     size_t  longest = 0;

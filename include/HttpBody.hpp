@@ -19,6 +19,7 @@ class HttpBody {
         std::string&        get_body();
 
         void    set_body(const std::string& str);
+        void    set_is_complete(bool is_complete);
 
         void    Parse(std::string& message);
         bool    IsComplete() const;

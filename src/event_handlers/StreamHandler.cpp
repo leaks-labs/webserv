@@ -83,8 +83,8 @@ void   StreamHandler::AddToRequestQueue()
 
 int StreamHandler::SendFirstResponse()
 {
-    stream_.Send(response_queue_.front().get_response());
-    if (response_queue_.front().get_response().empty()) {
+    stream_.Send(response_queue_.front().get_response_buffer());
+    if (response_queue_.front().get_response_buffer().empty()) {
         if (response_queue_.front().IsAskingToCloseConnection())
             return kCloseConnection;
         response_queue_.pop_front();
