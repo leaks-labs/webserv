@@ -29,23 +29,15 @@ class HttpResponse {
         void    set_request_host(const std::string& host);
 
         void    Execute();
-
-
         void    AppendToResponse(std::string& message);
-
-        void    ParseStatusLine(std::string& str);
-        bool    StatusLineIsComplete() const;
         void    ParseHeader(std::string& str);
         bool    HeaderIsComplete() const;
-        void    ParseBody(std::string& str);
-        bool    BodyIsComplete() const;
         bool    IsComplete() const;
         void    SetComplete();
         void    AddHeaderContentLength();
         bool    IsAskingToCloseConnection() const;
-        void    ClearStatusLine();
+        void    Clear();
         void    ClearHeader();
-        void    ClearBody();
         void    UpdateReason();
         void    SetResponseToErrorPage(const int error);
 

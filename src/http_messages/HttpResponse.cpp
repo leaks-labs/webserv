@@ -150,16 +150,6 @@ void    HttpResponse::AppendToResponse(std::string& message)
         SetComplete();
 }
 
-void    HttpResponse::ParseStatusLine(std::string& str)
-{
-    status_line_.Parse(str);
-}
-
-bool    HttpResponse::StatusLineIsComplete() const
-{
-    return status_line_.IsComplete();
-}
-
 void    HttpResponse::ParseHeader(std::string& str)
 {
     header_.Parse(str, HttpHeader::kParseResponse);
@@ -168,16 +158,6 @@ void    HttpResponse::ParseHeader(std::string& str)
 bool    HttpResponse::HeaderIsComplete() const
 {
     return header_.IsComplete();
-}
-
-void    HttpResponse::ParseBody(std::string& str)
-{
-    body_.Parse(str);
-}
-
-bool    HttpResponse::BodyIsComplete() const
-{
-    return body_.IsComplete();
 }
 
 bool HttpResponse::IsComplete() const
@@ -210,19 +190,18 @@ bool    HttpResponse::IsAskingToCloseConnection() const
     return (std::find(vec.begin(), vec.end(), status_line_.get_status_code()) != vec.end() || !keep_alive_);
 }
 
-void    HttpResponse::ClearStatusLine()
+void    HttpResponse::Clear()
 {
+    complete_ = false;
     status_line_.Clear();
+    header_.Clear();
+    body_.Clear();
+    response_.clear();
 }
 
 void    HttpResponse::ClearHeader()
 {
     header_.Clear();
-}
-
-void    HttpResponse::ClearBody()
-{
-    body_.Clear();
 }
 
 void    HttpResponse::UpdateReason()

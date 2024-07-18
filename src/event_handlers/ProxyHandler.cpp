@@ -55,11 +55,9 @@ ProxyHandler::ProxyHandler(StreamHandler& stream_handler, const struct addrinfo&
         InitiationDispatcher::Instance().RemoveHandler(this);
         throw std::runtime_error("Failed to unregister StreamHandler");
     }
-    response.set_request_host(url);
-    request_ = response.get_complete_request();
-    response_.ClearStatusLine();
-    response_.ClearHeader();
-    response_.ClearBody();
+    response_.set_request_host(url);
+    request_ = response_.get_complete_request();
+    response_.Clear();
 }
 
 ProxyHandler::~ProxyHandler()
