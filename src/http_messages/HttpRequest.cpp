@@ -106,7 +106,7 @@ std::string HttpRequest::get_host() const
 
 void    HttpRequest::set_host(const std::string& host)
 {
-    header_.set_host(host);
+    header_.AddOneHeader("HOST", host);
 }
 
 void    HttpRequest::AppendToRequest(std::string& message)

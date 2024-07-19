@@ -65,15 +65,6 @@ void    InitiationDispatcher::RemoveHandler(EventHandler* event_handler)
     delete event_handler;
 }
 
-int InitiationDispatcher::DeactivateHandler(EventHandler& event_handler)
-{
-#ifdef __APPLE__
-    return (DelReadFilter(event_handler) == -1 || DelWriteFilter(event_handler) == -1) ? -1 : 0;
-#elif __linux__
-    return (epoll_ctl(demultiplexer_, EPOLL_CTL_DEL, event_handler.get_handle(), NULL));
-#endif
-}
-
 void    InitiationDispatcher::RemoveEntry(EventHandler* event_handler)
 {
     event_handler_table_.erase(event_handler->get_handle());
@@ -179,6 +170,13 @@ int InitiationDispatcher::DelWriteFilter(EventHandler& event_handler)
     return -1;
 }
 
+int InitiationDispatcher::SwitchFromWriteToRead(EventHandler& event_handler)
+{
+    if (DelWriteFilter(event_handler) == -1)
+        return -1;
+    return AddReadFilter(event_handler);
+}
+
 void    InitiationDispatcher::Clear()
 {
     for (std::map<EventHandler::Handle, EventHandler*>::const_iterator it = event_handler_table_.begin(); it != event_handler_table_.end(); ++it)
@@ -205,8 +203,10 @@ EventHandler::Handle    InitiationDispatcher::GetHandleFromEvent(const Event& ev
 EventTypes::Type   InitiationDispatcher::GetEventTypeFromEvent(const Event& event)
 {
     EventTypes::Type   event_type = EventTypes::kNoEvent;
-    if (IsEventClose(event))
-        event_type |= EventTypes::kCloseEvent;
+    if (IsEventCloseRead(event))
+        event_type |= EventTypes::kCloseReadEvent;
+    if (IsEventCloseWrite(event))
+        event_type |= EventTypes::kCloseWriteEvent;
     if (IsEventRead(event))
         event_type |= EventTypes::kReadEvent;
     if (IsEventWrite(event))
@@ -217,7 +217,7 @@ EventTypes::Type   InitiationDispatcher::GetEventTypeFromEvent(const Event& even
 bool    InitiationDispatcher::IsEventRead(const Event& event)
 {
 #ifdef __APPLE__
-    return (event.filter == EVFILT_READ);
+    return (event.filter == EVFILT_READ && event.data > 0);
 #elif __linux__
     return ((event.events & EPOLLIN) != 0);
 #endif
@@ -226,18 +226,27 @@ bool    InitiationDispatcher::IsEventRead(const Event& event)
 bool    InitiationDispatcher::IsEventWrite(const Event& event)
 {
 #ifdef __APPLE__
-    return (event.filter == EVFILT_WRITE);
+    return (event.filter == EVFILT_WRITE && (event.flags & EV_EOF) == 0);
 #elif __linux__
-    return ((event.events & EPOLLOUT) != 0);
+    return ((event.events & EPOLLOUT) != 0 && (event.events & EPOLLHUP) == 0);
 #endif
 }
 
-bool    InitiationDispatcher::IsEventClose(const Event& event)
+bool    InitiationDispatcher::IsEventCloseRead(const Event& event)
 {
 #ifdef __APPLE__
-    return (event.flags & EV_EOF);
+    return (event.filter == EVFILT_READ && (event.flags & EV_EOF) != 0 && event.data == 0);
 #elif __linux__
-    return ((event.events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) != 0);
+    return ((event.events & EPOLLIN) == 0 && (event.events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) != 0);
+#endif
+}
+
+bool    InitiationDispatcher::IsEventCloseWrite(const Event& event)
+{
+#ifdef __APPLE__
+    return (event.filter == EVFILT_WRITE && (event.flags & EV_EOF) != 0);
+#elif __linux__
+    return ((event.events & (EPOLLHUP | EPOLLERR)) != 0);
 #endif
 }
 

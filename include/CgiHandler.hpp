@@ -35,6 +35,7 @@ class CgiHandler : public EventHandler {
         bool                error_occured_while_handle_event_;
         StreamHandler&      stream_handler_;
         HttpResponse&       response_;
+        std::string         data_to_send_to_cgi_;
         std::pair<int, int> sfd_pair_;
         Stream              stream_main_;
         Stream              stream_child_;

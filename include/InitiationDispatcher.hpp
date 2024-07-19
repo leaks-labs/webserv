@@ -24,12 +24,12 @@ class InitiationDispatcher {
         virtual void    HandleEvents(const time_t timeout);
         int             RegisterHandler(EventHandler* event_handler, EventTypes::Type event_type);
         void            RemoveHandler(EventHandler* event_handler);
-        int             DeactivateHandler(EventHandler& event_handler);
         void            RemoveEntry(EventHandler* event_handler);
         int             AddReadFilter(EventHandler& event_handler);
         int             AddWriteFilter(EventHandler& event_handler);
         int             DelReadFilter(EventHandler& event_handler);
         int             DelWriteFilter(EventHandler& event_handler);
+        int             SwitchFromWriteToRead(EventHandler& event_handler);
         void            Clear();
 
     private:
@@ -48,7 +48,8 @@ class InitiationDispatcher {
         static EventTypes::Type     GetEventTypeFromEvent(const Event& event);
         static bool                 IsEventRead(const Event& event);
         static bool                 IsEventWrite(const Event& event);
-        static bool                 IsEventClose(const Event& event);
+        static bool                 IsEventCloseRead(const Event& event);
+        static bool                 IsEventCloseWrite(const Event& event);
 
         InitiationDispatcher();
 

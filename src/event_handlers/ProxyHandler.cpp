@@ -50,11 +50,6 @@ ProxyHandler::ProxyHandler(StreamHandler& stream_handler, const struct addrinfo&
         throw std::runtime_error("connect() failed to connect to the remote host: " + std::string(strerror(errno)));
     if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent | EventTypes::kWriteEvent) == -1)
         throw std::runtime_error("Failed to register ProxyHandler with InitiationDispatcher");
-
-    if (stream_handler.UnRegister() == -1) {
-        InitiationDispatcher::Instance().RemoveHandler(this);
-        throw std::runtime_error("Failed to unregister StreamHandler");
-    }
     response_.set_request_host(url);
     request_ = response_.GetCompleteRequet();
     response_.Clear();
@@ -72,7 +67,11 @@ EventHandler::Handle    ProxyHandler::get_handle(void) const
 void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
 {
         std::cout << "ENTER ProxyHandler: event " << event_type << std::endl;
-        if (EventTypes::IsReadEvent(event_type) || EventTypes::IsWriteEvent(event_type)) {
+        if (EventTypes::IsCloseReadEvent(event_type) || (EventTypes::IsCloseWriteEvent(event_type) && !request_.empty())){
+            std::cout << "closing proxy" << std::endl;
+            ReturnToStreamHandler();
+            return; // Do NOT remove this return. It is important to be sure to return here.
+        } else {
             try
             {
                 if (EventTypes::IsWriteEvent(event_type)) {
@@ -89,13 +88,10 @@ void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
                 response_.SetResponseToErrorPage(502);
             }
             if (response_.IsComplete()) {
+                std::cout << "response is complete" << std::endl;
                 ReturnToStreamHandler();
                 return; // Do NOT remove this return. It is important to be sure to return here.
             }
-        } else if (EventTypes::IsCloseEvent(event_type)) {
-                std::cout << "closing proxy" << std::endl;
-                ReturnToStreamHandler();
-                return; // Do NOT remove this return. It is important to be sure to return here.
         }
 }
 
@@ -106,7 +102,9 @@ void    ProxyHandler::HandleTimeout()
 
 void    ProxyHandler::ReturnToStreamHandler()
 {
-    int err = stream_handler_.ReRegister();
+    int err = InitiationDispatcher::Instance().AddWriteFilter(stream_handler_);
+    if (err == -1)
+        InitiationDispatcher::Instance().RemoveHandler(&stream_handler_);
     InitiationDispatcher::Instance().RemoveHandler(this);
     if (err == -1)
         throw std::runtime_error("Failed to reactivate Stream Handler");

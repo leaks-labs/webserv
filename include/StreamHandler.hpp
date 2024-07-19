@@ -28,8 +28,6 @@ class StreamHandler : public EventHandler {
         virtual void    HandleEvent(EventTypes::Type event_type);
         virtual void    HandleTimeout();
         
-        int     ReRegister();
-        int     UnRegister();
         void    AddToRequestQueue();
         int     SendFirstResponse();
         void    ConvertRequestToResponse();
