@@ -17,14 +17,19 @@ HttpResponse::HttpResponse(StreamHandler& stream_handler, HttpRequest& request)
     : complete_(false),
       request_(request),
       stream_handler_(stream_handler),
+      server_(&request_.get_server()),
+      location_(&request_.get_location()),
       status_line_(request.get_status_code()),
-      keep_alive_(request.KeepAlive())
+      keep_alive_(request.KeepAlive()),
+      target_(request_.get_request_line().get_target()),
+      path_(PathFinder::CanonicalizePath(location_->get_root() + target_.get_target()))
 {
-    if (status_line_.get_status_code() == 200 && request.get_location().get_proxy() == "false")
-        path_ = BuildPath();
-    if (status_line_.get_status_code() == 200 && IsCgiFile(path_)) {
-        cgi_path_ = GetCgiPath(FindExtension(path_));
-        env_ = SetEnv();
+    if (status_line_.get_status_code() != 200) {
+        target_.ClearTarget();
+        path_.clear();
+        std::string tmp_request_path = ErrorFileIsSet();
+        if (!tmp_request_path.empty())
+            UpdatePathAndTarget(tmp_request_path);
     }
 }
 
@@ -32,8 +37,11 @@ HttpResponse::HttpResponse(const HttpResponse& src)
     : complete_(src.complete_),
       request_(src.request_),
       stream_handler_(src.stream_handler_),
+      server_(src.server_),
+      location_(src.location_),
       status_line_(src.status_line_),
       keep_alive_(src.keep_alive_),
+      target_(src.target_),
       path_(src.path_),
       cgi_path_(src.cgi_path_),
       env_(src.env_),
@@ -94,24 +102,35 @@ void    HttpResponse::set_request_host(const std::string& host)
 
 void    HttpResponse::Execute()
 {
-    if (status_line_.get_status_code() == 200 && request_.get_location().HasMethod(request_.get_request_line().get_method()) == false)
-        set_status_line(405);
-    if (status_line_.get_status_code() != 200) {
-        AddErrorPageToBody(status_line_.get_status_code());
-    } else if (request_.get_location().get_proxy() != "false") {
-        LaunchProxyHandler();
-        return;
-    } else if (request_.get_request_line().get_method() == "DELETE") {
-        Delete();
-    } else if (IsCgiFile(path_)) {
-        LaunchCgiHandler();
-        return;
-    } else {
-        Get();
+    if (target_.get_target().empty())
+        return ApplyGeneratedPage();
+
+    location_ = &server_->FindLocation(target_.get_target());
+    
+    if (request_.get_location().HasMethod(request_.get_request_line().get_method()) == false) {
+        return RedirectToNewTarget(405);
+    } else if (location_->get_proxy() != "false") {
+        return MovedPermanentely(location_->get_proxy());
+    } else if (!PathFinder::PathExist(path_)) {
+        return RedirectToNewTarget(404);
+    } else if (target_.get_target()[target_.get_target().size() - 1] != '/' && IsDir(path_)) {
+        return MovedPermanentely(target_.get_target() + "/");
+    } else if (target_.get_target()[target_.get_target().size() - 1] == '/') {
+        std::string index_file_path = target_.get_target() + location_->get_default_file();
+        std::string complete_index_file_path = PathFinder::CanonicalizePath(location_->get_root() + index_file_path);
+        if (PathFinder::PathExist(complete_index_file_path) && IsDir(complete_index_file_path)) {
+            return MovedPermanentely(index_file_path + "/");
+        } else if (!PathFinder::PathExist(complete_index_file_path)) {
+            if (location_->get_listing() == true && request_.get_request_line().get_method() == "GET")
+                set_status_line(200);
+            else
+                return RedirectToNewTarget(403);
+        } else {
+            UpdatePathAndTarget(index_file_path);
+        }
     }
-    FinalizeResponse();
-    if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
-        throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
+
+    Apply();
 }
 
 std::string     HttpResponse::GetCompleteRequet() const
@@ -171,7 +190,7 @@ void HttpResponse::SetComplete()
 
 void HttpResponse::AddHeaderContentLength()
 {
-    if (status_line_.get_status_code() == 204)
+    if (status_line_.get_status_code() == 204 || body_.Size() == 0)
         return;
     std::ostringstream oss;
     oss << body_.Size();
@@ -188,9 +207,7 @@ bool    HttpResponse::IsAskingToCloseConnection() const
 void    HttpResponse::SetResponseToErrorPage(const int error)
 {
     ClearHeader();
-    set_status_line(error);
-    AddErrorPageToBody(error);
-    FinalizeResponse();
+    RedirectToNewTarget(error);
 }
 
 void    HttpResponse::Clear()
@@ -220,94 +237,71 @@ std::string HttpResponse::GetCgiPath(const std::string& ext)
     return ext == "php" ? finder.GetPhp() : "none";
 }
 
-std::string HttpResponse::BuildPath()
-{
-    HttpRequestLine::Target&    target_ = request_.get_request_line().get_target();
-    const Location&             location_ = request_.get_location();
-    if (target_.get_target()[target_.get_target().size() - 1] == '/' && location_.get_listing() == false)
-        target_.set_target(target_.get_target() + location_.get_default_file());
-    std::string res = PathFinder::CanonicalizePath(location_.get_root() + target_.get_target());
-    if (!PathFinder::PathExist(res))
-        set_status_line(404);
-    return res;
-}
-
-void HttpResponse::Get()
-{
-    if (path_[path_.size() - 1] == '/')
-        AddListingPageToBody();
-    else
-        AddFileToBody();
-}
-
-void    HttpResponse::Delete()
-{
-    if (!HasRightToModify(path_)) {
-        set_status_line(403);
-        AddErrorPageToBody(status_line_.get_status_code());
-    } else if (std::remove(path_.c_str()) != 0) {
-        set_status_line(500);
-        AddErrorPageToBody(status_line_.get_status_code());
-    } else {
-        set_status_line(204);
-    }
-}
-
-void HttpResponse::AddFileToBody()
+bool    HttpResponse::IsDir(const std::string& path)
 {
     struct stat buffer;
-    if ((stat(path_.c_str(), &buffer) == 0 && !S_ISREG(buffer.st_mode)) || access(path_.c_str(), R_OK) == -1) {
-        set_status_line(403);
-        AddErrorPageToBody(status_line_.get_status_code());
+    return (stat(path.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode));
+}
+
+bool    HttpResponse::HasRightToModify(const std::string& path)
+{
+    std::string parent_dir = path.substr(0, path.find_last_of('/'));
+    if (parent_dir.empty())
+        parent_dir = "/";
+    struct stat statbuf;
+    return (access(path.c_str(), W_OK) == 0 && stat(parent_dir.c_str(), &statbuf) == 0 && access(parent_dir.c_str(), W_OK) == 0);
+}
+
+void    HttpResponse::Apply()
+{
+    if (IsHandledExternaly())
         return;
-    }
-    std::ifstream ifs(path_.c_str());
-    if (ifs.good()) {
-        std::ostringstream buffer;
-        buffer << ifs.rdbuf();
-        body_.set_body(buffer.str());
-    } else {
-        set_status_line(500);
-        AddErrorPageToBody(status_line_.get_status_code());
-    }
-}
 
-void HttpResponse::AddListingPageToBody()
-{
-    Directory dir(path_, request_.get_request_line().get_target().get_target(), request_.get_location().get_root());
-    if (dir.IsOpen()) {
-        body_.set_body(dir.GetHTML());
+    if (target_.get_target()[target_.get_target().size() - 1] == '/' && location_->get_listing() == true) {
+        Directory dir(path_, target_.get_target(), location_->get_root());
+        if (dir.IsOpen())
+            body_.set_body(dir.GetHTML());
+        else
+            return RedirectToNewTarget(403);
+    } else if (request_.get_request_line().get_method() == "DELETE") {
+        return DeleteResource();
     } else {
-        set_status_line(404);
-        return AddErrorPageToBody(status_line_.get_status_code());
-    }
-}
-
-void HttpResponse::AddErrorPageToBody(const int error)
-{
-    const std::map<int, std::string>&   errors_files = request_.get_location().get_errors();
-    std::map<int, std::string>::const_iterator it = errors_files.find(error);
-    if (it == errors_files.end()) {
-        HTMLPage    error_page;
-        body_.set_body(error_page.GetErrorPage(error));
-    } else {
-        path_ = errors_files.find(error)->second;
+        struct stat buffer;
+        if ((stat(path_.c_str(), &buffer) == 0 && !S_ISREG(buffer.st_mode)) || access(path_.c_str(), R_OK) == -1)
+            return RedirectToNewTarget(403);
         std::ifstream ifs(path_.c_str());
-        // TODO: check if a infinite loop is possible
-        if(ifs.good())
-            AddFileToBody();
-        else {
-            HTMLPage    error_page;
-            body_.set_body(error_page.GetErrorPage(error));
+        if (ifs.good()) {
+            std::ostringstream buffer;
+            buffer << ifs.rdbuf();
+            body_.set_body(buffer.str());
+        } else {
+            return RedirectToNewTarget(500);
         }
     }
+
+    FinalizeResponse();
+    if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
+        throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
+
 }
 
-void HttpResponse::LaunchCgiHandler()
+void    HttpResponse::ApplyGeneratedPage()
+{
+    HTMLPage    error_page;
+    body_.set_body(error_page.GetErrorPage(status_line_.get_status_code()));
+    FinalizeResponse();
+    if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
+        throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
+}
+
+int HttpResponse::LaunchCgiHandler()
 {
     try
     {
+        cgi_path_ = GetCgiPath(FindExtension(path_));
+        env_ = SetEnv();
         new CgiHandler(stream_handler_, *this);
+        return 0;
     }
     catch(const std::exception& e)
     {
@@ -319,10 +313,11 @@ void HttpResponse::LaunchCgiHandler()
         SetResponseToErrorPage(code);
         if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
             throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
+        return -1;
     }
 }
 
-void    HttpResponse::LaunchProxyHandler()
+int HttpResponse::LaunchProxyHandler()
 {
     struct addrinfo* addr = NULL;
     try
@@ -333,6 +328,7 @@ void    HttpResponse::LaunchProxyHandler()
         addr = ProxyHandler::ConvertToAddrInfo(host_without_port);
         new ProxyHandler(stream_handler_, *addr, host_without_port, *this);
         freeaddrinfo(addr);
+        return 0;
     }
     catch(const std::exception& e)
     {
@@ -346,12 +342,8 @@ void    HttpResponse::LaunchProxyHandler()
         SetResponseToErrorPage(code);
         if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
             throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
+        return -1;
     }
-}
-
-void    HttpResponse::UpdateReason()
-{
-    set_status_line(status_line_.get_status_code());
 }
 
 void    HttpResponse::FinalizeResponse()
@@ -359,6 +351,76 @@ void    HttpResponse::FinalizeResponse()
     UpdateReason();
     AddHeaderContentLength();
     SetComplete();
+}
+
+bool    HttpResponse::IsHandledExternaly()
+{
+    // if (request_.get_location().get_proxy() != "false")
+    //     return (LaunchProxyHandler() == 0);
+    if (IsCgiFile(path_))
+        return (LaunchCgiHandler() == 0);
+    return 0;
+}
+
+void    HttpResponse::DeleteResource()
+{
+    if (!HasRightToModify(path_))
+        return RedirectToNewTarget(403);
+    else if (std::remove(path_.c_str()) != 0)
+        return RedirectToNewTarget(500);
+    else
+        return RedirectToEmptyTarget(204);
+}
+
+void    HttpResponse::MovedPermanentely(const std::string& new_target)
+{
+        AddHeaderLocation(new_target);
+        if (request_.get_request_line().get_method() == "GET")
+            return RedirectToEmptyTarget(301);
+        else
+            return RedirectToEmptyTarget(308);
+}
+
+void    HttpResponse::AddHeaderLocation(const std::string& location)
+{
+    header_.AddOneHeader("LOCATION", location);
+}
+
+void    HttpResponse::RedirectToEmptyTarget(int code)
+{
+        target_.ClearTarget();
+        path_.clear();
+        set_status_line(code);
+        return Execute();
+}
+
+void    HttpResponse::RedirectToNewTarget(int code)
+{
+        target_.ClearTarget();
+        path_.clear();
+        set_status_line(code);
+        std::string tmp_request_path = ErrorFileIsSet();
+        if (!tmp_request_path.empty())
+            UpdatePathAndTarget(tmp_request_path);
+        return Execute();
+}
+
+void    HttpResponse::UpdatePathAndTarget(const std::string& new_target)
+{
+    target_.set_target(new_target);
+    path_ = PathFinder::CanonicalizePath(location_->get_root() + target_.get_target());
+}
+
+void    HttpResponse::UpdateReason()
+{
+    set_status_line(status_line_.get_status_code());
+}
+
+std::string HttpResponse::ErrorFileIsSet() const
+{
+    const std::map<int, std::string>    errors_files = request_.get_location().get_errors();
+    std::map<int, std::string>::const_iterator  it = errors_files.find(status_line_.get_status_code());
+    return it == errors_files.end() ? "" : it->second;
 }
 
 std::vector<std::string> HttpResponse::SetEnv()
@@ -383,13 +445,4 @@ std::vector<std::string> HttpResponse::SetEnv()
         res.push_back("QUERY_STRING=" + get_query());
     res.push_back("REDIRECT_STATUS=200");
     return res;
-}
-
-bool    HttpResponse::HasRightToModify(const std::string& path)
-{
-    std::string parent_dir = path.substr(0, path.find_last_of('/'));
-    if (parent_dir.empty())
-        parent_dir = "/";
-    struct stat statbuf;
-    return (access(path.c_str(), W_OK) == 0 && stat(parent_dir.c_str(), &statbuf) == 0 && access(parent_dir.c_str(), W_OK) == 0);
 }

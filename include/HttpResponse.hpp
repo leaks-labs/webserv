@@ -42,28 +42,36 @@ class HttpResponse {
         static std::string  FindExtension(const std::string& str);
         static bool         IsCgiFile(const std::string& path);
         static std::string  GetCgiPath(const std::string& ext);
+        static bool         IsDir(const std::string& path);
+        static bool         HasRightToModify(const std::string& path);
 
         HttpResponse();
         HttpResponse&   operator=(const HttpResponse& rhs);
 
-        std::string                 BuildPath();
-        void                        Get();
-        void                        Delete();
-        void                        AddFileToBody();
-        void                        AddListingPageToBody();
-        void                        AddErrorPageToBody(const int error);
-        void                        LaunchCgiHandler();
-        void                        LaunchProxyHandler();
-        void                        UpdateReason();
+        void                        Apply();
+        void                        ApplyGeneratedPage();
+        int                         LaunchCgiHandler();
+        int                         LaunchProxyHandler();
         void                        FinalizeResponse();
+        bool                        IsHandledExternaly();
+        void                        DeleteResource();
+        void                        MovedPermanentely(const std::string& new_target);
+        void                        AddHeaderLocation(const std::string& location);
+        void                        RedirectToEmptyTarget(int code);
+        void                        RedirectToNewTarget(int code);
+        void                        UpdatePathAndTarget(const std::string& new_target);
+        void                        UpdateReason();
+        std::string                 ErrorFileIsSet() const;
         std::vector<std::string>    SetEnv();
-        bool                        HasRightToModify(const std::string& path);
 
         bool                        complete_;
         HttpRequest&                request_;
         StreamHandler&              stream_handler_;
+        const Server*               server_;
+        const Location*             location_;
         HttpStatusLine              status_line_;
         bool                        keep_alive_;
+        HttpRequestLine::Target&    target_;
         std::string                 path_;
         std::string                 cgi_path_;
         std::vector<std::string>    env_;

@@ -9,18 +9,16 @@
 const std::map<std::string, void (Location::*)(const std::string&)> Location::set_functions_ = Location::InitSetFunctions();
 const std::map<std::string, int>                                    Location::methods_ref_ = Location::InitMethodsRef();
 const std::map<std::string, int>                                    Location::cgi_ref_ = Location::InitCgiRef();
-const std::map<int, std::string>                                    Location::errors_ref_ = Location::InitErrorListRef();
 
 Location::Location()
     : path_("/"),
       root_("/"), // TODO: change to current directory?
       default_file_("index.html"),
       proxy_("false"),
-      errors_(errors_ref_),
       cgi_(kCgiPHP),
       methods_(kMethodGet | kMethodPost | kMethodDelete),
       bodymax_(0),
-      listing_(true),
+      listing_(false),
       strict_(false),
       path_info_("none")
 {
@@ -37,13 +35,13 @@ Location&   Location::operator=(Location const& rhs)
         path_ = rhs.get_path();
         root_ = rhs.get_root();
         default_file_ = rhs.get_default_file();
-        cgi_ = rhs.get_cgi();
         proxy_ = rhs.get_proxy();
+        errors_ = rhs.get_errors();
+        cgi_ = rhs.get_cgi();
         methods_ = rhs.get_methods();
+        bodymax_ = rhs.get_bodymax();
         listing_ = rhs.get_listing();
         strict_ = rhs.get_strict();
-        errors_ = rhs.get_errors();
-        bodymax_ = rhs.get_bodymax();
         path_info_ = rhs.get_path_info();
     }
     return *this;
@@ -157,7 +155,7 @@ void    Location::set_errors(const std::string& value)
             throw std::runtime_error("error code : one value is empty");
         std::istringstream  iss(res);
         iss >> std::noskipws >> code;
-        if (iss.fail() || !iss.eof() || errors_.count(code) == 0 || (res[0] == '0' && code != 0) || code < 0)
+        if (iss.fail() || !iss.eof() || (res[0] == '0' && code != 0) || code < 400 || code > 599)
             throw std::runtime_error("error code is not valid");
         errors_[code] = path;
         start = end + 1;
@@ -315,25 +313,6 @@ const std::map<std::string, int>    Location::InitCgiRef()
     std::map<std::string, int>  m;
     m["none"] = kCgiNone;
     m["php-cgi"] = kCgiPHP;
-    return m;
-}
-
-const std::map<int, std::string>    Location::InitErrorListRef()
-{
-    std::map<int, std::string>  m;
-    std::string path = "/errors/defaulterror.html";
-    m[400] = path;
-    m[403] = path;
-    m[404] = path;
-    m[405] = path;
-    m[408] = path;
-    m[413] = path;
-    m[414] = path;
-    m[431] = path;
-    m[500] = path;
-    m[501] = path;
-    m[502] = path;
-    m[505] = path;
     return m;
 }
 

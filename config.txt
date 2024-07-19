@@ -3,11 +3,10 @@ port 8080
 server_names abc.com xyz.fr
 default_file file.html
 bodymax 10000
-listing true
 cgi php-cgi
+root /Users/simonhinfray/Workspace/webserv
 
 > /data
-root /Users/simonhinfray/Workspace/webserv
 
 > /
-root /Users/simonhinfray/Workspace/webserv
+listing true
