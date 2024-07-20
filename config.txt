@@ -4,7 +4,8 @@ server_names abc.com xyz.fr
 default_file fileget.php
 bodymax 10000
 cgi php-cgi
-root /Users/simonhinfray/Workspace/webserv
+path_info /home/toto/Bureau/19/git_webserv/data/upload
+root /
 
 > /data
 
