@@ -10,6 +10,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "HttpCodeException.hpp"
+
 // TODO: to remove
 #include <iostream>
 // TODO: to remove
@@ -185,11 +187,11 @@ void    CgiHandler::ReturnToStreamHandler()
     try
     {
         if (error_occured_while_handle_event_)
-            throw std::runtime_error("500");
+            throw HttpCodeExceptions::InternalServerErrorException();
         response_.ClearHeader();
         response_.ParseHeader(cgi_buffer);
         if (!response_.HeaderIsComplete())
-            throw std::runtime_error("502");
+            throw HttpCodeExceptions::BadGatewayException();
         response_.set_body(cgi_buffer);
         response_.AddHeaderContentLength();
         // TODO: set the right status code,
@@ -199,16 +201,22 @@ void    CgiHandler::ReturnToStreamHandler()
         response_.SetComplete();
         err = InitiationDispatcher::Instance().AddWriteFilter(stream_handler_);
     }
-    catch(const std::exception& e)
+    catch(const HttpCodeException& e)
     {
-        std::istringstream iss(e.what());
-        int code;
-        iss >> std::noskipws >> code;
-        if (iss.fail() || !iss.eof() || code < 100 || code > 599)
-            code = 500;
         try
         {
-            response_.SetResponseToErrorPage(code);
+            response_.SetResponseToErrorPage(e.Code());
+        }
+        catch(const std::exception& e)
+        {
+            err = -1;
+        }
+    }
+    catch(const std::exception& e)
+    {
+        try
+        {
+            response_.SetResponseToErrorPage(500);
         }
         catch(const std::exception& e)
         {

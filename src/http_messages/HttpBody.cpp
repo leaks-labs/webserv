@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <stdexcept>
 
+#include "HttpCodeException.hpp"
+
 HttpBody::HttpBody()
     : is_complete_(false),
       max_body_size_(kMaxBodySize),
@@ -63,7 +65,7 @@ void    HttpBody::Parse(std::string& message)
         size_t  missing_bytes = required_length_ - initial_body_length;
         body_ += message.substr(0, missing_bytes);
         if (max_body_size_ > 0 && body_.length() > max_body_size_)
-            throw std::runtime_error("413");
+            throw HttpCodeExceptions::ContentTooLargeException();
         message.erase(0, missing_bytes);
         is_complete_ = (body_.length() == required_length_);
     } else {

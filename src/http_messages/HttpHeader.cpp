@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <sstream>
 
+#include "HttpCodeException.hpp"
 #include "HttpRequest.hpp"
 
 // TODO: remove
@@ -44,11 +45,11 @@ const std::map<std::string, std::string>& HttpHeader::get_header_map() const
 void HttpHeader::Parse(std::string& message, int mode)
 {
     if (mode != kParseRequest && mode != kParseResponse)
-        throw std::runtime_error("500");
+        throw HttpCodeExceptions::InternalServerErrorException();
     size_t initial_buffer_size = buffer_.length();
     buffer_ += message;
     if (mode == kParseRequest && buffer_.size() > kMaxHeaderSize) // TODO: maybe add a limit for response too?
-        throw std::runtime_error("431");
+        throw HttpCodeExceptions::RequestHeaderFieldsTooLargeException();
     size_t pos = buffer_.find("\r\n\r\n");
     if (pos == std::string::npos) {
         message.clear();
@@ -61,7 +62,7 @@ void HttpHeader::Parse(std::string& message, int mode)
     std::vector<std::string> tokens;
     int err = HttpRequest::Split(buffer_, "\r\n", tokens);
     if (err == -1)
-        mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
+        mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
     buffer_.clear();
 
     for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); ++it) {
@@ -69,25 +70,25 @@ void HttpHeader::Parse(std::string& message, int mode)
         
         if (one_line.first == "CONTENT-LENGTH") {
             if (one_line.second.find_first_not_of("0123456789") != std::string::npos)
-                mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
+                mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
         } else if (one_line.first == "TRANSFER-ENCODING") {
             ToLower(one_line.second);
             if (one_line.second != "chunked" && one_line.second != "compress" && one_line.second != "deflate" && one_line.second != "gzip")
-                mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
+                mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
             else if (one_line.second != "chunked")
-                throw std::runtime_error("501");
+                throw HttpCodeExceptions::NotImplementedException();
         } else if (one_line.first == "CONNECTION") {
             ToLower(one_line.second);
             if (one_line.second != "keep-alive" && one_line.second != "close")
-                mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
+                mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
         }
 
         if (header_map_.find(one_line.first) != header_map_.end())
-            mode == kParseRequest ? throw std::runtime_error("400") : throw std::runtime_error("502");
+            mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
         header_map_[one_line.first] = one_line.second;
     }
     if (mode == kParseRequest && header_map_.find("HOST") == header_map_.end())
-        throw std::runtime_error("400");
+        throw HttpCodeExceptions::BadRequestException();
     bool    is_content_length = IsContentLength();
     if ((is_content_length && GetContentLength() > 0)
         || (!is_content_length && BodyIsTransferChunked()))
@@ -163,7 +164,7 @@ std::pair<std::string, std::string>  HttpHeader::ParseOneLine(const std::string&
 {
     size_t  sep_pos = line.find(":");
     if (sep_pos == std::string::npos)
-        throw std::runtime_error("400");
+        throw HttpCodeExceptions::BadRequestException();
     std::string key = line.substr(0, sep_pos);
     std::string value = line.substr(sep_pos + 1);
 
@@ -172,7 +173,7 @@ std::pair<std::string, std::string>  HttpHeader::ParseOneLine(const std::string&
     if (!value.empty() && value[value.size() - 1] == ' ')
         value.erase(value.size() - 1, 1);
     if (key.empty() || value.empty())
-        throw std::runtime_error("400");
+        throw HttpCodeExceptions::BadRequestException();
     std::transform(key.begin(), key.end(), key.begin(), ::toupper);
     return std::make_pair(key, value);
 }

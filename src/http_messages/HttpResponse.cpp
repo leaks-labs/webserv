@@ -8,6 +8,7 @@
 
 #include "CgiHandler.hpp"
 #include "Directory.hpp"
+#include "HttpCodeException.hpp"
 #include "InitiationDispatcher.hpp"
 #include "PathFinder.hpp"
 #include "ProxyHandler.hpp"
@@ -302,14 +303,13 @@ void    HttpResponse::LaunchCgiHandler()
         env_ = SetEnv();
         new CgiHandler(stream_handler_, *this);
     }
+    catch(const HttpCodeException& e)
+    {
+        SetResponseToErrorPage(e.Code());
+    }
     catch(const std::exception& e)
     {
-        std::istringstream iss(e.what());
-        int code;
-        iss >> std::noskipws >> code;
-        if (iss.fail() || !iss.eof() || code < 100 || code > 599)
-            code = 500;
-        SetResponseToErrorPage(code);
+        SetResponseToErrorPage(500);
     }
 }
 
