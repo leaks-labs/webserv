@@ -28,6 +28,15 @@ HttpRequest::HttpRequest(int acceptor_fd)
 {
 }
 
+HttpRequest::HttpRequest(int acceptor_fd, int status_code)
+    : acceptor_fd_(acceptor_fd),
+      is_complete_(true),
+      status_code_(status_code),
+      server_(&ServerList::Instance().FindServer(acceptor_fd, "")),
+      location_(&server_->FindLocation("/"))
+{
+}
+
 HttpRequest::HttpRequest(const HttpRequest& src)
 {
     *this = src;

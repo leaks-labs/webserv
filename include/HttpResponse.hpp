@@ -57,6 +57,7 @@ class HttpResponse {
         void                        DeleteResource();
         void                        MovedPermanentely(const std::string& new_target);
         void                        AddHeaderLocation(const std::string& location);
+        void                        AddHeaderCloseConnection();
         void                        RedirectToEmptyTarget(int code);
         void                        RedirectToNewTarget(int code);
         void                        UpdatePathAndTarget(const std::string& new_target);

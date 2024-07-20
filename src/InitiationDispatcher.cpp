@@ -24,9 +24,6 @@ void    InitiationDispatcher::HandleEvents(const time_t timeout)
 {
     if (signal(SIGINT, SignalHandler) == SIG_ERR)
         throw std::runtime_error("signal() failed: " + std::string(strerror(errno)));
-    time_t  start_time;
-    if (timeout >= 0 && (start_time = std::time(NULL)) == -1)
-        throw std::runtime_error("time() failed: ");
     std::vector<Event>  event_list(kMaxEvents);
     while (g_signal_received == 0) {
         int number_events = WaitForEvents(event_list, kMaxEvents, timeout);
@@ -37,8 +34,16 @@ void    InitiationDispatcher::HandleEvents(const time_t timeout)
             // TODO: is it a good idea to continue? Because we may have an infinite loop
         }
         IterateEventList(event_list, number_events);
-        if (timeout >= 0)
-            CheckForTimeouts(start_time, timeout);
+        try
+        {
+            if (timeout != kNoTimeout)
+                CheckForTimeouts();
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << std::endl;
+        }
+        
     }
 }
 
@@ -69,6 +74,15 @@ void    InitiationDispatcher::RemoveEntry(EventHandler* event_handler)
 {
     event_handler_table_.erase(event_handler->get_handle());
 }
+
+int InitiationDispatcher::DeactivateHandler(EventHandler& event_handler)
+ {
+ #ifdef __APPLE__
+     return (DelReadFilter(event_handler) == -1 || DelWriteFilter(event_handler) == -1) ? -1 : 0;
+ #elif __linux__
+     return (epoll_ctl(demultiplexer_, EPOLL_CTL_DEL, event_handler.get_handle(), NULL));
+ #endif
+ }
 
 int InitiationDispatcher::AddReadFilter(EventHandler& event_handler)
 {
@@ -184,6 +198,19 @@ void    InitiationDispatcher::Clear()
     event_handler_table_.clear();
 }
 
+InitiationDispatcher::TimeoutIterator   InitiationDispatcher::AddTimeout(EventHandler* event_handler, time_t timeout)
+{
+    time_t  current_time = GetNow();
+    return timeout_table_.insert(std::pair<time_t, EventHandler*>(current_time + timeout, event_handler));
+}
+
+InitiationDispatcher::TimeoutIterator   InitiationDispatcher::DelTimeout(TimeoutIterator timeout_it)
+{
+    if (timeout_it != timeout_table_.end())
+        timeout_table_.erase(timeout_it);
+    return timeout_table_.end();
+}
+
 void    InitiationDispatcher::SignalHandler(int signal)
 {
     std::cout << std::endl;
@@ -250,6 +277,14 @@ bool    InitiationDispatcher::IsEventCloseWrite(const Event& event)
 #endif
 }
 
+time_t  InitiationDispatcher::GetNow()
+{
+    time_t  current_time = std::time(NULL);
+    if (current_time == static_cast<time_t>(-1))
+        throw std::runtime_error("time() failed: ");
+    return current_time;
+}
+
 InitiationDispatcher::InitiationDispatcher()
 #ifdef __APPLE__
     : demultiplexer_(kqueue())
@@ -306,19 +341,18 @@ void    InitiationDispatcher::IterateEventList(const std::vector<Event>& event_l
     }
 }
 
-void    InitiationDispatcher::CheckForTimeouts(time_t& start_time, time_t timeout)
+void    InitiationDispatcher::CheckForTimeouts()
 {
-    time_t  current_time = std::time(NULL);
-    if (current_time == -1) {
-        std::cerr << "time() failed: timeout handler not called" << std::endl;
-    } else if (current_time - start_time >= timeout) {
-        std::cout << "Callig timeout handler..." << std::endl;
-        start_time = current_time;
-        for (std::map<EventHandler::Handle, EventHandler*>::iterator it = event_handler_table_.begin(); it != event_handler_table_.end();) {
-            std::map<EventHandler::Handle, EventHandler*>::iterator next = it;
-            ++next;
+    time_t  current_time = GetNow();
+    for (std::multimap<time_t, EventHandler*>::iterator it = timeout_table_.begin(); it != timeout_table_.end();) {
+        std::multimap<time_t, EventHandler*>::iterator next = it;
+        ++next;
+        if (it->first <= current_time) {
             it->second->HandleTimeout();
+            timeout_table_.erase(it);
             it = next;
+        } else {
+            break;
         }
     }
 }

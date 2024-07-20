@@ -16,6 +16,7 @@ class HttpRequest {
         static int  Split(const std::string& str, const std::string& delim, std::vector<std::string>& tokens);
 
         HttpRequest(int acceptor_fd);
+        HttpRequest(int acceptor_fd, int status_code);
         HttpRequest(const HttpRequest& src);
         HttpRequest&    operator=(const HttpRequest& rhs);
 
