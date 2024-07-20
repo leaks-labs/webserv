@@ -11,6 +11,7 @@
 # include "EventTypes.hpp"
 # include "HttpRequest.hpp"
 # include "HttpResponse.hpp"
+# include "InitiationDispatcher.hpp"
 # include "Stream.hpp"
 
 // TODO: to remove
@@ -40,10 +41,11 @@ class StreamHandler : public EventHandler {
         StreamHandler(const StreamHandler& src);
         StreamHandler&  operator=(const StreamHandler& rhs);
 
-        int                         acceptor_sfd_;
-        Stream                      stream_;
-        std::deque<HttpRequest>     request_queue_;
-        std::deque<HttpResponse>    response_queue_;
+        int                                     acceptor_sfd_;
+        Stream                                  stream_;
+        std::deque<HttpRequest>                 request_queue_;
+        std::deque<HttpResponse>                response_queue_;
+        InitiationDispatcher::TimeoutIterator   timeout_it_;
 };
 
 #endif  // STREAM_HANDLER_HPP

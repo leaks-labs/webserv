@@ -17,7 +17,13 @@
 
 class InitiationDispatcher {
     public:
+        typedef std::multimap<time_t, EventHandler*>::iterator  TimeoutIterator;
+
         static const time_t kNoTimeout = -1;
+        // kTimeWatingEvent MUST be less than the other timeouts (time in seconds)
+        static const time_t kTimeWaitingEvent = 5;
+        static const time_t kRequestTimeout = 20;
+        static const time_t kPluginTimeout = 20;
 
         static InitiationDispatcher&    Instance();
 
@@ -25,12 +31,15 @@ class InitiationDispatcher {
         int             RegisterHandler(EventHandler* event_handler, EventTypes::Type event_type);
         void            RemoveHandler(EventHandler* event_handler);
         void            RemoveEntry(EventHandler* event_handler);
+        int             DeactivateHandler(EventHandler& event_handler);
         int             AddReadFilter(EventHandler& event_handler);
         int             AddWriteFilter(EventHandler& event_handler);
         int             DelReadFilter(EventHandler& event_handler);
         int             DelWriteFilter(EventHandler& event_handler);
         int             SwitchFromWriteToRead(EventHandler& event_handler);
         void            Clear();
+        TimeoutIterator AddTimeout(EventHandler* event_handler, time_t timeout);
+        TimeoutIterator DelTimeout(TimeoutIterator timeout_it);
 
     private:
 # ifdef __APPLE__
@@ -50,6 +59,7 @@ class InitiationDispatcher {
         static bool                 IsEventWrite(const Event& event);
         static bool                 IsEventCloseRead(const Event& event);
         static bool                 IsEventCloseWrite(const Event& event);
+        static time_t               GetNow();
 
         InitiationDispatcher();
 
@@ -60,10 +70,11 @@ class InitiationDispatcher {
 
         int     WaitForEvents(std::vector<Event>& event_list, int event_list_size, const time_t timeout) const;
         void    IterateEventList(const std::vector<Event>& event_list, int nubmer_events);
-        void    CheckForTimeouts(time_t& start_time, time_t timeout);
+        void    CheckForTimeouts();
 
         std::map<EventHandler::Handle, EventHandler*>   event_handler_table_;
         const int                                       demultiplexer_;
+        std::multimap<time_t, EventHandler*>            timeout_table_;
 };
 
 #endif  // INITIATION_DISPATCHER_HPP_
