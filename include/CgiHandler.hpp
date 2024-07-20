@@ -6,6 +6,7 @@
 # include "EventHandler.hpp"
 # include "EventTypes.hpp"
 # include "HttpResponse.hpp"
+# include "InitiationDispatcher.hpp"
 # include "StreamHandler.hpp"
 
 class StreamHandler;
@@ -32,15 +33,16 @@ class CgiHandler : public EventHandler {
         void                KillChild();
         void                ReturnToStreamHandler();
 
-        bool                error_occured_while_handle_event_;
-        StreamHandler&      stream_handler_;
-        HttpResponse&       response_;
-        std::string         data_to_send_to_cgi_;
-        std::pair<int, int> sfd_pair_;
-        Stream              stream_main_;
-        Stream              stream_child_;
-        pid_t               pid_child_;
-        std::string         cgi_buffer;
+        bool                                    error_occured_while_handle_event_;
+        StreamHandler&                          stream_handler_;
+        HttpResponse&                           response_;
+        std::string                             data_to_send_to_cgi_;
+        std::pair<int, int>                     sfd_pair_;
+        Stream                                  stream_main_;
+        Stream                                  stream_child_;
+        pid_t                                   pid_child_;
+        std::string                             cgi_buffer;
+        InitiationDispatcher::TimeoutIterator   timeout_it_;
 };
 
 #endif  // CGI_HANDLER_HPP_

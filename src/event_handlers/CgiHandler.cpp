@@ -10,8 +10,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "InitiationDispatcher.hpp"
-
 // TODO: to remove
 #include <iostream>
 // TODO: to remove
@@ -35,11 +33,21 @@ CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse& response)
         KillChild();
         throw std::runtime_error("Failed to register Cgi Handler");
     }
+    try
+    {
+        timeout_it_ = InitiationDispatcher::Instance().AddTimeout(this, InitiationDispatcher::kPluginTimeout);
+    }
+    catch(const std::exception& e)
+    {
+        InitiationDispatcher::Instance().RemoveEntry(this);
+        throw;
+    }
 }
 
 CgiHandler::~CgiHandler()
 {
     KillChild();
+    InitiationDispatcher::Instance().DelTimeout(timeout_it_);
 }
 
 EventHandler::Handle    CgiHandler::get_handle(void) const
@@ -80,7 +88,13 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
 
 void CgiHandler::HandleTimeout()
 {
-    // TODO: implement
+    response_.SetResponseToErrorPage(504);
+    int err = InitiationDispatcher::Instance().AddWriteFilter(stream_handler_);
+    if (err == -1)
+        InitiationDispatcher::Instance().RemoveHandler(&stream_handler_);
+    InitiationDispatcher::Instance().RemoveHandler(this);
+    if (err == -1)
+        throw std::runtime_error("Failed to reactivate Stream Handler");
 }
 
 std::pair<int, int> CgiHandler::InitSocketPair()
@@ -150,6 +164,7 @@ void    CgiHandler::KillChild()
 
 void    CgiHandler::ReturnToStreamHandler()
 {
+    timeout_it_ = InitiationDispatcher::Instance().DelTimeout(timeout_it_);
     try
     {
         if (error_occured_while_handle_event_)

@@ -25,6 +25,6 @@ void    WebServ::Run() const
    if (ServerList::Instance().Size() < 1)
         throw std::runtime_error("no servers to run");
     // TODO: change the timeout value
-    InitiationDispatcher::Instance().HandleEvents(InitiationDispatcher::kNoTimeout);
+    InitiationDispatcher::Instance().HandleEvents(InitiationDispatcher::kTimeWaitingEvent);
     InitiationDispatcher::Instance().Clear();
 }

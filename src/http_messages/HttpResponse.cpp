@@ -350,6 +350,7 @@ void    HttpResponse::FinalizeResponse()
 {
     UpdateReason();
     AddHeaderContentLength();
+    AddHeaderCloseConnection();
     SetComplete();
 }
 
@@ -384,6 +385,12 @@ void    HttpResponse::MovedPermanentely(const std::string& new_target)
 void    HttpResponse::AddHeaderLocation(const std::string& location)
 {
     header_.AddOneHeader("LOCATION", location);
+}
+
+void    HttpResponse::AddHeaderCloseConnection()
+{
+    if (IsAskingToCloseConnection())
+        header_.AddOneHeader("CONNECTION", "close");
 }
 
 void    HttpResponse::RedirectToEmptyTarget(int code)

@@ -194,8 +194,9 @@ const std::map<int, std::string>  HttpStatusLine::InitStatusCodeMap()
     m[414] = "URI Too Long";
     m[431] = "Request Header Fields Too Large";
     m[500] = "Internal Server Error";
-    m[501] = "Internal Server Error";
+    m[501] = "Not Implemented";
     m[502] = "Bad Gateway";
+    m[504] = "Gateway Timeout";
     m[505] = "HTTP Version Not Supported";
     return m;
 }

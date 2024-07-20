@@ -2,18 +2,26 @@
 
 #include <stdexcept>
 
-#include "InitiationDispatcher.hpp"
-
 StreamHandler::StreamHandler(int acceptor_sfd, int sfd)
     : acceptor_sfd_(acceptor_sfd),
       stream_(sfd)
 {
     if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kReadEvent) == -1)
         throw std::runtime_error("Failed to register StreamHandler with InitiationDispatcher");
+    try
+    {
+        timeout_it_ = InitiationDispatcher::Instance().AddTimeout(this, InitiationDispatcher::kRequestTimeout);
+    }
+    catch(const std::exception& e)
+    {
+        InitiationDispatcher::Instance().RemoveEntry(this);
+        throw;
+    }
 }
 
 StreamHandler::~StreamHandler()
 {
+    InitiationDispatcher::Instance().DelTimeout(timeout_it_);
 }
 
 EventHandler::Handle    StreamHandler::get_handle() const
@@ -49,7 +57,11 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
 
 void    StreamHandler::HandleTimeout()
 {
-    // TODO: implement
+    if (response_queue_.empty()) {
+        request_queue_.push_front(HttpRequest(acceptor_sfd_, 408));
+        response_queue_.push_front(HttpResponse(*this, request_queue_.front()));
+        response_queue_.front().Execute();
+    }
 }
 
 void   StreamHandler::AddToRequestQueue()
@@ -72,13 +84,16 @@ int StreamHandler::SendFirstResponse()
         request_queue_.pop_front();
         if (InitiationDispatcher::Instance().SwitchFromWriteToRead(*this) == -1)
             throw std::runtime_error("Failed to delete write filter and add read filter for a socket");
+        if (request_queue_.empty() || !request_queue_.front().IsComplete())
+            timeout_it_ = InitiationDispatcher::Instance().AddTimeout(this, InitiationDispatcher::kRequestTimeout);
     }
     return kKeepConnection;
 }
 
 void    StreamHandler::ConvertRequestToResponse()
 {
-    if (InitiationDispatcher::Instance().DelReadFilter(*this) == -1)
+    timeout_it_ = InitiationDispatcher::Instance().DelTimeout(timeout_it_);
+    if (InitiationDispatcher::Instance().DeactivateHandler(*this) == -1)
         throw std::runtime_error("Failed to delete Read filter for a socket");
     response_queue_.push_back(HttpResponse(*this, request_queue_.front()));
     response_queue_.front().Execute();
