@@ -132,7 +132,7 @@ void    HttpStatusLine::SetCodeAndPhrase(int code)
     if (it != status_code_map_.end())
         reason_phrase_ = it->second;
     else
-        reason_phrase_ = "Unknown Status Code";
+        reason_phrase_.clear();
 }
 
 bool    HttpStatusLine::IsComplete() const
@@ -142,7 +142,10 @@ bool    HttpStatusLine::IsComplete() const
 
 std::string HttpStatusLine::GetFormatedStatusLine() const
 {
-    return get_http_version() + " " + get_status_code_str() + " " + get_reason_phrase() + "\r\n";
+    std::string res = get_http_version() + " " + get_status_code_str();
+    if (!get_reason_phrase().empty())
+        res += " " + get_reason_phrase();
+    return res + "\r\n";
 }
 
 void    HttpStatusLine::Clear()
@@ -178,8 +181,10 @@ const std::map<int, std::string>  HttpStatusLine::InitStatusCodeMap()
 {
     std::map<int, std::string>  m;
     m[200] = "OK";
-    // m[201] = "Created";
+    m[201] = "Created";
     m[204] = "No Content";
+    m[301] = "Moved Permanentely";
+    m[308] = "Permanent Redirect";
     m[400] = "Bad Request";
     m[403] = "Forbidden";
     m[404] = "Not Found";

@@ -57,12 +57,10 @@ class Location {
         static const std::map<std::string, void (Location::*)(const std::string&)>  set_functions_;
         static const std::map<std::string, int>                                     methods_ref_;
         static const std::map<std::string, int>                                     cgi_ref_;
-        static const std::map<int, std::string>                                     errors_ref_;
 
         static const std::map<std::string, void (Location::*)(const std::string&)>  InitSetFunctions();
         static const std::map<std::string, int>                                     InitMethodsRef();
         static const std::map<std::string, int>                                     InitCgiRef();
-        static const std::map<int, std::string>                                     InitErrorListRef();
 
         bool    IsAbsolutePath(const std::string&) const;
 

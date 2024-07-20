@@ -29,6 +29,8 @@ class HttpRequestLine {
                 void    set_complete_url(const std::string& url);
 
                 void    InitTargetType(const std::string& target);
+                bool    IsTargetEmpty() const;
+                void    ClearTarget();
 
             private:
                 static const std::string    kOriginForm;

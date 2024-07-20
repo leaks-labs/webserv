@@ -238,6 +238,16 @@ void    HttpRequestLine::Target::InitTargetType(const std::string& target)
     type_ = it->first;
 }
 
+bool    HttpRequestLine::Target::IsTargetEmpty() const
+{
+    return target_.empty();
+}
+
+void    HttpRequestLine::Target::ClearTarget()
+{
+    target_.clear();
+}
+
 std::map<std::string, bool> HttpRequestLine::Target::InitTargetMap()
 {
     std::map<std::string, bool> m;
