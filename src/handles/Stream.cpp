@@ -51,9 +51,10 @@ std::string Stream::Read()
     int recv_flags = MSG_DONTWAIT;
 #endif
     if ((bytes_read = recv(sfd_, buffer_.data(), buffer_.size(), recv_flags)) == -1)
-        throw std::runtime_error("recv() failed:" + std::string(strerror(errno)));
+        throw std::runtime_error("recv() failed: " + std::string(strerror(errno)));
     else if (bytes_read == 0)
-        throw std::runtime_error("recv() failed: connection closed by peer");
+        return std::string();
+        // throw std::runtime_error("recv() failed: connection closed by peer");
     return std::string(buffer_.data(), bytes_read);
 }
 
