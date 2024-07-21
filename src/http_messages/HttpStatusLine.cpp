@@ -2,6 +2,7 @@
 
 #include <sstream>
 
+#include "HttpCodeException.hpp"
 #include "HttpRequest.hpp"
 
 // TODO: to be removed
@@ -100,18 +101,18 @@ void    HttpStatusLine::Parse(std::string& message)
     is_complete_ = true;
     std::vector<std::string> tokens;
     if (HttpRequest::Split(buffer_, " ", tokens) == -1)
-        throw std::runtime_error("502");
+        throw HttpCodeExceptions::BadGatewayException();
     buffer_.clear();
     if (tokens.size() < 2)
-        throw std::runtime_error("502");
+        throw HttpCodeExceptions::BadGatewayException();
     if (tokens[0] != "HTTP/0.9"&& tokens[0] != "HTTP/1.0"
         && tokens[0] != "HTTP/1.1" && tokens[0] != "HTTP/2" && tokens[0] != "HTTP/3")
-        throw std::runtime_error("502");
+        throw HttpCodeExceptions::BadGatewayException();
     http_version_ = tokens[0];
     std::istringstream iss(tokens[1]);
     iss >> std::noskipws >> status_code_;
     if (iss.fail() || !iss.eof() || status_code_ < 100 || status_code_ > 599)
-        throw std::runtime_error("502");
+        throw HttpCodeExceptions::BadGatewayException();
     if (tokens.size() > 2) {
         std::string reason_phrase;
         for (size_t i = 2; i < tokens.size(); ++i) {

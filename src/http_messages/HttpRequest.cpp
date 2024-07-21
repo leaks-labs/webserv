@@ -3,6 +3,8 @@
 #include <sstream>
 #include <iostream>
 
+#include "HttpCodeException.hpp"
+
 int HttpRequest::Split(const std::string& str, const std::string& delim, std::vector<std::string>& tokens)
 {
     size_t start = 0, end;
@@ -142,13 +144,12 @@ void    HttpRequest::AppendToRequest(std::string& message)
         if (body_.IsComplete())
             is_complete_ = true;
     }
+    catch (const HttpCodeException& e) {
+        status_code_ = e.Code();
+        is_complete_ = true;
+    }
     catch (const std::exception &e) {
-        std::istringstream iss(e.what());
-        int code;
-        iss >> std::noskipws >> code;
-        if (iss.fail() || !iss.eof() || code < 100 || code > 599)
-            code = 500;
-        status_code_ = code;
+        status_code_ = 500;
         is_complete_ = true;
     }
 }

@@ -264,7 +264,7 @@ bool    InitiationDispatcher::IsEventCloseRead(const Event& event)
 #ifdef __APPLE__
     return (event.filter == EVFILT_READ && (event.flags & EV_EOF) != 0 && event.data == 0);
 #elif __linux__
-    return ( /* (event.events & EPOLLIN) == 0 && */ (event.events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) != 0);
+    return ((event.events & EPOLLIN) == 0 && (event.events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) != 0);
 #endif
 }
 
