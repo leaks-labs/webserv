@@ -442,6 +442,7 @@ std::vector<std::string> HttpResponse::SetEnv()
 
     std::vector<std::string>    res;
     const std::map<std::string, std::string>&   map = request_.get_header().get_header_map();
+    res.push_back("SERVER_PROTOCOL=" + request_.get_request_line().get_http_version());
     res.push_back("REQUEST_METHOD=" + request_.get_request_line().get_method());
     std::string path_info = request_.get_location().get_path_info();
     if (path_info != "none")
