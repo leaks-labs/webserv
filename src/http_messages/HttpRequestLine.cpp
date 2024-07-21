@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include "HttpCodeException.hpp"
 #include "HttpRequest.hpp"
 #include "PathFinder.hpp"
 
@@ -69,7 +70,7 @@ void HttpRequestLine::Parse(std::string& message)
     size_t initial_buffer_size = buffer_.length();
     buffer_ += message;
     if (buffer_.size() > kMaxRequestLineSize)
-        throw std::runtime_error("414");
+        throw HttpCodeExceptions::UrlTooLongException();
     size_t pos = buffer_.find("\r\n");
     if (pos == std::string::npos) {
         message.clear();
@@ -82,21 +83,22 @@ void HttpRequestLine::Parse(std::string& message)
     is_complete_ = true;
     std::vector<std::string> tokens;
     if (HttpRequest::Split(buffer_, " ", tokens) == -1)
-        throw std::runtime_error("400");
+        throw HttpCodeExceptions::BadRequestException();
     buffer_.clear();
     if (tokens.size() != 3)
-        throw std::runtime_error("400");
+        throw HttpCodeExceptions::BadRequestException();
+    buffer_.clear();
     std::map<std::string, bool>::const_iterator method_it = method_map.find(tokens[0]);
     if (method_it == method_map.end() || !method_it->second)
-        throw std::runtime_error("400");
+        throw HttpCodeExceptions::BadRequestException();
     method_ = tokens[0];
     target_.InitTargetType(tokens[1]);
     target_.set_complete_url(tokens[1]);
     if (tokens[2] != "HTTP/0.9"&& tokens[2] != "HTTP/1.0"
         && tokens[2] != "HTTP/1.1" && tokens[2] != "HTTP/2" && tokens[2] != "HTTP/3")
-        throw std::runtime_error("400");
+        throw HttpCodeExceptions::BadRequestException();
     else if (tokens[2] != "HTTP/1.1")
-        throw std::runtime_error("505");
+        throw HttpCodeExceptions::HttpVersionNotSupportedException();
     http_version_ = tokens[2];
 }
 
@@ -234,7 +236,7 @@ void    HttpRequestLine::Target::InitTargetType(const std::string& target)
         if (target.compare(0, it->first.length(), it->first) == 0)
             break;
     if (it == target_map.end() || !it->second)
-        throw std::runtime_error("400");
+        throw HttpCodeExceptions::BadRequestException();
     type_ = it->first;
 }
 

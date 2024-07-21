@@ -10,6 +10,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "HttpCodeException.hpp"
+
 // TODO: to remove
 #include <iostream>
 // TODO: to remove
@@ -22,6 +24,7 @@ CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse& response)
       sfd_pair_(InitSocketPair()),
       stream_main_(sfd_pair_.first),
       stream_child_(sfd_pair_.second),
+      should_return_to_stream_handler_(kContinueCgi),
       pid_child_(fork())
 {
     if (pid_child_ == -1)
@@ -39,6 +42,7 @@ CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse& response)
     }
     catch(const std::exception& e)
     {
+        KillChild();
         InitiationDispatcher::Instance().RemoveEntry(this);
         throw;
     }
@@ -55,26 +59,36 @@ EventHandler::Handle    CgiHandler::get_handle(void) const
     return stream_main_.get_sfd();
 }
 
+int CgiHandler::ReadFromCGI()
+{
+    std::string res = stream_main_.Read();
+    if (res.empty())
+        return kReturnToStreamHandler;
+    cgi_buffer += res;
+    return kContinueCgi;
+}
+
+void    CgiHandler::WriteToCGI()
+{
+    if (!data_to_send_to_cgi_.empty())
+        stream_main_.Send(data_to_send_to_cgi_);
+    else if (InitiationDispatcher::Instance().SwitchFromWriteToRead(*this) == -1)
+        throw std::runtime_error("Failed to update Cgi Handler filters");
+}
+
 void    CgiHandler::HandleEvent(EventTypes::Type event_type)
 {
     std::cout << "ENTER CgiHandler: event " << event_type << std::endl;
     if (EventTypes::IsCloseReadEvent(event_type)
         || (EventTypes::IsCloseWriteEvent(event_type) && !data_to_send_to_cgi_.empty())) {
-        std::cout << "closing cgi" << std::endl;
-        ReturnToStreamHandler();
-        return; // Do NOT remove this return. It is important to be sure to return here.
+        should_return_to_stream_handler_ = kReturnToStreamHandler;
     } else {
         try
         {
-            if (EventTypes::IsReadEvent(event_type)) {
-                std::string res = stream_main_.Read();
-                cgi_buffer += res;
-            } else if (EventTypes::IsWriteEvent(event_type)) {
-                if(!data_to_send_to_cgi_.empty())
-                    stream_main_.Send(data_to_send_to_cgi_);
-                else if (InitiationDispatcher::Instance().SwitchFromWriteToRead(*this) == -1)
-                    throw std::runtime_error("Failed to update Cgi Handler filters");
-            }
+            if (EventTypes::IsReadEvent(event_type))
+                should_return_to_stream_handler_ = ReadFromCGI();
+            else if (EventTypes::IsWriteEvent(event_type))
+                WriteToCGI();
         }
         catch(const std::exception& e)
         {
@@ -82,7 +96,11 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
             ReturnToStreamHandler();
             return; // Do NOT remove this return. It is important to be sure to return here.
         }
-        
+    }
+    if (should_return_to_stream_handler_ == kReturnToStreamHandler) {
+        std::cout << "closing cgi" << std::endl;
+        ReturnToStreamHandler();
+        return; // Do NOT remove this return. It is important to be sure to return here.
     }
 }
 
@@ -165,14 +183,15 @@ void    CgiHandler::KillChild()
 void    CgiHandler::ReturnToStreamHandler()
 {
     timeout_it_ = InitiationDispatcher::Instance().DelTimeout(timeout_it_);
+    int err = 0;
     try
     {
         if (error_occured_while_handle_event_)
-            throw std::runtime_error("500");
+            throw HttpCodeExceptions::InternalServerErrorException();
         response_.ClearHeader();
         response_.ParseHeader(cgi_buffer);
         if (!response_.HeaderIsComplete())
-            throw std::runtime_error("502");
+            throw HttpCodeExceptions::BadGatewayException();
         response_.set_body(cgi_buffer);
         response_.AddHeaderContentLength();
         // TODO: set the right status code,
@@ -180,20 +199,33 @@ void    CgiHandler::ReturnToStreamHandler()
         // and modify the response accordingly
         response_.set_status_line(200);
         response_.SetComplete();
+        err = InitiationDispatcher::Instance().AddWriteFilter(stream_handler_);
+    }
+    catch(const HttpCodeException& e)
+    {
+        try
+        {
+            response_.SetResponseToErrorPage(e.Code());
+        }
+        catch(const std::exception& e)
+        {
+            err = -1;
+        }
     }
     catch(const std::exception& e)
     {
-        std::istringstream iss(e.what());
-        int code;
-        iss >> std::noskipws >> code;
-        if (iss.fail() || !iss.eof() || code < 100 || code > 599)
-            code = 500;
-        response_.SetResponseToErrorPage(code);
+        try
+        {
+            response_.SetResponseToErrorPage(500);
+        }
+        catch(const std::exception& e)
+        {
+            err = -1;
+        }
     }
-    int err = InitiationDispatcher::Instance().AddWriteFilter(stream_handler_);
     if (err == -1)
         InitiationDispatcher::Instance().RemoveHandler(&stream_handler_);
     InitiationDispatcher::Instance().RemoveHandler(this);
     if (err == -1)
-        throw std::runtime_error("Failed to reactivate Stream Handler");
+        throw std::runtime_error("Failed to return to Stream Handler");
 }
