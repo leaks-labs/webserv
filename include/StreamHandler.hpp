@@ -29,7 +29,7 @@ class StreamHandler : public EventHandler {
         virtual void    HandleEvent(EventTypes::Type event_type);
         virtual void    HandleTimeout();
         
-        void    AddToRequestQueue();
+        int     AddToRequestQueue();
         int     SendFirstResponse();
         void    ConvertRequestToResponse();
         
@@ -46,6 +46,7 @@ class StreamHandler : public EventHandler {
         std::deque<HttpRequest>                 request_queue_;
         std::deque<HttpResponse>                response_queue_;
         InitiationDispatcher::TimeoutIterator   timeout_it_;
+        bool                                    should_close_connection_;
 };
 
 #endif  // STREAM_HANDLER_HPP

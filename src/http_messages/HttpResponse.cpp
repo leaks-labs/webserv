@@ -8,6 +8,7 @@
 
 #include "CgiHandler.hpp"
 #include "Directory.hpp"
+#include "HttpCodeException.hpp"
 #include "InitiationDispatcher.hpp"
 #include "PathFinder.hpp"
 #include "ProxyHandler.hpp"
@@ -294,30 +295,25 @@ void    HttpResponse::ApplyGeneratedPage()
         throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
 }
 
-int HttpResponse::LaunchCgiHandler()
+void    HttpResponse::LaunchCgiHandler()
 {
     try
     {
         cgi_path_ = GetCgiPath(FindExtension(path_));
         env_ = SetEnv();
         new CgiHandler(stream_handler_, *this);
-        return 0;
+    }
+    catch(const HttpCodeException& e)
+    {
+        SetResponseToErrorPage(e.Code());
     }
     catch(const std::exception& e)
     {
-        std::istringstream iss(e.what());
-        int code;
-        iss >> std::noskipws >> code;
-        if (iss.fail() || !iss.eof() || code < 100 || code > 599)
-            code = 500;
-        SetResponseToErrorPage(code);
-        if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
-            throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
-        return -1;
+        SetResponseToErrorPage(500);
     }
 }
 
-int HttpResponse::LaunchProxyHandler()
+void    HttpResponse::LaunchProxyHandler()
 {
     struct addrinfo* addr = NULL;
     try
@@ -328,7 +324,6 @@ int HttpResponse::LaunchProxyHandler()
         addr = ProxyHandler::ConvertToAddrInfo(host_without_port);
         new ProxyHandler(stream_handler_, *addr, host_without_port, *this);
         freeaddrinfo(addr);
-        return 0;
     }
     catch(const std::exception& e)
     {
@@ -340,9 +335,6 @@ int HttpResponse::LaunchProxyHandler()
         if (iss.fail() || !iss.eof() || code < 100 || code > 599)
             code = 500;
         SetResponseToErrorPage(code);
-        if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
-            throw std::runtime_error("Failed to add write filter to InitiationDispatcher");
-        return -1;
     }
 }
 
@@ -356,11 +348,15 @@ void    HttpResponse::FinalizeResponse()
 
 bool    HttpResponse::IsHandledExternaly()
 {
-    // if (request_.get_location().get_proxy() != "false")
-    //     return (LaunchProxyHandler() == 0);
-    if (IsCgiFile(path_))
-        return (LaunchCgiHandler() == 0);
-    return 0;
+    // if (request_.get_location().get_proxy() != "false") {
+    //     LaunchProxyHandler();
+    //     return true;
+    // }
+    if (IsCgiFile(path_)) {
+        LaunchCgiHandler();
+        return true;
+    }
+    return false;
 }
 
 void    HttpResponse::DeleteResource()

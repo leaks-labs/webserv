@@ -24,6 +24,9 @@ class CgiHandler : public EventHandler {
         virtual void    HandleTimeout();
 
     private:
+        static const int    kContinueCgi = 0;
+        static const int    kReturnToStreamHandler = 1;
+
         CgiHandler();
         CgiHandler(const CgiHandler &src);
         CgiHandler&   operator=(const CgiHandler &rhs);
@@ -31,6 +34,8 @@ class CgiHandler : public EventHandler {
         std::pair<int, int> InitSocketPair();
         void                ExecCGI();
         void                KillChild();
+        int                 ReadFromCGI();
+        void                WriteToCGI();
         void                ReturnToStreamHandler();
 
         bool                                    error_occured_while_handle_event_;
@@ -40,6 +45,7 @@ class CgiHandler : public EventHandler {
         std::pair<int, int>                     sfd_pair_;
         Stream                                  stream_main_;
         Stream                                  stream_child_;
+        int                                     should_return_to_stream_handler_;
         pid_t                                   pid_child_;
         std::string                             cgi_buffer;
         InitiationDispatcher::TimeoutIterator   timeout_it_;
