@@ -1,9 +1,11 @@
 #include "Directory.hpp"
 
-Directory::Directory(const std::string& path, const std::string& request_path, const std::string& root)
+#include <iostream>
+
+Directory::Directory(const std::string& path, const std::string& request_path, size_t min_request_size)
     : path_(path),
       request_path_(request_path),
-      root_(root),
+      min_request_size_(min_request_size),
       dir_(opendir(path.c_str()))
 {
     while (!request_path_.empty() && request_path_[request_path_.length() - 1] == '/')
@@ -27,10 +29,13 @@ std::string Directory::GetHTML() const
     std::string     name, href;
     HTMLPage        html;
 
+    std::string parent;
+    if (!request_path_.empty())
+        parent = request_path_.substr(0, request_path_.rfind('/') + 1);
     html.AddHeader();
-    if (request_path_ != root_) {
+    if (parent.length() >= min_request_size_) {
         html.OpenTag("p");
-        href = request_path_.substr(0, request_path_.rfind("/") + 1);
+        href = parent;
         html.AddLinkTag(href, "<<");
         html.CloseTag("p");
         html.NewLine();

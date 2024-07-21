@@ -5,24 +5,24 @@
 
 # include "HTMLPage.hpp"
 
-class Directory
-{
-public:
-    Directory(const std::string& path, const std::string& request_path, const std::string& root);
+class Directory {
+    public:
+        Directory(const std::string& path, const std::string& request_path, size_t min_request_size);
 
-    ~Directory();
+        ~Directory();
 
-    bool        IsOpen() const;
-    std::string GetHTML() const;
+        bool        IsOpen() const;
+        std::string GetHTML() const;
 
-private:
-    Directory();
+    private:
+        Directory();
+        Directory(const Directory& src);
+        Directory&  operator=(const Directory& rhs);
 
-    std::string path_;
-    std::string request_path_;
-    std::string root_;
-    DIR*        dir_;
+        std::string path_;
+        std::string request_path_;
+        size_t      min_request_size_;
+        DIR*        dir_;
 };
-
 
 #endif  // DIRECTORY_HPP_

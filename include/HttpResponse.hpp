@@ -60,6 +60,7 @@ class HttpResponse {
         void                        AddHeaderCloseConnection();
         void                        RedirectToEmptyTarget(int code);
         void                        RedirectToNewTarget(int code);
+        std::string                 BuildPath();
         void                        UpdatePathAndTarget(const std::string& new_target);
         void                        UpdateReason();
         std::string                 ErrorFileIsSet() const;
