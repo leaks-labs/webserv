@@ -23,7 +23,7 @@ HttpResponse::HttpResponse(StreamHandler& stream_handler, HttpRequest& request)
       status_line_(request.get_status_code()),
       keep_alive_(request.KeepAlive()),
       target_(request_.get_request_line().get_target()),
-      path_(PathFinder::CanonicalizePath(location_->get_root() + target_.get_target()))
+      path_(BuildPath())
 {
     if (status_line_.get_status_code() != 200) {
         target_.ClearTarget();
@@ -118,7 +118,7 @@ void    HttpResponse::Execute()
         return MovedPermanentely(target_.get_target() + "/");
     } else if (target_.get_target()[target_.get_target().size() - 1] == '/') {
         std::string index_file_path = target_.get_target() + location_->get_default_file();
-        std::string complete_index_file_path = PathFinder::CanonicalizePath(location_->get_root() + index_file_path);
+        std::string complete_index_file_path = PathFinder::CanonicalizePath(BuildPath() + location_->get_default_file());
         if (PathFinder::PathExist(complete_index_file_path) && IsDir(complete_index_file_path)) {
             return MovedPermanentely(index_file_path + "/");
         } else if (!PathFinder::PathExist(complete_index_file_path)) {
@@ -259,7 +259,8 @@ void    HttpResponse::Apply()
         return;
 
     if (target_.get_target()[target_.get_target().size() - 1] == '/' && location_->get_listing() == true) {
-        Directory dir(path_, target_.get_target(), location_->get_root());
+        // Directory dir(path_, target_.get_target(), location_->get_root());
+        Directory   dir(path_, target_.get_target(), location_->get_path().size());
         if (dir.IsOpen())
             body_.set_body(dir.GetHTML());
         else
@@ -408,10 +409,18 @@ void    HttpResponse::RedirectToNewTarget(int code)
         return Execute();
 }
 
+std::string HttpResponse::BuildPath()
+{
+    if (!location_->get_root().empty())
+        return PathFinder::CanonicalizePath(location_->get_root() + target_.get_target());
+    else
+        return location_->get_alias() + target_.get_target().substr(location_->get_path().size());
+}
+
 void    HttpResponse::UpdatePathAndTarget(const std::string& new_target)
 {
     target_.set_target(new_target);
-    path_ = PathFinder::CanonicalizePath(location_->get_root() + target_.get_target());
+    path_ = BuildPath();
 }
 
 void    HttpResponse::UpdateReason()

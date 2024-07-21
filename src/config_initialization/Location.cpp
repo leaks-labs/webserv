@@ -13,6 +13,7 @@ const std::map<std::string, int>                                    Location::cg
 Location::Location()
     : path_("/"),
       root_("/"), // TODO: change to current directory?
+      alias_(""),
       default_file_("index.html"),
       proxy_("false"),
       cgi_(kCgiPHP),
@@ -34,6 +35,7 @@ Location&   Location::operator=(Location const& rhs)
     if (this != &rhs) {
         path_ = rhs.get_path();
         root_ = rhs.get_root();
+        alias_ = rhs.alias_;
         default_file_ = rhs.get_default_file();
         proxy_ = rhs.get_proxy();
         errors_ = rhs.get_errors();
@@ -59,6 +61,11 @@ const std::string&  Location::get_path() const
 const std::string&  Location::get_root() const
 {
     return root_;
+}
+
+const std::string&  Location::get_alias() const
+{
+    return alias_;
 }
 
 const std::string&  Location::get_default_file() const
@@ -118,6 +125,15 @@ void    Location::set_root(const std::string& value)
     if (!IsAbsolutePath(value))
         throw std::runtime_error("root should start with /");
     root_ = PathFinder::CanonicalizePath(value);
+    alias_.clear();
+}
+
+void    Location::set_alias(const std::string& value)
+{
+    if (!IsAbsolutePath(value))
+        throw std::runtime_error("alias should start with /");
+    alias_ = PathFinder::CanonicalizePath(value);
+    root_.clear();
 }
 
 void    Location::set_default_file(const std::string& value)
@@ -287,6 +303,7 @@ const std::map<std::string, void (Location::*)(const std::string&)> Location::In
 {
     std::map<std::string, void (Location::*)(const std::string&)>   m;
     m["root"] = &Location::set_root;
+    m["alias"] = &Location::set_alias;
     m["default_file"] = &Location::set_default_file;
     m["proxy"] = &Location::set_proxy;
     m["errors"] = &Location::set_errors;
