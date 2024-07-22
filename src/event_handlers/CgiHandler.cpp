@@ -32,7 +32,7 @@ CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse& response)
     if (pid_child_ == 0)
         ExecCGI();
     stream_child_.Close();
-    if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kWriteEvent) == -1) {
+    if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kWriteEvent | EventTypes::kReadEvent) == -1) {
         KillChild();
         throw std::runtime_error("Failed to register Cgi Handler");
     }
@@ -72,7 +72,7 @@ void    CgiHandler::WriteToCGI()
 {
     if (!data_to_send_to_cgi_.empty())
         stream_main_.Send(data_to_send_to_cgi_);
-    else if (InitiationDispatcher::Instance().SwitchFromWriteToRead(*this) == -1)
+    if (data_to_send_to_cgi_.empty() && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
         throw std::runtime_error("Failed to update Cgi Handler filters");
 }
 
@@ -85,10 +85,10 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
     } else {
         try
         {
-            if (EventTypes::IsReadEvent(event_type))
-                should_return_to_stream_handler_ = ReadFromCGI();
-            else if (EventTypes::IsWriteEvent(event_type))
+            if (EventTypes::IsWriteEvent(event_type))
                 WriteToCGI();
+            else if (EventTypes::IsReadEvent(event_type))
+                should_return_to_stream_handler_ = ReadFromCGI();
         }
         catch(const std::exception& e)
         {
