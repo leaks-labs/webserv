@@ -413,8 +413,10 @@ void    HttpResponse::RedirectToNewTarget(int code)
         path_.clear();
         set_status_line(code);
         std::string tmp_request_path = ErrorFileIsSet();
-        if (!tmp_request_path.empty() && ++redirect_count_ < kMaxRedirectCount)
+        if (!tmp_request_path.empty() && ++redirect_count_ < kMaxRedirectCount) {
+            request_.get_request_line().set_method("GET");
             UpdatePathAndTarget(tmp_request_path);
+        }
         if (redirect_count_ >= kMaxRedirectCount)
             return RedirectToEmptyTarget(500);
         return Execute();

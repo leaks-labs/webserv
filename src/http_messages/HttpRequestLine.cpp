@@ -62,6 +62,11 @@ const std::string&  HttpRequestLine::get_http_version() const
     return http_version_;
 }
 
+void    HttpRequestLine::set_method(const std::string& method)
+{
+    method_ = method;
+}
+
 void HttpRequestLine::Parse(std::string& message)
 {
     size_t initial_buffer_size = buffer_.length();
