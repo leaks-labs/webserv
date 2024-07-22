@@ -51,7 +51,7 @@ class HttpResponse {
         void                        Apply();
         void                        ApplyGeneratedPage();
         void                        LaunchCgiHandler();
-        void                        LaunchProxyHandler();
+        // void                        LaunchProxyHandler();
         void                        FinalizeResponse();
         bool                        IsHandledExternaly();
         void                        DeleteResource();

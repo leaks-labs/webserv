@@ -11,7 +11,6 @@
 #include "HttpCodeException.hpp"
 #include "InitiationDispatcher.hpp"
 #include "PathFinder.hpp"
-#include "ProxyHandler.hpp"
 #include "StreamHandler.hpp"
 
 HttpResponse::HttpResponse(StreamHandler& stream_handler, HttpRequest& request)
@@ -110,8 +109,8 @@ void    HttpResponse::Execute()
     
     if (request_.get_location().HasMethod(request_.get_request_line().get_method()) == false) {
         return RedirectToNewTarget(405);
-    } else if (location_->get_proxy() != "false") {
-        return MovedPermanentely(location_->get_proxy());
+    } else if (location_->get_redirect() != "false") {
+        return MovedPermanentely(location_->get_redirect());
     } else if (!PathFinder::PathExist(path_)) {
         return RedirectToNewTarget(404);
     } else if (target_.get_target()[target_.get_target().size() - 1] != '/' && IsDir(path_)) {
@@ -314,30 +313,30 @@ void    HttpResponse::LaunchCgiHandler()
     }
 }
 
-void    HttpResponse::LaunchProxyHandler()
-{
-    struct addrinfo* addr = NULL;
-    try
-    {
-        std::string host = request_.get_location().get_proxy();
-        size_t  pos = host.find(':');
-        std::string host_without_port = host.substr(0, pos);
-        addr = ProxyHandler::ConvertToAddrInfo(host_without_port);
-        new ProxyHandler(stream_handler_, *addr, host_without_port, *this);
-        freeaddrinfo(addr);
-    }
-    catch(const std::exception& e)
-    {
-        if (addr != NULL)
-            freeaddrinfo(addr);
-        std::istringstream iss(e.what());
-        int code;
-        iss >> std::noskipws >> code;
-        if (iss.fail() || !iss.eof() || code < 100 || code > 599)
-            code = 500;
-        SetResponseToErrorPage(code);
-    }
-}
+// void    HttpResponse::LaunchProxyHandler()
+// {
+//     struct addrinfo* addr = NULL;
+//     try
+//     {
+//         std::string host = request_.get_location().get_proxy();
+//         size_t  pos = host.find(':');
+//         std::string host_without_port = host.substr(0, pos);
+//         addr = ProxyHandler::ConvertToAddrInfo(host_without_port);
+//         new ProxyHandler(stream_handler_, *addr, host_without_port, *this);
+//         freeaddrinfo(addr);
+//     }
+//     catch(const std::exception& e)
+//     {
+//         if (addr != NULL)
+//             freeaddrinfo(addr);
+//         std::istringstream iss(e.what());
+//         int code;
+//         iss >> std::noskipws >> code;
+//         if (iss.fail() || !iss.eof() || code < 100 || code > 599)
+//             code = 500;
+//         SetResponseToErrorPage(code);
+//     }
+// }
 
 void    HttpResponse::FinalizeResponse()
 {
