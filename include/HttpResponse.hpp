@@ -39,6 +39,8 @@ class HttpResponse {
         void        Clear();
 
     private:
+        static const int    kMaxRedirectCount = 10;
+
         static std::string  FindExtension(const std::string& str);
         static bool         IsCgiFile(const std::string& path);
         static std::string  GetCgiPath(const std::string& ext);
@@ -80,6 +82,7 @@ class HttpResponse {
         HttpHeader                  header_;
         HttpBody                    body_;
         std::string                 response_;
+        int                         redirect_count_;
 };
 
 #endif

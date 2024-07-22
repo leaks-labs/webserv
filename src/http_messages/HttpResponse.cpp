@@ -22,7 +22,8 @@ HttpResponse::HttpResponse(StreamHandler& stream_handler, HttpRequest& request)
       status_line_(request.get_status_code()),
       keep_alive_(request.KeepAlive()),
       target_(request_.get_request_line().get_target()),
-      path_(BuildPath())
+      path_(BuildPath()),
+      redirect_count_(0)
 {
     if (status_line_.get_status_code() != 200) {
         target_.ClearTarget();
@@ -47,7 +48,8 @@ HttpResponse::HttpResponse(const HttpResponse& src)
       env_(src.env_),
       header_(src.header_),
       body_(src.body_),
-      response_(src.response_)
+      response_(src.response_),
+      redirect_count_(src.redirect_count_)
 {
 }
 
@@ -411,8 +413,10 @@ void    HttpResponse::RedirectToNewTarget(int code)
         path_.clear();
         set_status_line(code);
         std::string tmp_request_path = ErrorFileIsSet();
-        if (!tmp_request_path.empty())
+        if (!tmp_request_path.empty() && ++redirect_count_ < kMaxRedirectCount)
             UpdatePathAndTarget(tmp_request_path);
+        if (redirect_count_ >= kMaxRedirectCount)
+            return RedirectToEmptyTarget(500);
         return Execute();
 }
 
