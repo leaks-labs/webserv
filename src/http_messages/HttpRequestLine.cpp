@@ -1,16 +1,13 @@
 #include "HttpRequestLine.hpp"
 
 #include <algorithm>
+#include <iostream>
 #include <stdexcept>
 #include <vector>
 
 #include "HttpCodeException.hpp"
 #include "HttpRequest.hpp"
 #include "PathFinder.hpp"
-
-// TODO: to be removed
-#include <iostream>
-// TODO: to be removed
 
 const std::string   HttpRequestLine::Target::kOriginForm = "/";
 const std::string   HttpRequestLine::Target::kAbsoluteForm = "http";

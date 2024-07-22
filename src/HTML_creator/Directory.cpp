@@ -1,7 +1,5 @@
 #include "Directory.hpp"
 
-#include <iostream>
-
 Directory::Directory(const std::string& path, const std::string& request_path, size_t min_request_size)
     : path_(path),
       request_path_(request_path),

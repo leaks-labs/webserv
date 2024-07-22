@@ -81,7 +81,7 @@ int ServerList::IsSameAddr(const int acceptor_sfd, const struct addrinfo* addr_l
 const Server& ServerList::FindServer(const int acceptor_sfd, const std::string& name) const
 {
     std::vector<const Server*>  matched;
-    // TODO: if issameaddr failes
+    // TODO: if issameaddr fails
     for (ServerList::ConstIterator it = servers_.begin(); it != servers_.end(); ++it)
         if (IsSameAddr(acceptor_sfd, it->get_addr()))
             matched.push_back(&(*it));

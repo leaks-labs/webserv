@@ -12,7 +12,7 @@ const std::map<std::string, int>                                    Location::cg
 
 Location::Location()
     : path_("/"),
-      root_("/"), // TODO: change to current directory?
+      root_("/"),
       alias_(""),
       default_file_("index.html"),
       redirect_("false"),

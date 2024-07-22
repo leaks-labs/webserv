@@ -3,14 +3,11 @@
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 
 #include <unistd.h>
-
-// to remove
-#include <iostream>
-// to remove
 
 volatile sig_atomic_t   InitiationDispatcher::g_signal_received = 0;
 
@@ -86,7 +83,6 @@ int InitiationDispatcher::DeactivateHandler(EventHandler& event_handler)
 
 int InitiationDispatcher::AddReadFilter(EventHandler& event_handler)
 {
-    //std::cerr << "Add Read filter : " << event_handler.get_handle() << " " << event_handler.get_event_types_registred() << std::endl;
     if (EventTypes::IsReadEvent(event_handler.get_event_types_registred()))
         return 0;
     Event   event = {};
@@ -112,7 +108,6 @@ int InitiationDispatcher::AddReadFilter(EventHandler& event_handler)
 
 int InitiationDispatcher::AddWriteFilter(EventHandler& event_handler)
 {
-    //std::cerr << "Add Write filter : " << event_handler.get_handle() << " " << event_handler.get_event_types_registred() << std::endl;
     if (EventTypes::IsWriteEvent(event_handler.get_event_types_registred()))
         return 0;
     Event   event = {};
@@ -213,8 +208,6 @@ InitiationDispatcher::TimeoutIterator   InitiationDispatcher::DelTimeout(Timeout
 
 void    InitiationDispatcher::SignalHandler(int signal)
 {
-    std::cout << std::endl;
-    std::cout << "Signal " << signal << " received" << std::endl;
     g_signal_received = signal;
 }
 
@@ -327,7 +320,6 @@ int InitiationDispatcher::WaitForEvents(std::vector<Event>& event_list, int even
 void    InitiationDispatcher::IterateEventList(const std::vector<Event>& event_list, int number_events)
 {
     for (std::vector<Event>::const_iterator it = event_list.begin(); number_events > 0 && g_signal_received == 0; ++it, --number_events) {
-        std::cout << "socket: " << GetHandleFromEvent(*it) << std::endl;
         try
         {
             std::map<EventHandler::Handle, EventHandler*>::iterator entry = event_handler_table_.find(GetHandleFromEvent(*it));

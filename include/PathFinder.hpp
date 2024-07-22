@@ -21,7 +21,6 @@ class PathFinder {
         PathFinder(const PathFinder& src);
         PathFinder& operator=(const PathFinder& rhs);
 
-        // TODO: need a refactor into a map
         std::string php_;
 };
 

@@ -1,7 +1,6 @@
 #include "HttpRequest.hpp"
 
 #include <sstream>
-#include <iostream>
 
 #include "HttpCodeException.hpp"
 

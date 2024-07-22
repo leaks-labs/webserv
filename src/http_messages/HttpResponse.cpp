@@ -147,7 +147,7 @@ void    HttpResponse::AppendToResponse(std::string& message)
         if (header_.IsComplete()) {
             if (!header_.NeedBody())
                 body_.set_is_complete(true);
-            else if (header_.IsContentLength()) // TODO: maybe limit the body size for the reponse?
+            else if (header_.IsContentLength())
                 body_.SetMode(HttpBody::kModeContentLength, 0, header_.GetContentLength());
             else
                 body_.SetMode(HttpBody::kModeTransferEncodingChunked, 0);
@@ -258,7 +258,6 @@ void    HttpResponse::Apply()
         return;
 
     if (target_.get_target()[target_.get_target().size() - 1] == '/' && location_->get_listing() == true) {
-        // Directory dir(path_, target_.get_target(), location_->get_root());
         Directory   dir(path_, target_.get_target(), location_->get_path().size());
         if (dir.IsOpen())
             body_.set_body(dir.GetHTML());
@@ -313,30 +312,34 @@ void    HttpResponse::LaunchCgiHandler()
     }
 }
 
-// void    HttpResponse::LaunchProxyHandler()
-// {
-//     struct addrinfo* addr = NULL;
-//     try
-//     {
-//         std::string host = request_.get_location().get_proxy();
-//         size_t  pos = host.find(':');
-//         std::string host_without_port = host.substr(0, pos);
-//         addr = ProxyHandler::ConvertToAddrInfo(host_without_port);
-//         new ProxyHandler(stream_handler_, *addr, host_without_port, *this);
-//         freeaddrinfo(addr);
-//     }
-//     catch(const std::exception& e)
-//     {
-//         if (addr != NULL)
-//             freeaddrinfo(addr);
-//         std::istringstream iss(e.what());
-//         int code;
-//         iss >> std::noskipws >> code;
-//         if (iss.fail() || !iss.eof() || code < 100 || code > 599)
-//             code = 500;
-//         SetResponseToErrorPage(code);
-//     }
-// }
+/*
+
+void    HttpResponse::LaunchProxyHandler()
+{
+    struct addrinfo* addr = NULL;
+    try
+    {
+        std::string host = request_.get_location().get_proxy();
+        size_t  pos = host.find(':');
+        std::string host_without_port = host.substr(0, pos);
+        addr = ProxyHandler::ConvertToAddrInfo(host_without_port);
+        new ProxyHandler(stream_handler_, *addr, host_without_port, *this);
+        freeaddrinfo(addr);
+    }
+    catch(const std::exception& e)
+    {
+        if (addr != NULL)
+            freeaddrinfo(addr);
+        std::istringstream iss(e.what());
+        int code;
+        iss >> std::noskipws >> code;
+        if (iss.fail() || !iss.eof() || code < 100 || code > 599)
+            code = 500;
+        SetResponseToErrorPage(code);
+    }
+}
+
+*/
 
 void    HttpResponse::FinalizeResponse()
 {
@@ -348,10 +351,15 @@ void    HttpResponse::FinalizeResponse()
 
 bool    HttpResponse::IsHandledExternaly()
 {
-    // if (request_.get_location().get_proxy() != "false") {
-    //     LaunchProxyHandler();
-    //     return true;
-    // }
+    /*
+
+    if (request_.get_location().get_proxy() != "false") {
+        LaunchProxyHandler();
+        return true;
+    }
+
+    */
+
     if (IsCgiFile(path_)) {
         LaunchCgiHandler();
         return true;
