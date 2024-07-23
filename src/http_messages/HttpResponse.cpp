@@ -107,7 +107,7 @@ void    HttpResponse::Execute()
         return ApplyGeneratedPage();
 
     location_ = &server_->FindLocation(target_.get_target());
-    
+    std::cout << "HTTP response Execute" << std::endl;
     if (request_.get_location().HasMethod(request_.get_request_line().get_method()) == false) {
         return RedirectToNewTarget(405);
     } else if (location_->get_proxy() != "false") {
@@ -130,7 +130,7 @@ void    HttpResponse::Execute()
             UpdatePathAndTarget(index_file_path);
         }
     }
-
+    std::cout << "Http Response Apply" << std::endl;
     Apply();
 }
 
