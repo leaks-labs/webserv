@@ -192,7 +192,10 @@ void HttpResponse::SetComplete()
 void HttpResponse::AddHeaderContentLength()
 {
     if (status_line_.get_status_code() == 204 || body_.Size() == 0)
+    {
+        header_.AddOneHeader("CONTENT-LENGTH", 0);
         return;
+    }
     std::ostringstream oss;
     oss << body_.Size();
     std::string body_size_str = oss.str();

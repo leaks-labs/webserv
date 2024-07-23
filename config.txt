@@ -5,9 +5,4 @@ default_file fileget.php
 bodymax 10000
 cgi php-cgi
 path_info /home/toto/Bureau/19/git_webserv/data/upload
-root /
-
-> /data
-
-> /
-listing true
+root /home/toto/Bureau/19/git_webserv

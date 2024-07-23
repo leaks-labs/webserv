@@ -184,20 +184,19 @@ void    CgiHandler::ReturnToStreamHandler()
 {
     timeout_it_ = InitiationDispatcher::Instance().DelTimeout(timeout_it_);
     int err = 0;
+    int status_err;
     try
     {
         if (error_occured_while_handle_event_)
             throw HttpCodeExceptions::InternalServerErrorException();
+        status_err = CheckBuffer();
         response_.ClearHeader();
         response_.ParseHeader(cgi_buffer);
         if (!response_.HeaderIsComplete())
             throw HttpCodeExceptions::BadGatewayException();
         response_.set_body(cgi_buffer);
         response_.AddHeaderContentLength();
-        // TODO: set the right status code,
-        // if there was an error or not,
-        // and modify the response accordingly
-        response_.set_status_line(200);
+        response_.set_status_line(status_err);
         response_.SetComplete();
         err = InitiationDispatcher::Instance().AddWriteFilter(stream_handler_);
     }
@@ -228,4 +227,24 @@ void    CgiHandler::ReturnToStreamHandler()
     InitiationDispatcher::Instance().RemoveHandler(this);
     if (err == -1)
         throw std::runtime_error("Failed to return to Stream Handler");
+}
+
+int CgiHandler::CheckBuffer()
+{
+    std::stringstream buffer(cgi_buffer);
+    std::string line;
+    int err = 200;
+    size_t pos = 0;
+    while(getline(buffer, line, '\n'))
+    {
+        if(line.length() > 8 && line.substr(0, 8) == "Status: ")
+        {
+            std::stringstream ss(line.substr(8, 11));
+            ss >> err;
+            cgi_buffer.erase(pos, line.length() + 1);
+            return (err);
+        }
+        pos += line.length() + 1;
+    }
+    return err;
 }

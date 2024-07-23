@@ -37,6 +37,7 @@ class CgiHandler : public EventHandler {
         int                 ReadFromCGI();
         void                WriteToCGI();
         void                ReturnToStreamHandler();
+        int                 CheckBuffer();
 
         bool                                    error_occured_while_handle_event_;
         StreamHandler&                          stream_handler_;
