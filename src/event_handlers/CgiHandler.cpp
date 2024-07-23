@@ -12,10 +12,6 @@
 
 #include "HttpCodeException.hpp"
 
-// TODO: to remove
-#include <iostream>
-// TODO: to remove
-
 CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse& response)
     : error_occured_while_handle_event_(false),
       stream_handler_(stream_handler),
@@ -32,7 +28,7 @@ CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse& response)
     if (pid_child_ == 0)
         ExecCGI();
     stream_child_.Close();
-    if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kWriteEvent) == -1) {
+    if (InitiationDispatcher::Instance().RegisterHandler(this, EventTypes::kWriteEvent | EventTypes::kReadEvent) == -1) {
         KillChild();
         throw std::runtime_error("Failed to register Cgi Handler");
     }
@@ -72,23 +68,22 @@ void    CgiHandler::WriteToCGI()
 {
     if (!data_to_send_to_cgi_.empty())
         stream_main_.Send(data_to_send_to_cgi_);
-    else if (InitiationDispatcher::Instance().SwitchFromWriteToRead(*this) == -1)
+    if (data_to_send_to_cgi_.empty() && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
         throw std::runtime_error("Failed to update Cgi Handler filters");
 }
 
 void    CgiHandler::HandleEvent(EventTypes::Type event_type)
 {
-    std::cout << "ENTER CgiHandler: event " << event_type << std::endl;
     if (EventTypes::IsCloseReadEvent(event_type)
         || (EventTypes::IsCloseWriteEvent(event_type) && !data_to_send_to_cgi_.empty())) {
         should_return_to_stream_handler_ = kReturnToStreamHandler;
     } else {
         try
         {
-            if (EventTypes::IsReadEvent(event_type))
-                should_return_to_stream_handler_ = ReadFromCGI();
-            else if (EventTypes::IsWriteEvent(event_type))
+            if (EventTypes::IsWriteEvent(event_type))
                 WriteToCGI();
+            else if (EventTypes::IsReadEvent(event_type))
+                should_return_to_stream_handler_ = ReadFromCGI();
         }
         catch(const std::exception& e)
         {
@@ -98,7 +93,6 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
         }
     }
     if (should_return_to_stream_handler_ == kReturnToStreamHandler) {
-        std::cout << "closing cgi" << std::endl;
         ReturnToStreamHandler();
         return; // Do NOT remove this return. It is important to be sure to return here.
     }
@@ -155,7 +149,6 @@ void CgiHandler::ExecCGI()
         stream_child_.Close();
         if (err_in == -1 || err_out == -1)
             throw std::runtime_error("Cgi : dup2 failed " + std::string(strerror(errno)));
-        // TODO: chdir to the root or to the directory where the .php is?
         if (chdir(response_.get_path().substr(0, response_.get_path().rfind("/") + 1).c_str()) == -1)
             throw std::runtime_error("Cgi : chdir failed " + std::string(strerror(errno)));
         execve(cmd[0], cmd.data(), env.data());
@@ -163,7 +156,6 @@ void CgiHandler::ExecCGI()
     }
     catch(const std::exception& e)
     {
-        std::cerr << e.what() << std::endl;
         stream_child_.Close();
         if (err_out != -1)
             close(STDOUT_FILENO);
@@ -194,9 +186,6 @@ void    CgiHandler::ReturnToStreamHandler()
             throw HttpCodeExceptions::BadGatewayException();
         response_.set_body(cgi_buffer);
         response_.AddHeaderContentLength();
-        // TODO: set the right status code,
-        // if there was an error or not,
-        // and modify the response accordingly
         response_.set_status_line(200);
         response_.SetComplete();
         err = InitiationDispatcher::Instance().AddWriteFilter(stream_handler_);

@@ -12,10 +12,10 @@ const std::map<std::string, int>                                    Location::cg
 
 Location::Location()
     : path_("/"),
-      root_("/"), // TODO: change to current directory?
+      root_("/"),
       alias_(""),
       default_file_("index.html"),
-      proxy_("false"),
+      redirect_("false"),
       cgi_(kCgiPHP),
       methods_(kMethodGet | kMethodPost | kMethodDelete),
       bodymax_(0),
@@ -37,7 +37,7 @@ Location&   Location::operator=(Location const& rhs)
         root_ = rhs.get_root();
         alias_ = rhs.alias_;
         default_file_ = rhs.get_default_file();
-        proxy_ = rhs.get_proxy();
+        redirect_ = rhs.get_redirect();
         errors_ = rhs.get_errors();
         cgi_ = rhs.get_cgi();
         methods_ = rhs.get_methods();
@@ -73,9 +73,9 @@ const std::string&  Location::get_default_file() const
     return default_file_;
 }
 
-const std::string&  Location::get_proxy() const
+const std::string&  Location::get_redirect() const
 {
-    return proxy_;
+    return redirect_;
 }
 
 const std::map<int, std::string>&   Location::get_errors() const
@@ -143,9 +143,9 @@ void    Location::set_default_file(const std::string& value)
     default_file_ = value;
 }
 
-void    Location::set_proxy(const std::string& value)
+void    Location::set_redirect(const std::string& value)
 {
-    proxy_ = value;
+    redirect_ = value;
 }
 
 void    Location::set_errors(const std::string& value)
@@ -288,7 +288,7 @@ void    Location::Print() const
                 << "\tdefault_file: " << default_file_ << std::endl
                 << "\tcgi: " << cgi_ << std::endl
                 << "\tmethods: " << methods_ << std::endl
-                << "\tproxy: " << proxy_ << std::endl
+                << "\tproxy: " << redirect_ << std::endl
                 << "\tlisting: " << listing_ << std::endl
                 << "\tstrict: " << strict_ << std::endl
                 << "\tbodymax: " << bodymax_ << std::endl
@@ -305,7 +305,7 @@ const std::map<std::string, void (Location::*)(const std::string&)> Location::In
     m["root"] = &Location::set_root;
     m["alias"] = &Location::set_alias;
     m["default_file"] = &Location::set_default_file;
-    m["proxy"] = &Location::set_proxy;
+    m["redirect"] = &Location::set_redirect;
     m["errors"] = &Location::set_errors;
     m["cgi"] = &Location::set_cgi;
     m["methods"] = &Location::set_methods;

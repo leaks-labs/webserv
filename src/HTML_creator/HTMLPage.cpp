@@ -1,13 +1,9 @@
 #include "HTMLPage.hpp"
 
+#include <iostream>
 #include <sstream>
 
-// #include "HttpRequest.hpp"
 #include "HttpStatusLine.hpp"
-
-// TODO: remove this
-#include <iostream>
-// TODO: remove this
 
 std::string HTMLPage::GetErrorPage(int code)
 {

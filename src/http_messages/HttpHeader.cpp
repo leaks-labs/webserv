@@ -1,15 +1,13 @@
 #include "HttpHeader.hpp"
 
 #include <algorithm>
+#include <iostream>
 #include <stdexcept>
 #include <sstream>
 
 #include "HttpCodeException.hpp"
 #include "HttpRequest.hpp"
 
-// TODO: remove
-#include <iostream>
-// TODO: remove
 
 HttpHeader::HttpHeader()
     : is_complete_(false),
@@ -48,7 +46,7 @@ void HttpHeader::Parse(std::string& message, int mode)
         throw HttpCodeExceptions::InternalServerErrorException();
     size_t initial_buffer_size = buffer_.length();
     buffer_ += message;
-    if (mode == kParseRequest && buffer_.size() > kMaxHeaderSize) // TODO: maybe add a limit for response too?
+    if (mode == kParseRequest && buffer_.size() > kMaxHeaderSize)
         throw HttpCodeExceptions::RequestHeaderFieldsTooLargeException();
     size_t pos = buffer_.find("\r\n\r\n");
     if (pos == std::string::npos) {

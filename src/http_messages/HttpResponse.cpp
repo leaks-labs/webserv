@@ -11,7 +11,6 @@
 #include "HttpCodeException.hpp"
 #include "InitiationDispatcher.hpp"
 #include "PathFinder.hpp"
-#include "ProxyHandler.hpp"
 #include "StreamHandler.hpp"
 
 HttpResponse::HttpResponse(StreamHandler& stream_handler, HttpRequest& request)
@@ -23,7 +22,8 @@ HttpResponse::HttpResponse(StreamHandler& stream_handler, HttpRequest& request)
       status_line_(request.get_status_code()),
       keep_alive_(request.KeepAlive()),
       target_(request_.get_request_line().get_target()),
-      path_(BuildPath())
+      path_(BuildPath()),
+      redirect_count_(0)
 {
     if (status_line_.get_status_code() != 200) {
         target_.ClearTarget();
@@ -48,7 +48,8 @@ HttpResponse::HttpResponse(const HttpResponse& src)
       env_(src.env_),
       header_(src.header_),
       body_(src.body_),
-      response_(src.response_)
+      response_(src.response_),
+      redirect_count_(src.redirect_count_)
 {
 }
 
@@ -110,8 +111,8 @@ void    HttpResponse::Execute()
     
     if (request_.get_location().HasMethod(request_.get_request_line().get_method()) == false) {
         return RedirectToNewTarget(405);
-    } else if (location_->get_proxy() != "false") {
-        return MovedPermanentely(location_->get_proxy());
+    } else if (location_->get_redirect() != "false") {
+        return MovedPermanentely(location_->get_redirect());
     } else if (!PathFinder::PathExist(path_)) {
         return RedirectToNewTarget(404);
     } else if (target_.get_target()[target_.get_target().size() - 1] != '/' && IsDir(path_)) {
@@ -148,7 +149,7 @@ void    HttpResponse::AppendToResponse(std::string& message)
         if (header_.IsComplete()) {
             if (!header_.NeedBody())
                 body_.set_is_complete(true);
-            else if (header_.IsContentLength()) // TODO: maybe limit the body size for the reponse?
+            else if (header_.IsContentLength())
                 body_.SetMode(HttpBody::kModeContentLength, 0, header_.GetContentLength());
             else
                 body_.SetMode(HttpBody::kModeTransferEncodingChunked, 0);
@@ -259,7 +260,6 @@ void    HttpResponse::Apply()
         return;
 
     if (target_.get_target()[target_.get_target().size() - 1] == '/' && location_->get_listing() == true) {
-        // Directory dir(path_, target_.get_target(), location_->get_root());
         Directory   dir(path_, target_.get_target(), location_->get_path().size());
         if (dir.IsOpen())
             body_.set_body(dir.GetHTML());
@@ -314,6 +314,8 @@ void    HttpResponse::LaunchCgiHandler()
     }
 }
 
+/*
+
 void    HttpResponse::LaunchProxyHandler()
 {
     struct addrinfo* addr = NULL;
@@ -339,6 +341,8 @@ void    HttpResponse::LaunchProxyHandler()
     }
 }
 
+*/
+
 void    HttpResponse::FinalizeResponse()
 {
     UpdateReason();
@@ -349,10 +353,15 @@ void    HttpResponse::FinalizeResponse()
 
 bool    HttpResponse::IsHandledExternaly()
 {
-    // if (request_.get_location().get_proxy() != "false") {
-    //     LaunchProxyHandler();
-    //     return true;
-    // }
+    /*
+
+    if (request_.get_location().get_proxy() != "false") {
+        LaunchProxyHandler();
+        return true;
+    }
+
+    */
+
     if (IsCgiFile(path_)) {
         LaunchCgiHandler();
         return true;
@@ -404,8 +413,12 @@ void    HttpResponse::RedirectToNewTarget(int code)
         path_.clear();
         set_status_line(code);
         std::string tmp_request_path = ErrorFileIsSet();
-        if (!tmp_request_path.empty())
+        if (!tmp_request_path.empty() && ++redirect_count_ < kMaxRedirectCount) {
+            request_.get_request_line().set_method("GET");
             UpdatePathAndTarget(tmp_request_path);
+        }
+        if (redirect_count_ >= kMaxRedirectCount)
+            return RedirectToEmptyTarget(500);
         return Execute();
 }
 

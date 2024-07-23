@@ -69,7 +69,7 @@ void    HttpBody::Parse(std::string& message)
         message.erase(0, missing_bytes);
         is_complete_ = (body_.length() == required_length_);
     } else {
-        ; // TODO: implement transfer encoding
+        ;
     }
 }
 

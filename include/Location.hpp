@@ -27,7 +27,7 @@ class Location {
         const std::string&                  get_root() const;
         const std::string&                  get_alias() const;
         const std::string&                  get_default_file() const;
-        const std::string&                  get_proxy() const;
+        const std::string&                  get_redirect() const;
         const std::map<int, std::string>&   get_errors() const;
         int                                 get_cgi() const;
         int                                 get_methods() const;
@@ -40,7 +40,7 @@ class Location {
         void    set_root(const std::string& value);
         void    set_alias(const std::string& value);
         void    set_default_file(const std::string& value);
-        void    set_proxy(const std::string& value);
+        void    set_redirect(const std::string& value);
         void    set_errors(const std::string& value);
         void    set_cgi(const std::string& value);
         void    set_methods(const std::string& value);
@@ -70,7 +70,7 @@ class Location {
         std::string                 root_;
         std::string                 alias_;
         std::string                 default_file_;
-        std::string                 proxy_;
+        std::string                 redirect_;
         std::map<int, std::string>  errors_;
         int                         cgi_;
         int                         methods_;
