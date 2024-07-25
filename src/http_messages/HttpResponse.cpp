@@ -189,11 +189,8 @@ void HttpResponse::SetComplete()
 
 void HttpResponse::AddHeaderContentLength()
 {
-    if (status_line_.get_status_code() == 204 || body_.Size() == 0)
-    {
-        header_.AddOneHeader("CONTENT-LENGTH", "0");
+    if (body_.Size() == 0)
         return;
-    }
     std::ostringstream oss;
     oss << body_.Size();
     std::string body_size_str = oss.str();
@@ -371,7 +368,6 @@ bool    HttpResponse::IsHandledExternaly()
 
 void    HttpResponse::DeleteResource()
 {
-    request_.get_request_line().set_method("GET");
     if (!HasRightToModify(path_))
         return RedirectToNewTarget(403);
     else if (std::remove(path_.c_str()) != 0)
