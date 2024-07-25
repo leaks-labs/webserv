@@ -97,8 +97,6 @@ void    StreamHandler::ConvertRequestToResponse()
     timeout_it_ = InitiationDispatcher::Instance().DelTimeout(timeout_it_);
     if (InitiationDispatcher::Instance().DeactivateHandler(*this) == -1)
         throw std::runtime_error("Failed to delete Read filter for a socket");
-    request_queue_.front().get_request_line().Print();
-    request_queue_.front().get_header().Print();
     response_queue_.push_back(HttpResponse(*this, request_queue_.front()));
     response_queue_.front().Execute();
 }
