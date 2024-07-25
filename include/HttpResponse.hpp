@@ -20,6 +20,7 @@ class HttpResponse {
         const std::vector<std::string>& get_env() const;
         std::string&                    get_request_body_buffer();
         std::string&                    get_response_buffer();
+        const HttpHeader&               get_header()const;
 
         void    set_status_line(int code);
         void    set_body(const std::string& str);

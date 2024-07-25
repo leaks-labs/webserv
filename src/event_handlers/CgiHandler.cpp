@@ -177,20 +177,28 @@ void    CgiHandler::ReturnToStreamHandler()
     timeout_it_ = InitiationDispatcher::Instance().DelTimeout(timeout_it_);
     int err = 0;
     int status_err;
+    typedef std::map<std::string, std::string>::const_iterator iterator;
+    
     try
     {
         if (error_occured_while_handle_event_)
             throw HttpCodeExceptions::InternalServerErrorException();
-        status_err = CheckBuffer();
+        //status_err = CheckBuffer();
         response_.ClearHeader();
         response_.ParseHeader(cgi_buffer);
         if (!response_.HeaderIsComplete())
             throw HttpCodeExceptions::BadGatewayException();
-        response_.set_body(cgi_buffer);
-        response_.AddHeaderContentLength();
-        response_.set_status_line(status_err);
-        response_.SetComplete();
-        err = InitiationDispatcher::Instance().AddWriteFilter(stream_handler_);
+        iterator it = response_.get_header().get_header_map().find("STATUS");
+        if(it != response_.get_header().get_header_map().end() || (status_err = ExtractStatusError(it->second)) >= 400)
+            response_.SetResponseToErrorPage(status_err);
+        else
+        {
+            response_.set_body(cgi_buffer);
+            response_.AddHeaderContentLength();
+            response_.set_status_line(status_err);
+            response_.SetComplete();
+            err = InitiationDispatcher::Instance().AddWriteFilter(stream_handler_);
+        }
     }
     catch(const HttpCodeException& e)
     {
@@ -221,22 +229,10 @@ void    CgiHandler::ReturnToStreamHandler()
         throw std::runtime_error("Failed to return to Stream Handler");
 }
 
-int CgiHandler::CheckBuffer()
+int CgiHandler::ExtractStatusError(std::string str)
 {
-    std::stringstream buffer(cgi_buffer);
-    std::string line;
-    int err = 200;
-    size_t pos = 0;
-    while(getline(buffer, line, '\n'))
-    {
-        if(line.length() > 8 && line.substr(0, 8) == "Status: ")
-        {
-            std::stringstream ss(line.substr(8, 11));
-            ss >> err;
-            cgi_buffer.erase(pos, line.length() + 1);
-            return (err);
-        }
-        pos += line.length() + 1;
-    }
+    int err;
+    std::stringstream ss(str.substr(0, 3));
+    ss >> err;
     return err;
 }

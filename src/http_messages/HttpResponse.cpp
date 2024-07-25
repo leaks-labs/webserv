@@ -87,6 +87,11 @@ std::string&    HttpResponse::get_response_buffer()
     return response_;
 }
 
+const HttpHeader& HttpResponse::get_header() const
+{
+    return header_;
+}
+
 void    HttpResponse::set_status_line(int code)
 {
     status_line_.SetCodeAndPhrase(code);
