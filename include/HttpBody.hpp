@@ -4,7 +4,7 @@
 # include <map>
 # include <string>
 # include <utility>
-
+# include <stdint.h>
 # include "HttpHeader.hpp"
 
 class HttpBody {
@@ -48,7 +48,7 @@ class HttpBody {
         int         mode_;
         std::string body_;
         std::string buffer_;
-        long     chunk_size_;
+        int64_t     chunk_size_;
         bool        is_trailer_;
         HttpHeader* headers_;
 };
