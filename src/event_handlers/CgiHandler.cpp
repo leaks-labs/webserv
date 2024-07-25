@@ -176,7 +176,7 @@ void    CgiHandler::ReturnToStreamHandler()
 {
     timeout_it_ = InitiationDispatcher::Instance().DelTimeout(timeout_it_);
     int err = 0;
-    int status_err;
+    int status_err = 200;
     typedef std::map<std::string, std::string>::const_iterator iterator;
     
     try
