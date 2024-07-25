@@ -140,26 +140,26 @@ std::string     HttpResponse::GetCompleteRequet() const
     return request_.GetCompleteRequest();
 }
 
-void    HttpResponse::AppendToResponse(std::string& message)
-{
-    if (!status_line_.IsComplete())
-        status_line_.Parse(message);
-    if (!message.empty() && !header_.IsComplete()) {
-        header_.Parse(message, HttpHeader::kParseResponse);
-        if (header_.IsComplete()) {
-            if (!header_.NeedBody())
-                body_.set_is_complete(true);
-            else if (header_.IsContentLength())
-                body_.SetMode(HttpBody::kModeContentLength, 0, header_.GetContentLength());
-            else
-                body_.SetMode(HttpBody::kModeTransferEncodingChunked, 0);
-        }
-    }
-    if (!message.empty() && !body_.IsComplete())
-        body_.Parse(message);
-    if (body_.IsComplete())
-        SetComplete();
-}
+// void    HttpResponse::AppendToResponse(std::string& message)
+// {
+//     if (!status_line_.IsComplete())
+//         status_line_.Parse(message);
+//     if (!message.empty() && !header_.IsComplete()) {
+//         header_.Parse(message, HttpHeader::kParseResponse);
+//         if (header_.IsComplete()) {
+//             if (!header_.NeedBody())
+//                 body_.set_is_complete(true);
+//             else if (header_.IsContentLength())
+//                 body_.SetMode(HttpBody::kModeContentLength, 0, header_.GetContentLength());
+//             else
+//                 body_.SetMode(HttpBody::kModeTransferEncodingChunked, 0);
+//         }
+//     }
+//     if (!message.empty() && !body_.IsComplete())
+//         body_.Parse(message);
+//     if (body_.IsComplete())
+//         SetComplete();
+// }
 
 void    HttpResponse::ParseHeader(std::string& str)
 {

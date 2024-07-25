@@ -27,7 +27,7 @@ class HttpResponse {
 
         void        Execute();
         std::string GetCompleteRequet() const;
-        void        AppendToResponse(std::string& message);
+        // void        AppendToResponse(std::string& message);
         void        ParseHeader(std::string& str);
         bool        HeaderIsComplete() const;
         void        ClearHeader();

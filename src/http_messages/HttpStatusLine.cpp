@@ -140,10 +140,7 @@ bool    HttpStatusLine::IsComplete() const
 
 std::string HttpStatusLine::GetFormatedStatusLine() const
 {
-    std::string res = get_http_version() + " " + get_status_code_str();
-    if (!get_reason_phrase().empty())
-        res += " " + get_reason_phrase();
-    return res + "\r\n";
+    return get_http_version() + " " + get_status_code_str() + " " + get_reason_phrase() + "\r\n";
 }
 
 void    HttpStatusLine::Clear()

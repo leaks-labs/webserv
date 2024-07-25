@@ -8,6 +8,7 @@
 #include "HttpCodeException.hpp"
 #include "HttpRequest.hpp"
 
+const std::map<std::string, HttpHeader::MemberFunctionPtr> HttpHeader::specific_header_handling_functions_ = HttpHeader::InitSpecificHeaderHandlingFuctions();
 
 HttpHeader::HttpHeader()
     : is_complete_(false),
@@ -40,57 +41,24 @@ const std::map<std::string, std::string>& HttpHeader::get_header_map() const
     return header_map_;
 }
 
-void HttpHeader::Parse(std::string& message, int mode)
+void    HttpHeader::Parse(std::string& message, int mode)
 {
-    if (mode != kParseRequest && mode != kParseResponse)
-        throw HttpCodeExceptions::InternalServerErrorException();
-    size_t initial_buffer_size = buffer_.length();
-    buffer_ += message;
-    if (mode == kParseRequest && buffer_.size() > kMaxHeaderSize)
-        throw HttpCodeExceptions::RequestHeaderFieldsTooLargeException();
-    size_t pos = buffer_.find("\r\n\r\n");
-    if (pos == std::string::npos) {
-        message.clear();
-        return;
-    }
-    buffer_.erase(pos);
-    size_t  bytes_to_trim_in_message = buffer_.length() - initial_buffer_size + 4;
-    message.erase(0, bytes_to_trim_in_message);
-    is_complete_ = true;
     std::vector<std::string> tokens;
-    int err = HttpRequest::Split(buffer_, "\r\n", tokens);
-    if (err == -1)
-        mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
-    buffer_.clear();
+    if (DivideIntoTokens(message, tokens, mode) == kHeaderNotParsed)
+        return;
+    HandleTokens(tokens, mode);
+    AdditionalCheck(mode);
+    need_body_ = (BodyIsTransferChunked() || (IsContentLength() && GetContentLength() > 0));
+}
 
-    for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); ++it) {
-        std::pair<std::string, std::string> one_line = ParseOneLine(*it);
-        
-        if (one_line.first == "CONTENT-LENGTH") {
-            if (one_line.second.find_first_not_of("0123456789") != std::string::npos)
-                mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
-        } else if (one_line.first == "TRANSFER-ENCODING") {
-            ToLower(one_line.second);
-            if (one_line.second != "chunked" && one_line.second != "compress" && one_line.second != "deflate" && one_line.second != "gzip")
-                mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
-            else if (one_line.second != "chunked")
-                throw HttpCodeExceptions::NotImplementedException();
-        } else if (one_line.first == "CONNECTION") {
-            ToLower(one_line.second);
-            if (one_line.second != "keep-alive" && one_line.second != "close")
-                mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
-        }
-
-        if (header_map_.find(one_line.first) != header_map_.end())
-            mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
-        header_map_[one_line.first] = one_line.second;
-    }
-    if (mode == kParseRequest && header_map_.find("HOST") == header_map_.end())
-        throw HttpCodeExceptions::BadRequestException();
-    bool    is_content_length = IsContentLength();
-    if ((is_content_length && GetContentLength() > 0)
-        || (!is_content_length && BodyIsTransferChunked()))
-        need_body_ = true;
+bool    HttpHeader::ParseTrailer(std::string& message, int mode)
+{
+    std::vector<std::string> tokens;
+    if (DivideIntoTokens(message, tokens, mode) == kHeaderNotParsed)
+        return kHeaderNotParsed;
+    HandleTrailerTokens(tokens, mode);
+    AdditionalTrailerCheck(mode);
+    return kHeaderParsed;
 }
 
 bool    HttpHeader::IsComplete() const
@@ -112,6 +80,11 @@ bool    HttpHeader::BodyIsTransferChunked() const
 {
     std::map<std::string, std::string>::const_iterator it = header_map_.find("TRANSFER-ENCODING");
     return it == header_map_.end() ? false : it->second == "chunked";
+}
+
+bool    HttpHeader::IsTrailer() const
+{
+    return header_map_.find("TRAILER") != header_map_.end();
 }
 
 size_t  HttpHeader::GetContentLength() const
@@ -140,6 +113,11 @@ void    HttpHeader::AddOneHeader(const std::string& key, const std::string& valu
     header_map_[key] = value;
 }
 
+void    HttpHeader::DelOneHeader(const std::string& key)
+{
+    header_map_.erase(key);
+}
+
 void    HttpHeader::Clear()
 {
     is_complete_ = false;
@@ -158,6 +136,16 @@ void HttpHeader::Print() const
         std::cout << "\t\t" << it->first << ": " << it->second << std::endl;
 }
 
+const std::map<std::string, HttpHeader::MemberFunctionPtr>  HttpHeader::InitSpecificHeaderHandlingFuctions()
+{
+    std::map<std::string, MemberFunctionPtr>    functions;
+    functions["CONTENT-LENGTH"] = &HttpHeader::HandleContentLength;
+    functions["TRANSFER-ENCODING"] = &HttpHeader::HandleTransferEncoding;
+    functions["CONNECTION"] = &HttpHeader::HandleConnection;
+    functions["TRAILER"] = &HttpHeader::HandleTrailer;
+    return functions;
+}
+
 std::pair<std::string, std::string>  HttpHeader::ParseOneLine(const std::string& line)
 {
     size_t  sep_pos = line.find(":");
@@ -172,11 +160,131 @@ std::pair<std::string, std::string>  HttpHeader::ParseOneLine(const std::string&
         value.erase(value.size() - 1, 1);
     if (key.empty() || value.empty())
         throw HttpCodeExceptions::BadRequestException();
-    std::transform(key.begin(), key.end(), key.begin(), ::toupper);
+    ToUpper(key);
     return std::make_pair(key, value);
 }
 
 void    HttpHeader::ToLower(std::string& str)
 {
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+}
+
+void    HttpHeader::ToUpper(std::string& str)
+{
+    std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+}
+
+bool    HttpHeader::DivideIntoTokens(std::string& message, std::vector<std::string>& tokens, int mode)
+{
+    if (mode != kParseRequest && mode != kParseResponse)
+        throw HttpCodeExceptions::InternalServerErrorException();
+    size_t initial_buffer_size = buffer_.length();
+    buffer_ += message;
+    if (mode == kParseRequest && buffer_.size() > kMaxHeaderSize)
+        throw HttpCodeExceptions::RequestHeaderFieldsTooLargeException();
+    size_t pos = buffer_.find("\r\n\r\n");
+    if (pos == std::string::npos) {
+        message.clear();
+        return kHeaderNotParsed;
+    }
+    buffer_.erase(pos);
+    size_t  bytes_to_trim_in_message = buffer_.length() - initial_buffer_size + 4;
+    message.erase(0, bytes_to_trim_in_message);
+    is_complete_ = true;
+    int err = HttpRequest::Split(buffer_, "\r\n", tokens);
+    if (err == -1)
+        mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
+    buffer_.clear();
+    return kHeaderParsed;
+}
+
+void    HttpHeader::HandleTokens(std::vector<std::string>& tokens, int mode)
+{
+    for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); ++it) {
+        std::pair<std::string, std::string> one_line = ParseOneLine(*it);
+        
+        if (header_map_.find(one_line.first) != header_map_.end())
+            mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
+
+        std::map<std::string, MemberFunctionPtr>::const_iterator    func_it = specific_header_handling_functions_.find(one_line.first);
+        if (func_it != specific_header_handling_functions_.end())
+            (this->*(func_it->second))(one_line.second, mode);
+        header_map_[one_line.first] = one_line.second;
+    }
+}
+
+void    HttpHeader::HandleTrailerTokens(std::vector<std::string>& tokens, int mode)
+{
+    for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); ++it) {
+        std::pair<std::string, std::string> one_line = HttpHeader::ParseOneLine(*it);
+        
+        std::map<std::string, std::string>::iterator    header_it = header_map_.find(one_line.first);
+        if (header_it != header_map_.end()) {
+            if (!header_it->second.empty())
+                mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
+            
+            std::map<std::string, MemberFunctionPtr>::const_iterator    func_it = specific_header_handling_functions_.find(one_line.first);
+            if (func_it != specific_header_handling_functions_.end())
+                (this->*(func_it->second))(one_line.second, mode);
+
+            header_map_[one_line.first] = one_line.second;
+        }
+    }
+}
+
+void    HttpHeader::HandleContentLength(std::string& value, int mode)
+{
+
+    if (value.find_first_not_of("0123456789") != std::string::npos)
+        mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
+}
+
+void    HttpHeader::HandleTransferEncoding(std::string& value, int mode)
+{
+
+    ToLower(value);
+    if (value != "chunked" && value != "compress" && value != "deflate" && value != "gzip")
+        mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
+    else if (value != "chunked")
+        throw HttpCodeExceptions::NotImplementedException();
+}
+
+void    HttpHeader::HandleConnection(std::string& value, int mode)
+{
+    ToLower(value);
+    if (value != "keep-alive" && value != "close")
+        mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
+}
+
+void    HttpHeader::HandleTrailer(std::string& value, int mode)
+{
+
+    ToLower(value);
+    value.erase(std::remove(value.begin(), value.end(), ' '), value.end());
+    std::vector<std::string>    trailer_fields;
+    if (HttpRequest::Split(value, ",", trailer_fields) == -1)
+        mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
+    for (std::vector<std::string>::iterator it = trailer_fields.begin(); it != trailer_fields.end(); ++it) {
+        ToUpper(*it);
+        if (header_map_.find(*it) != header_map_.end())
+            mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
+        else if (*it == "TRANSFER-ENCODING" || *it == "CONTENT-LENGTH" || *it == "HOST" || *it == "TRAILER")
+            mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
+        header_map_[*it] = "";
+    }
+}
+
+void    HttpHeader::AdditionalCheck(int mode) const
+{
+    if (mode == kParseRequest && header_map_.find("HOST") == header_map_.end())
+        throw HttpCodeExceptions::BadRequestException();
+    if (header_map_.find("TRAILER") != header_map_.end() && header_map_.find("TRANSFER-ENCODING") == header_map_.end())
+        mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
+}
+
+void    HttpHeader::AdditionalTrailerCheck(int mode) const
+{
+    for (std::map<std::string, std::string>::const_iterator it = header_map_.begin(); it != header_map_.end(); ++it)
+        if (it->second.empty())
+            mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
 }
