@@ -183,13 +183,12 @@ void    CgiHandler::ReturnToStreamHandler()
     {
         if (error_occured_while_handle_event_)
             throw HttpCodeExceptions::InternalServerErrorException();
-        //status_err = CheckBuffer();
         response_.ClearHeader();
         response_.ParseHeader(cgi_buffer);
         if (!response_.HeaderIsComplete())
             throw HttpCodeExceptions::BadGatewayException();
         iterator it = response_.get_header().get_header_map().find("STATUS");
-        if(it != response_.get_header().get_header_map().end() || (status_err = ExtractStatusError(it->second)) >= 400)
+        if(it != response_.get_header().get_header_map().end() && (status_err = ExtractStatusError(it->second)) >= 400)
             response_.SetResponseToErrorPage(status_err);
         else
         {
