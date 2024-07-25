@@ -7,8 +7,6 @@
 #include "ConnectionAcceptor.hpp"
 #include "InitiationDispatcher.hpp"
 
-#include <iostream>
-
 AcceptorRecords::AcceptorRecords()
 {
     memset(&hints_, 0, sizeof(hints_));

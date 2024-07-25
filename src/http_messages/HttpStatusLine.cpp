@@ -1,13 +1,11 @@
 #include "HttpStatusLine.hpp"
 
+#include <iostream>
 #include <sstream>
 
 #include "HttpCodeException.hpp"
 #include "HttpRequest.hpp"
 
-// TODO: to be removed
-#include <iostream>
-// TODO: to be removed
 
 const std::vector<int>              HttpStatusLine::codes_requiring_close_ = HttpStatusLine::InitCodesRequiringClose();
 const std::map<int, std::string>    HttpStatusLine::status_code_map_ = HttpStatusLine::InitStatusCodeMap();
@@ -89,7 +87,6 @@ void    HttpStatusLine::Parse(std::string& message)
 {
     size_t initial_buffer_size = buffer_.length();
     buffer_ += message;
-    // TODO: set a size limit??
     size_t pos = buffer_.find("\r\n");
     if (pos == std::string::npos) {
         message.clear();
@@ -143,10 +140,7 @@ bool    HttpStatusLine::IsComplete() const
 
 std::string HttpStatusLine::GetFormatedStatusLine() const
 {
-    std::string res = get_http_version() + " " + get_status_code_str();
-    if (!get_reason_phrase().empty())
-        res += " " + get_reason_phrase();
-    return res + "\r\n";
+    return get_http_version() + " " + get_status_code_str() + " " + get_reason_phrase() + "\r\n";
 }
 
 void    HttpStatusLine::Clear()

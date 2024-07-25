@@ -41,7 +41,6 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
         else if (EventTypes::IsReadEvent(event_type))
             should_close_connection_ = AddToRequestQueue();
         if (should_close_connection_ == kCloseConnection) {
-            std::cout << "closing stream" << std::endl;
             InitiationDispatcher::Instance().RemoveHandler(this);
             return; // Do NOT remove this return. It is important to be sure to return here.
         }
@@ -51,7 +50,7 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
     catch(const std::exception& e)
     {
         InitiationDispatcher::Instance().RemoveHandler(this);
-        throw;
+        throw; // Do NOT remove this throw. It is important to be sure to return here.
     }
 }
 

@@ -1,3 +1,5 @@
+/*
+
 #include "ProxyHandler.hpp"
 
 #include <cerrno>
@@ -9,10 +11,6 @@
 
 #include "HttpBody.hpp"
 #include "InitiationDispatcher.hpp"
-
-// TODO: to remove
-#include <iostream>
-// TODO: to remove
 
 struct addrinfo*    ProxyHandler::ConvertToAddrInfo(const std::string& url)
 {
@@ -66,9 +64,7 @@ EventHandler::Handle    ProxyHandler::get_handle(void) const
 
 void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
 {
-        std::cout << "ENTER ProxyHandler: event " << event_type << std::endl;
         if (EventTypes::IsCloseReadEvent(event_type) || (EventTypes::IsCloseWriteEvent(event_type) && !request_.empty())){
-            std::cout << "closing proxy" << std::endl;
             ReturnToStreamHandler();
             return; // Do NOT remove this return. It is important to be sure to return here.
         } else {
@@ -88,7 +84,6 @@ void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
                 response_.SetResponseToErrorPage(502);
             }
             if (response_.IsComplete()) {
-                std::cout << "response is complete" << std::endl;
                 ReturnToStreamHandler();
                 return; // Do NOT remove this return. It is important to be sure to return here.
             }
@@ -97,7 +92,6 @@ void    ProxyHandler::HandleEvent(EventTypes::Type event_type)
 
 void    ProxyHandler::HandleTimeout()
 {
-    // TODO: implement
 }
 
 void    ProxyHandler::ReturnToStreamHandler()
@@ -109,3 +103,5 @@ void    ProxyHandler::ReturnToStreamHandler()
     if (err == -1)
         throw std::runtime_error("Failed to reactivate Stream Handler");
 }
+
+*/

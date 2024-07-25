@@ -1,16 +1,13 @@
 #include "HttpRequestLine.hpp"
 
 #include <algorithm>
+#include <iostream>
 #include <stdexcept>
 #include <vector>
 
 #include "HttpCodeException.hpp"
 #include "HttpRequest.hpp"
 #include "PathFinder.hpp"
-
-// TODO: to be removed
-#include <iostream>
-// TODO: to be removed
 
 const std::string   HttpRequestLine::Target::kOriginForm = "/";
 const std::string   HttpRequestLine::Target::kAbsoluteForm = "http";
@@ -65,9 +62,9 @@ const std::string&  HttpRequestLine::get_http_version() const
     return http_version_;
 }
 
-void                HttpRequestLine::set_method(std::string value)
+void    HttpRequestLine::set_method(const std::string& method)
 {
-    method_ = value;
+    method_ = method;
 }
 
 void HttpRequestLine::Parse(std::string& message)

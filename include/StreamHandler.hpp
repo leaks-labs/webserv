@@ -14,10 +14,6 @@
 # include "InitiationDispatcher.hpp"
 # include "Stream.hpp"
 
-// TODO: to remove
-#include <iostream>
-// TODO: to remove
-
 class StreamHandler : public EventHandler {
     public:
         StreamHandler(int acceptor_sfd, int sfd);

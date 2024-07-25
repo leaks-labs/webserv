@@ -7,10 +7,6 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-// TODO: to remove
-#include <iostream>
-// TODO: to remove
-
 Stream::Stream(int sfd)
     : sfd_(sfd),
       buffer_(kBufSize)
@@ -29,7 +25,6 @@ int Stream::get_sfd() const
 
 void    Stream::Send(std::string& data)
 {
-    std::cout << "ENTER: Send" << std::endl;
 #ifdef __APPLE__
     int send_flags = 0;
 #elif __linux__
@@ -43,7 +38,6 @@ void    Stream::Send(std::string& data)
 
 std::string Stream::Read()
 {
-    std::cout << "ENTER: Read " << std::endl;
     ssize_t bytes_read;
 #ifdef __APPLE__
     int recv_flags = 0;
@@ -54,7 +48,6 @@ std::string Stream::Read()
         throw std::runtime_error("recv() failed: " + std::string(strerror(errno)));
     else if (bytes_read == 0)
         return std::string();
-        // throw std::runtime_error("recv() failed: connection closed by peer");
     return std::string(buffer_.data(), bytes_read);
 }
 
