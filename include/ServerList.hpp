@@ -4,7 +4,6 @@
 # include <cstring>
 # include <vector>
 # include <fstream>
-# include <iostream>
 # include <sstream>
 # include <stdexcept>
 # include "Server.hpp"

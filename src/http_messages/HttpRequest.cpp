@@ -1,7 +1,6 @@
 #include "HttpRequest.hpp"
 
 #include <sstream>
-#include <iostream>
 
 #include "HttpCodeException.hpp"
 
@@ -131,16 +130,23 @@ void    HttpRequest::AppendToRequest(std::string& message)
             if (header_.IsComplete()) {
                 server_ = &ServerList::Instance().FindServer(acceptor_fd_, get_host());
                 location_ = &server_->FindLocation(request_line_.get_target().get_target());
-                if (!header_.NeedBody())
+                if (!header_.NeedBody()) {
                     body_.set_is_complete(true);
-                else if (header_.IsContentLength())
-                    body_.SetMode(HttpBody::kModeContentLength, location_->get_bodymax(), header_.GetContentLength());
-                else
+                } else if (header_.BodyIsTransferChunked()) {
                     body_.SetMode(HttpBody::kModeTransferEncodingChunked,location_->get_bodymax());
+                    if (header_.IsTrailer())
+                        body_.set_is_trailer(true);
+                } else {
+                    body_.SetMode(HttpBody::kModeContentLength, location_->get_bodymax(), header_.GetContentLength());
+                }
             }
         }
-        if (!message.empty() && !body_.IsComplete())
-            body_.Parse(message);
+        if (!message.empty() && !body_.IsComplete()) {
+            if (header_.BodyIsTransferChunked())
+                body_.Parse(HttpBody::kParseRequest, message, &header_);
+            else
+                body_.Parse(HttpBody::kParseRequest, message);
+        }
         if (body_.IsComplete())
             is_complete_ = true;
     }

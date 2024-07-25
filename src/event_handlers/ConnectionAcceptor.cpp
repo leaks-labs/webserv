@@ -7,10 +7,6 @@
 #include "InitiationDispatcher.hpp"
 #include "StreamHandler.hpp"
 
-// TODO: to remove
-#include <iostream>
-// TODO: to remove
-
 ConnectionAcceptor::ConnectionAcceptor(const struct addrinfo& address)
     : acceptor_(address)
 {
@@ -31,7 +27,6 @@ void    ConnectionAcceptor::HandleEvent(EventTypes::Type event_type)
 {
     if (!EventTypes::IsReadEvent(event_type))
         return;
-    std::cout << "ENTER ConnectionAcceptor: event " << event_type << std::endl;
     int new_sfd = -1;
     try
     {
@@ -48,5 +43,4 @@ void    ConnectionAcceptor::HandleEvent(EventTypes::Type event_type)
 
 void    ConnectionAcceptor::HandleTimeout()
 {
-    // TODO: implement
 }

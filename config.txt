@@ -7,7 +7,6 @@ cgi php-cgi
 path_info /home/toto/Bureau/19/git_webserv/data/upload
 root /
 
-> /data
 
 > /
 listing true
