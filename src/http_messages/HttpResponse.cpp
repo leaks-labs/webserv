@@ -87,6 +87,11 @@ std::string&    HttpResponse::get_response_buffer()
     return response_;
 }
 
+const HttpHeader& HttpResponse::get_header() const
+{
+    return header_;
+}
+
 void    HttpResponse::set_status_line(int code)
 {
     status_line_.SetCodeAndPhrase(code);
@@ -106,9 +111,7 @@ void    HttpResponse::Execute()
 {
     if (target_.get_target().empty())
         return ApplyGeneratedPage();
-
     location_ = &server_->FindLocation(target_.get_target());
-    
     if (request_.get_location().HasMethod(request_.get_request_line().get_method()) == false) {
         return RedirectToNewTarget(405);
     } else if (location_->get_redirect() != "false") {
@@ -131,7 +134,6 @@ void    HttpResponse::Execute()
             UpdatePathAndTarget(index_file_path);
         }
     }
-
     Apply();
 }
 
@@ -192,7 +194,7 @@ void HttpResponse::SetComplete()
 
 void HttpResponse::AddHeaderContentLength()
 {
-    if (status_line_.get_status_code() == 204 || body_.Size() == 0)
+    if (body_.Size() == 0)
         return;
     std::ostringstream oss;
     oss << body_.Size();
@@ -455,6 +457,7 @@ std::vector<std::string> HttpResponse::SetEnv()
 
     std::vector<std::string>    res;
     const std::map<std::string, std::string>&   map = request_.get_header().get_header_map();
+    res.push_back("SERVER_PROTOCOL=" + request_.get_request_line().get_http_version());
     res.push_back("REQUEST_METHOD=" + request_.get_request_line().get_method());
     std::string path_info = request_.get_location().get_path_info();
     if (path_info != "none")
