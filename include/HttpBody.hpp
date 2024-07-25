@@ -48,7 +48,7 @@ class HttpBody {
         int         mode_;
         std::string body_;
         std::string buffer_;
-        int64_t     chunk_size_;
+        long     chunk_size_;
         bool        is_trailer_;
         HttpHeader* headers_;
 };
