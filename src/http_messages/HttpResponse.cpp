@@ -105,9 +105,7 @@ void    HttpResponse::Execute()
 {
     if (target_.get_target().empty())
         return ApplyGeneratedPage();
-
     location_ = &server_->FindLocation(target_.get_target());
-    std::cout << "HTTP response Execute" << std::endl;
     if (request_.get_location().HasMethod(request_.get_request_line().get_method()) == false) {
         return RedirectToNewTarget(405);
     } else if (location_->get_proxy() != "false") {
@@ -130,7 +128,6 @@ void    HttpResponse::Execute()
             UpdatePathAndTarget(index_file_path);
         }
     }
-    std::cout << "Http Response Apply" << std::endl;
     Apply();
 }
 
@@ -193,7 +190,7 @@ void HttpResponse::AddHeaderContentLength()
 {
     if (status_line_.get_status_code() == 204 || body_.Size() == 0)
     {
-        header_.AddOneHeader("CONTENT-LENGTH", 0);
+        header_.AddOneHeader("CONTENT-LENGTH", "0");
         return;
     }
     std::ostringstream oss;
@@ -365,6 +362,7 @@ bool    HttpResponse::IsHandledExternaly()
 
 void    HttpResponse::DeleteResource()
 {
+    request_.get_request_line().set_method("GET");
     if (!HasRightToModify(path_))
         return RedirectToNewTarget(403);
     else if (std::remove(path_.c_str()) != 0)

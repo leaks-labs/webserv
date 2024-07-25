@@ -155,7 +155,6 @@ void CgiHandler::ExecCGI()
         stream_child_.Close();
         if (err_in == -1 || err_out == -1)
             throw std::runtime_error("Cgi : dup2 failed " + std::string(strerror(errno)));
-        // TODO: chdir to the root or to the directory where the .php is?
         if (chdir(response_.get_path().substr(0, response_.get_path().rfind("/") + 1).c_str()) == -1)
             throw std::runtime_error("Cgi : chdir failed " + std::string(strerror(errno)));
         execve(cmd[0], cmd.data(), env.data());
