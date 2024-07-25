@@ -18,7 +18,7 @@ Location::Location()
       redirect_("false"),
       cgi_(kCgiPHP),
       methods_(kMethodGet | kMethodPost | kMethodDelete),
-      bodymax_(0),
+      bodymax_(1024),
       listing_(false),
       strict_(false),
       path_info_("none")

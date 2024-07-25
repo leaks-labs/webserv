@@ -6,7 +6,6 @@ bodymax 10000
 cgi php-cgi
 root /Users/simonhinfray/Workspace/webserv
 
-> /data
 
 > /
 listing true
