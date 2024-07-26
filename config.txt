@@ -4,5 +4,8 @@ server_names abc.com xyz.fr
 bodymax 10000
 cgi php-cgi
 path_info /home/toto/Bureau/19/git_webserv/data/upload
-root /home/toto/Bureau/19/git_webserv
+root /
+
+
+> /
 listing true

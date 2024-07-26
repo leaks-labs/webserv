@@ -25,10 +25,9 @@ void    InitiationDispatcher::HandleEvents(const time_t timeout)
     while (g_signal_received == 0) {
         int number_events = WaitForEvents(event_list, kMaxEvents, timeout);
         if (number_events == -1) {
-            if (errno != EINTR)
-                perror("ERROR: WaitForEvents() failed to wait for events");
-            continue;
-            // TODO: is it a good idea to continue? Because we may have an infinite loop
+            if (errno == EINTR)
+                continue;
+            throw std::runtime_error("WaitForEvents() failed to wait for events: " + std::string(strerror(errno)));
         }
         IterateEventList(event_list, number_events);
         try
@@ -40,7 +39,6 @@ void    InitiationDispatcher::HandleEvents(const time_t timeout)
         {
             std::cerr << e.what() << std::endl;
         }
-        
     }
 }
 

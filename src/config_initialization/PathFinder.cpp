@@ -68,11 +68,12 @@ const std::string&  PathFinder::GetPhp() const
 PathFinder::PathFinder()
 {        
     const std::string   value(std::getenv("PATH"));
-    std::string folder, path;
+    std::string folder;
+    std::string path;
     size_t start = 0;
     size_t end;
     do {
-        end = value.find(":", start);
+        end = value.find(':', start);
         folder = value.substr(start, end - start);
         if (folder.empty())
             folder = ".";

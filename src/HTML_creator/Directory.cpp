@@ -12,7 +12,7 @@ Directory::Directory(const std::string& path, const std::string& request_path, s
 
 Directory::~Directory()
 {
-    if(dir_ != NULL)
+    if (dir_ != NULL)
         closedir(dir_);
 }
 
@@ -23,8 +23,9 @@ bool    Directory::IsOpen() const
 
 std::string Directory::GetHTML() const
 {
-    struct dirent*  file;
-    std::string     name, href;
+    struct dirent*  file = NULL;
+    std::string     name;
+    std::string     href;
     HTMLPage        html;
 
     std::string parent;
@@ -38,7 +39,7 @@ std::string Directory::GetHTML() const
         html.CloseTag("p");
         html.NewLine();
     }
-    while((file = readdir(dir_)) != NULL) {
+    while ((file = readdir(dir_)) != NULL) {
         if (file->d_name[0] == '.')
             continue;
         name = file->d_name;
