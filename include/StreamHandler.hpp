@@ -25,13 +25,13 @@ class StreamHandler : public EventHandler {
         virtual void    HandleEvent(EventTypes::Type event_type);
         virtual void    HandleTimeout();
         
-        int     AddToRequestQueue();
-        int     SendFirstResponse();
+        bool    AddToRequestQueue();
+        bool    SendFirstResponse();
         void    ConvertRequestToResponse();
         
     private:
-        static const int    kKeepConnection = 0;
-        static const int    kCloseConnection = 1;
+        static const bool   kKeepConnection = 0;
+        static const bool   kCloseConnection = 1;
 
         StreamHandler();
         StreamHandler(const StreamHandler& src);

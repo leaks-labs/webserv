@@ -13,7 +13,6 @@ const std::map<std::string, int>                                    Location::cg
 Location::Location()
     : path_("/"),
       root_("/"),
-      alias_(""),
       default_file_("index.html"),
       redirect_("false"),
       cgi_(kCgiPHP),
@@ -241,13 +240,11 @@ void    Location::set_strict(bool value)
 
 void    Location::set_path_info(const std::string& value)
 {
-    PathFinder&    finder = PathFinder::Instance();
-    if(value == "none")
+    if (value == "none")
         path_info_ = value;
-    else
-    {
-        path_info_ = finder.CanonicalizePath(value);
-        if(path_info_[path_info_.size() - 1] != '/')
+    else {
+        path_info_ = PathFinder::CanonicalizePath(value);
+        if (path_info_[path_info_.size() - 1] != '/')
             path_info_ += "/";
     }
 }

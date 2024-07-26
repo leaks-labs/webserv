@@ -63,7 +63,7 @@ void    StreamHandler::HandleTimeout()
     }
 }
 
-int StreamHandler::AddToRequestQueue()
+bool    StreamHandler::AddToRequestQueue()
 {
     std::string r = stream_.Read();
     if (r.empty() && response_queue_.empty())
@@ -76,7 +76,7 @@ int StreamHandler::AddToRequestQueue()
     return kKeepConnection;
 }
 
-int StreamHandler::SendFirstResponse()
+bool    StreamHandler::SendFirstResponse()
 {
     stream_.Send(response_queue_.front().get_response_buffer());
     if (response_queue_.front().get_response_buffer().empty()) {

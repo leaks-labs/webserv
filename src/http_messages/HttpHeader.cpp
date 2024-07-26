@@ -148,7 +148,7 @@ const std::map<std::string, HttpHeader::MemberFunctionPtr>  HttpHeader::InitSpec
 
 std::pair<std::string, std::string>  HttpHeader::ParseOneLine(const std::string& line)
 {
-    size_t  sep_pos = line.find(":");
+    size_t  sep_pos = line.find(':');
     if (sep_pos == std::string::npos)
         throw HttpCodeExceptions::BadRequestException();
     std::string key = line.substr(0, sep_pos);
@@ -266,9 +266,7 @@ void    HttpHeader::HandleTrailer(std::string& value, int mode)
         mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
     for (std::vector<std::string>::iterator it = trailer_fields.begin(); it != trailer_fields.end(); ++it) {
         ToUpper(*it);
-        if (header_map_.find(*it) != header_map_.end())
-            mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
-        else if (*it == "TRANSFER-ENCODING" || *it == "CONTENT-LENGTH" || *it == "HOST" || *it == "TRAILER")
+        if (header_map_.find(*it) != header_map_.end() || (*it == "TRANSFER-ENCODING" || *it == "CONTENT-LENGTH" || *it == "HOST" || *it == "TRAILER"))
             mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
         header_map_[*it] = "";
     }

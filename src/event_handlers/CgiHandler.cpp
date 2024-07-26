@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <stdexcept>
+#include <vector>
 
 #include <fcntl.h>
 #include <sys/wait.h>
@@ -111,9 +112,9 @@ void CgiHandler::HandleTimeout()
 
 std::pair<int, int> CgiHandler::InitSocketPair()
 {
-    int pfd[2];
+    std::vector<int>    pfd(2, -1);
 #ifdef __APPLE__
-    if(socketpair(PF_UNIX, SOCK_STREAM, 0, pfd) == -1)
+    if (socketpair(PF_UNIX, SOCK_STREAM, 0, pfd.data()) == -1)
         throw std::runtime_error("socketpair() failed");
     if (fcntl(pfd[0], F_SETFL, O_NONBLOCK) == -1 
         || fcntl(pfd[0], F_SETFD, FD_CLOEXEC) == -1
@@ -121,7 +122,7 @@ std::pair<int, int> CgiHandler::InitSocketPair()
         || fcntl(pfd[1], F_SETFL, O_NONBLOCK) == -1)
         throw std::runtime_error("fcntl() failed");
 #elif __linux__
-    if(socketpair(PF_UNIX, SOCK_STREAM | SOCK_NONBLOCK /* | SOCK_CLOEXEC */, 0, pfd) == -1)
+    if (socketpair(PF_UNIX, SOCK_STREAM | SOCK_NONBLOCK /* | SOCK_CLOEXEC */, 0, pfd.data()) == -1)
         throw std::runtime_error("socketpair() failed");
 #endif
     return std::pair<int, int>(pfd[0], pfd[1]);
@@ -129,7 +130,8 @@ std::pair<int, int> CgiHandler::InitSocketPair()
 
 void CgiHandler::ExecCGI()
 {
-    int err_out = -1, err_in = -1;
+    int err_in = -1;
+    int err_out = -1;
     try
     {
         stream_main_.Close();
@@ -138,7 +140,7 @@ void CgiHandler::ExecCGI()
         std::vector<char*>  env(env_src.size() + 1);
         cmd[0] = const_cast<char*>(response_.get_cgi_path().c_str());
         std::string path = response_.get_path();
-        size_t pos= path.rfind("/") + 1;
+        size_t pos= path.rfind('/') + 1;
         cmd[1] = const_cast<char*>(path.substr(pos, path.size() - pos).c_str());
         std::vector<char*>::iterator it_dest = env.begin();
         for (std::vector<std::string>::const_iterator it_src = env_src.begin(); it_src != env_src.end(); ++it_src, ++it_dest)
@@ -149,7 +151,7 @@ void CgiHandler::ExecCGI()
         stream_child_.Close();
         if (err_in == -1 || err_out == -1)
             throw std::runtime_error("Cgi : dup2 failed " + std::string(strerror(errno)));
-        if (chdir(response_.get_path().substr(0, response_.get_path().rfind("/") + 1).c_str()) == -1)
+        if (chdir(response_.get_path().substr(0, response_.get_path().rfind('/') + 1).c_str()) == -1)
             throw std::runtime_error("Cgi : chdir failed " + std::string(strerror(errno)));
         execve(cmd[0], cmd.data(), env.data());
         throw std::runtime_error("Cgi : execve failed " + std::string(strerror(errno)));
@@ -228,7 +230,7 @@ void    CgiHandler::ReturnToStreamHandler()
         throw std::runtime_error("Failed to return to Stream Handler");
 }
 
-int CgiHandler::ExtractStatusError(std::string str)
+int CgiHandler::ExtractStatusError(const std::string& str)
 {
     int err;
     std::stringstream ss(str.substr(0, 3));

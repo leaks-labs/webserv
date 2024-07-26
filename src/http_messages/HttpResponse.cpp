@@ -112,7 +112,7 @@ void    HttpResponse::Execute()
     if (target_.get_target().empty())
         return ApplyGeneratedPage();
     location_ = &server_->FindLocation(target_.get_target());
-    if (request_.get_location().HasMethod(request_.get_request_line().get_method()) == false) {
+    if (!request_.get_location().HasMethod(request_.get_request_line().get_method())) {
         return RedirectToNewTarget(405);
     } else if (location_->get_redirect() != "false") {
         return MovedPermanentely(location_->get_redirect());
@@ -126,7 +126,7 @@ void    HttpResponse::Execute()
         if (PathFinder::PathExist(complete_index_file_path) && IsDir(complete_index_file_path)) {
             return MovedPermanentely(index_file_path + "/");
         } else if (!PathFinder::PathExist(complete_index_file_path)) {
-            if (location_->get_listing() == true && request_.get_request_line().get_method() == "GET")
+            if (location_->get_listing() && request_.get_request_line().get_method() == "GET")
                 set_status_line(200);
             else
                 return RedirectToNewTarget(403);
@@ -261,7 +261,7 @@ void    HttpResponse::Apply()
     if (IsHandledExternaly())
         return;
 
-    if (target_.get_target()[target_.get_target().size() - 1] == '/' && location_->get_listing() == true) {
+    if (target_.get_target()[target_.get_target().size() - 1] == '/' && location_->get_listing()) {
         Directory   dir(path_, target_.get_target(), location_->get_path().size());
         if (dir.IsOpen())
             body_.set_body(dir.GetHTML());
@@ -291,8 +291,7 @@ void    HttpResponse::Apply()
 
 void    HttpResponse::ApplyGeneratedPage()
 {
-    HTMLPage    error_page;
-    body_.set_body(error_page.GetErrorPage(status_line_.get_status_code()));
+    body_.set_body(HTMLPage::GetErrorPage(status_line_.get_status_code()));
     FinalizeResponse();
     if (InitiationDispatcher::Instance().AddWriteFilter(stream_handler_) == -1)
         throw std::runtime_error("Failed to add write filter to InitiationDispatcher");

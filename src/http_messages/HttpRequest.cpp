@@ -6,7 +6,8 @@
 
 int HttpRequest::Split(const std::string& str, const std::string& delim, std::vector<std::string>& tokens)
 {
-    size_t start = 0, end;
+    size_t  start = 0;
+    size_t  end;
     std::string token;
     do {
         end = str.find(delim, start);
