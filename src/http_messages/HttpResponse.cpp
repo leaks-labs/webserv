@@ -204,6 +204,9 @@ void HttpResponse::AddHeaderContentLength()
 
 bool    HttpResponse::IsAskingToCloseConnection() const
 {
+    std::map<std::string, std::string> map = request_.get_header().get_header_map();
+    if (map.find("CONTENT-LENGTH") != map.end() && map.find("TRANSFER-ENCODING") != map.end())
+        return true;
     const std::vector<int>& vec = status_line_.get_codes_requiring_close();
     return (std::find(vec.begin(), vec.end(), status_line_.get_status_code()) != vec.end() || !keep_alive_);
 }

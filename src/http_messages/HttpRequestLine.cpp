@@ -74,15 +74,20 @@ void HttpRequestLine::Parse(std::string& message)
     if (buffer_.size() > kMaxRequestLineSize)
         throw HttpCodeExceptions::UrlTooLongException();
     size_t pos = buffer_.find("\r\n");
+    if (pos == 0)
+        pos = buffer_.find("\r\n", 2);
     if (pos == std::string::npos) {
         message.clear();
         return;
     }
-
     buffer_.erase(pos);
     size_t  bytes_to_trim_in_message = buffer_.length() - initial_buffer_size + 2;
     message.erase(0, bytes_to_trim_in_message);
     is_complete_ = true;
+    if (buffer_.substr(0, 2) == "\r\n")
+        buffer_.erase(0, 2);
+    if (buffer_.find('\r') != std::string::npos)
+        throw HttpCodeExceptions::BadRequestException();
     std::vector<std::string> tokens;
     if (HttpRequest::Split(buffer_, " ", tokens) == -1)
         throw HttpCodeExceptions::BadRequestException();
@@ -92,7 +97,7 @@ void HttpRequestLine::Parse(std::string& message)
     buffer_.clear();
     std::map<std::string, bool>::const_iterator method_it = method_map.find(tokens[0]);
     if (method_it == method_map.end() || !method_it->second)
-        throw HttpCodeExceptions::BadRequestException();
+        throw HttpCodeExceptions::NotImplementedException();
     method_ = tokens[0];
     target_.InitTargetType(tokens[1]);
     target_.set_complete_url(tokens[1]);

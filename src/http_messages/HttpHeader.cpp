@@ -1,6 +1,7 @@
 #include "HttpHeader.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <stdexcept>
 #include <sstream>
@@ -146,7 +147,7 @@ const std::map<std::string, HttpHeader::MemberFunctionPtr>  HttpHeader::InitSpec
     return functions;
 }
 
-std::pair<std::string, std::string>  HttpHeader::ParseOneLine(const std::string& line)
+std::pair<std::string, std::string>  HttpHeader::ParseOneLine(const std::string& line, int mode)
 {
     size_t  sep_pos = line.find(':');
     if (sep_pos == std::string::npos)
@@ -154,12 +155,18 @@ std::pair<std::string, std::string>  HttpHeader::ParseOneLine(const std::string&
     std::string key = line.substr(0, sep_pos);
     std::string value = line.substr(sep_pos + 1);
 
-    if (!value.empty() && value[0] == ' ')
+    if (!value.empty() && (value[0] == ' ' || value[0] == '\t'))
         value.erase(0, 1);
-    if (!value.empty() && value[value.size() - 1] == ' ')
+    if (!value.empty() && (value[value.size() - 1] == ' ' || value[value.size() - 1] == '\t'))
         value.erase(value.size() - 1, 1);
     if (key.empty() || value.empty())
-        throw HttpCodeExceptions::BadRequestException();
+        mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
+    for (std::string::iterator it = key.begin(); mode == kParseRequest && it != key.end(); ++it) {
+        if (std::isspace(*it))
+            throw HttpCodeExceptions::BadRequestException();
+    }
+    if (mode == kParseResponse)
+        key.erase(std::remove_if(key.begin(), key.end(), ::isspace), key.end());
     ToUpper(key);
     return std::make_pair(key, value);
 }
@@ -201,8 +208,13 @@ bool    HttpHeader::DivideIntoTokens(std::string& message, std::vector<std::stri
 void    HttpHeader::HandleTokens(std::vector<std::string>& tokens, int mode)
 {
     for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); ++it) {
-        std::pair<std::string, std::string> one_line = ParseOneLine(*it);
-        
+        if (mode == kParseRequest && it->find('\r') != std::string::npos)
+            throw HttpCodeExceptions::BadRequestException();
+        for (std::string::iterator char_it = it->begin(); mode == kParseResponse && char_it != it->end(); ++char_it) {
+            if (*char_it == '\r')
+                *char_it = ' ';
+        }
+        std::pair<std::string, std::string> one_line = ParseOneLine(*it, mode);
         if (header_map_.find(one_line.first) != header_map_.end())
             mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
 
@@ -216,7 +228,13 @@ void    HttpHeader::HandleTokens(std::vector<std::string>& tokens, int mode)
 void    HttpHeader::HandleTrailerTokens(std::vector<std::string>& tokens, int mode)
 {
     for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); ++it) {
-        std::pair<std::string, std::string> one_line = HttpHeader::ParseOneLine(*it);
+        if (mode == kParseRequest && it->find('\r') != std::string::npos)
+            throw HttpCodeExceptions::BadRequestException();
+        for (std::string::iterator char_it = it->begin(); mode == kParseResponse && char_it != it->end(); ++char_it) {
+            if (*char_it == '\r')
+                *char_it = ' ';
+        }
+        std::pair<std::string, std::string> one_line = HttpHeader::ParseOneLine(*it, mode);
         
         std::map<std::string, std::string>::iterator    header_it = header_map_.find(one_line.first);
         if (header_it != header_map_.end()) {

@@ -96,6 +96,14 @@ void    HttpStatusLine::Parse(std::string& message)
     size_t  bytes_to_trim_in_message = buffer_.length() - initial_buffer_size + 2;
     message.erase(0, bytes_to_trim_in_message);
     is_complete_ = true;
+
+
+    for (std::string::iterator it = buffer_.begin(); it != buffer_.end(); ++it) {
+        if (*it == '\r')
+            *it = ' ';
+    }
+
+
     std::vector<std::string> tokens;
     if (HttpRequest::Split(buffer_, " ", tokens) == -1)
         throw HttpCodeExceptions::BadGatewayException();
