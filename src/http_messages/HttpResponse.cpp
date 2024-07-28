@@ -374,7 +374,7 @@ bool    HttpResponse::IsHandledExternaly()
 
     */
 
-    if (IsCgiFile(path_)) {
+    if (IsCgiFile(path_) && request_.get_request_line().get_method() != "DELETE") {
         LaunchCgiHandler();
         return true;
     }
