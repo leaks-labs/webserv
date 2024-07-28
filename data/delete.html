@@ -16,9 +16,6 @@
 
     <script>
         document.getElementById('deleteButton').addEventListener('click', function() {
-            // URL de l'API où la requête DELETE doit être envoyée
-            const url = 'upload/small.png'; // Remplacez par votre propre URL
-
             // Envoi de la requête DELETE
             fetch(document.getElementById('target').value, {
                 method: 'DELETE'
