@@ -211,10 +211,21 @@ bool    HttpResponse::IsAskingToCloseConnection() const
     return (std::find(vec.begin(), vec.end(), status_line_.get_status_code()) != vec.end() || !keep_alive_);
 }
 
-void    HttpResponse::SetResponseToErrorPage(const int error)
+void    HttpResponse::RedirectToNewTarget(int code)
 {
-    ClearHeader();
-    RedirectToNewTarget(error);
+        target_.ClearTarget();
+        path_.clear();
+        header_.Clear();
+        body_.Clear();
+        set_status_line(code);
+        std::string tmp_request_path = ErrorFileIsSet();
+        if (!tmp_request_path.empty() && ++redirect_count_ < kMaxRedirectCount) {
+            request_.get_request_line().set_method("GET");
+            UpdatePathAndTarget(tmp_request_path);
+        }
+        if (redirect_count_ >= kMaxRedirectCount)
+            return RedirectToEmptyTarget(500);
+        return Execute();
 }
 
 void    HttpResponse::FinalizeResponse()
@@ -318,11 +329,11 @@ void    HttpResponse::LaunchCgiHandler()
     }
     catch(const HttpCodeException& e)
     {
-        SetResponseToErrorPage(e.Code());
+        RedirectToNewTarget(e.Code());
     }
     catch(const std::exception& e)
     {
-        SetResponseToErrorPage(500);
+        RedirectToNewTarget(500);
     }
 }
 
@@ -407,22 +418,9 @@ void    HttpResponse::RedirectToEmptyTarget(int code)
 {
         target_.ClearTarget();
         path_.clear();
+        header_.Clear();
+        body_.Clear();
         set_status_line(code);
-        return Execute();
-}
-
-void    HttpResponse::RedirectToNewTarget(int code)
-{
-        target_.ClearTarget();
-        path_.clear();
-        set_status_line(code);
-        std::string tmp_request_path = ErrorFileIsSet();
-        if (!tmp_request_path.empty() && ++redirect_count_ < kMaxRedirectCount) {
-            request_.get_request_line().set_method("GET");
-            UpdatePathAndTarget(tmp_request_path);
-        }
-        if (redirect_count_ >= kMaxRedirectCount)
-            return RedirectToEmptyTarget(500);
         return Execute();
 }
 

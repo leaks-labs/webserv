@@ -101,7 +101,7 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
 
 void CgiHandler::HandleTimeout()
 {
-    response_.SetResponseToErrorPage(504);
+    response_.RedirectToNewTarget(504);
     int err = InitiationDispatcher::Instance().AddWriteFilter(stream_handler_);
     if (err == -1)
         InitiationDispatcher::Instance().RemoveHandler(&stream_handler_);
@@ -191,9 +191,9 @@ void    CgiHandler::ReturnToStreamHandler()
             throw HttpCodeExceptions::BadGatewayException();
         iterator it = response_.get_header().get_header_map().find("STATUS");
         if (it != response_.get_header().get_header_map().end() 
-            && (status_err = ExtractStatusError(it->second)) >= 400)
-            response_.SetResponseToErrorPage(status_err);
-        else {
+            && (status_err = ExtractStatusError(it->second)) >= 400) {
+            response_.RedirectToNewTarget(status_err);
+        } else {
             response_.set_status_line(status_err);
             response_.set_body(cgi_buffer);
             response_.FinalizeResponse();
@@ -204,7 +204,7 @@ void    CgiHandler::ReturnToStreamHandler()
     {
         try
         {
-            response_.SetResponseToErrorPage(e.Code());
+            response_.RedirectToNewTarget(e.Code());
         }
         catch(const std::exception& e)
         {
@@ -215,7 +215,7 @@ void    CgiHandler::ReturnToStreamHandler()
     {
         try
         {
-            response_.SetResponseToErrorPage(500);
+            response_.RedirectToNewTarget(500);
         }
         catch(const std::exception& e)
         {
