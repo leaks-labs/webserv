@@ -55,6 +55,7 @@ class HttpHeader {
         void    HandleTransferEncoding(std::string& value, int mode);
         void    HandleConnection(std::string& value, int mode);
         void    HandleTrailer(std::string& value, int mode);
+        void    HandleHost(std::string& value, int mode);
         void    AdditionalCheck(int mode) const;
         void    AdditionalTrailerCheck(int mode) const;
 

@@ -144,6 +144,7 @@ const std::map<std::string, HttpHeader::MemberFunctionPtr>  HttpHeader::InitSpec
     functions["TRANSFER-ENCODING"] = &HttpHeader::HandleTransferEncoding;
     functions["CONNECTION"] = &HttpHeader::HandleConnection;
     functions["TRAILER"] = &HttpHeader::HandleTrailer;
+    functions["HOST"] = &HttpHeader::HandleHost;
     return functions;
 }
 
@@ -279,6 +280,7 @@ void    HttpHeader::HandleTrailer(std::string& value, int mode)
 
     ToLower(value);
     value.erase(std::remove(value.begin(), value.end(), ' '), value.end());
+    value.erase(std::remove(value.begin(), value.end(), '\t'), value.end());
     std::vector<std::string>    trailer_fields;
     if (HttpRequest::Split(value, ",", trailer_fields) == -1)
         mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
@@ -288,6 +290,12 @@ void    HttpHeader::HandleTrailer(std::string& value, int mode)
             mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
         header_map_[*it] = "";
     }
+}
+
+void    HttpHeader::HandleHost(std::string& value, int mode)
+{
+    (void)mode;
+    ToLower(value);
 }
 
 void    HttpHeader::AdditionalCheck(int mode) const
