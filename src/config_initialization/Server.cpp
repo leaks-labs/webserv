@@ -72,6 +72,7 @@ void    Server::set_server_names(const std::string& value)
         res = value.substr(start, end - start);
         if (res.empty())
             break;
+        std::transform(res.begin(), res.end(), res.begin(), ::tolower);
         server_names_.push_back(res);
         start = end + 1;
     } while (end != std::string::npos);

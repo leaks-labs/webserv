@@ -339,7 +339,6 @@ void    InitiationDispatcher::CheckForTimeouts()
         ++next;
         if (it->first <= current_time) {
             it->second->HandleTimeout();
-            timeout_table_.erase(it);
             it = next;
         } else {
             break;

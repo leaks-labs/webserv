@@ -44,7 +44,7 @@ class HttpHeader {
         static const std::map<std::string, MemberFunctionPtr>   specific_header_handling_functions_;
         static const std::map<std::string, MemberFunctionPtr>   InitSpecificHeaderHandlingFuctions();
 
-        static std::pair<std::string, std::string>  ParseOneLine(const std::string& line);
+        static std::pair<std::string, std::string>  ParseOneLine(const std::string& line, int mode);
         static void                                 ToLower(std::string& str);
         static void                                 ToUpper(std::string& str);
 
@@ -55,6 +55,7 @@ class HttpHeader {
         void    HandleTransferEncoding(std::string& value, int mode);
         void    HandleConnection(std::string& value, int mode);
         void    HandleTrailer(std::string& value, int mode);
+        void    HandleHost(std::string& value, int mode);
         void    AdditionalCheck(int mode) const;
         void    AdditionalTrailerCheck(int mode) const;
 

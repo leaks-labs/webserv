@@ -57,6 +57,7 @@ void    StreamHandler::HandleEvent(EventTypes::Type event_type)
 void    StreamHandler::HandleTimeout()
 {
     if (response_queue_.empty()) {
+        timeout_it_ = InitiationDispatcher::Instance().DelTimeout(timeout_it_);
         request_queue_.push_front(HttpRequest(acceptor_sfd_, 408));
         response_queue_.push_front(HttpResponse(*this, request_queue_.front()));
         response_queue_.front().Execute();
