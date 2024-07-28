@@ -186,9 +186,6 @@ bool HttpResponse::IsComplete() const
 void HttpResponse::SetComplete()
 {
     response_ = status_line_.GetFormatedStatusLine() + header_.GetFormatedHeader() + body_.get_body();
-    status_line_.Clear();
-    header_.Clear();
-    body_.Clear();
     complete_ = true;
 }
 

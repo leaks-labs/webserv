@@ -101,6 +101,7 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
 
 void CgiHandler::HandleTimeout()
 {
+    timeout_it_ = InitiationDispatcher::Instance().DelTimeout(timeout_it_);
     response_.RedirectToNewTarget(504);
     int err = InitiationDispatcher::Instance().AddWriteFilter(stream_handler_);
     if (err == -1)
