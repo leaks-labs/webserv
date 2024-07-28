@@ -194,10 +194,9 @@ void    CgiHandler::ReturnToStreamHandler()
             && (status_err = ExtractStatusError(it->second)) >= 400)
             response_.SetResponseToErrorPage(status_err);
         else {
-            response_.set_body(cgi_buffer);
-            response_.AddHeaderContentLength();
             response_.set_status_line(status_err);
-            response_.SetComplete();
+            response_.set_body(cgi_buffer);
+            response_.FinalizeResponse();
             err = InitiationDispatcher::Instance().AddWriteFilter(stream_handler_);
         }
     }

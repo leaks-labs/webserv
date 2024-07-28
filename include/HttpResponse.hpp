@@ -37,6 +37,7 @@ class HttpResponse {
         void        AddHeaderContentLength();
         bool        IsAskingToCloseConnection() const;
         void        SetResponseToErrorPage(const int error);
+        void        FinalizeResponse();
         void        Clear();
 
     private:
@@ -55,7 +56,6 @@ class HttpResponse {
         void                        ApplyGeneratedPage();
         void                        LaunchCgiHandler();
         // void                        LaunchProxyHandler();
-        void                        FinalizeResponse();
         bool                        IsHandledExternaly();
         void                        DeleteResource();
         void                        MovedPermanentely(const std::string& new_target);

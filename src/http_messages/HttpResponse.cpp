@@ -217,6 +217,14 @@ void    HttpResponse::SetResponseToErrorPage(const int error)
     RedirectToNewTarget(error);
 }
 
+void    HttpResponse::FinalizeResponse()
+{
+    UpdateReason();
+    AddHeaderContentLength();
+    AddHeaderCloseConnection();
+    SetComplete();
+}
+
 void    HttpResponse::Clear()
 {
     complete_ = false;
@@ -346,14 +354,6 @@ void    HttpResponse::LaunchProxyHandler()
 }
 
 */
-
-void    HttpResponse::FinalizeResponse()
-{
-    UpdateReason();
-    AddHeaderContentLength();
-    AddHeaderCloseConnection();
-    SetComplete();
-}
 
 bool    HttpResponse::IsHandledExternaly()
 {
