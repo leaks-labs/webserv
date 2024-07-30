@@ -49,7 +49,8 @@ HttpResponse::HttpResponse(const HttpResponse& src)
       header_(src.header_),
       body_(src.body_),
       response_(src.response_),
-      redirect_count_(src.redirect_count_)
+      redirect_count_(src.redirect_count_),
+      moved_permanentely_path_(src.moved_permanentely_path_)
 {
 }
 
@@ -230,6 +231,7 @@ void    HttpResponse::FinalizeResponse()
     UpdateReason();
     AddHeaderContentLength();
     AddHeaderCloseConnection();
+    AddHeaderLocation();
     SetComplete();
 }
 
@@ -393,16 +395,18 @@ void    HttpResponse::DeleteResource()
 
 void    HttpResponse::MovedPermanentely(const std::string& new_target)
 {
-        AddHeaderLocation(new_target);
-        if (request_.get_request_line().get_method() == "GET")
-            return RedirectToEmptyTarget(301);
-        else
-            return RedirectToEmptyTarget(308);
+    moved_permanentely_path_ = new_target;
+    if (request_.get_request_line().get_method() == "GET")
+        return RedirectToEmptyTarget(301);
+    else
+        return RedirectToEmptyTarget(308);
 }
 
-void    HttpResponse::AddHeaderLocation(const std::string& location)
+void    HttpResponse::AddHeaderLocation()
 {
-    header_.AddOneHeader("LOCATION", location);
+    if ((status_line_.get_status_code() == 301 || status_line_.get_status_code() == 308)
+        && header_.get_header_map().count("LOCATION") == 0)
+        header_.AddOneHeader("LOCATION", moved_permanentely_path_);
 }
 
 void    HttpResponse::AddHeaderCloseConnection()
