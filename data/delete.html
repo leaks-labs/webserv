@@ -7,15 +7,17 @@
 </head>
 <body>
     <h1>Envoyer une requête HTTP DELETE</h1>
+    <form>
+    <label for="target">File to delete :</label>
+    <input type="text" name="target" id="target" required>
+    </form>
+    <br>
     <button id="deleteButton">Supprimer</button>
 
     <script>
         document.getElementById('deleteButton').addEventListener('click', function() {
-            // URL de l'API où la requête DELETE doit être envoyée
-            const url = 'upload/small.png'; // Remplacez par votre propre URL
-
             // Envoi de la requête DELETE
-            fetch(url, {
+            fetch(document.getElementById('target').value, {
                 method: 'DELETE'
             })
             .then(response => {
