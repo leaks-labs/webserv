@@ -405,8 +405,9 @@ void    HttpResponse::MovedPermanentely(const std::string& new_target)
 void    HttpResponse::AddHeaderLocation()
 {
     if ((status_line_.get_status_code() == 301 || status_line_.get_status_code() == 308)
-        && header_.get_header_map().count("LOCATION") == 0)
+        && header_.get_header_map().count("LOCATION") == 0) {
         header_.AddOneHeader("LOCATION", moved_permanentely_path_);
+    }
 }
 
 void    HttpResponse::AddHeaderCloseConnection()
