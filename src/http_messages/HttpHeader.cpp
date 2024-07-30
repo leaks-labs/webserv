@@ -155,19 +155,15 @@ std::pair<std::string, std::string>  HttpHeader::ParseOneLine(const std::string&
         throw HttpCodeExceptions::BadRequestException();
     std::string key = line.substr(0, sep_pos);
     std::string value = line.substr(sep_pos + 1);
-
-    if (!value.empty() && (value[0] == ' ' || value[0] == '\t'))
-        value.erase(0, 1);
-    if (!value.empty() && (value[value.size() - 1] == ' ' || value[value.size() - 1] == '\t'))
-        value.erase(value.size() - 1, 1);
-    if (key.empty() || value.empty())
-        mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
     for (std::string::iterator it = key.begin(); mode == kParseRequest && it != key.end(); ++it) {
         if (std::isspace(*it))
             throw HttpCodeExceptions::BadRequestException();
     }
-    if (mode == kParseResponse)
+    if (mode == kParseResponse && !key.empty())
         key.erase(std::remove_if(key.begin(), key.end(), ::isspace), key.end());
+    value = TrimOWS(value);
+    if (key.empty() || value.empty())
+        mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
     ToUpper(key);
     return std::make_pair(key, value);
 }
@@ -180,6 +176,16 @@ void    HttpHeader::ToLower(std::string& str)
 void    HttpHeader::ToUpper(std::string& str)
 {
     std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+}
+
+std::string HttpHeader::TrimOWS(const std::string& str) {
+    if (str.empty())
+        return str;
+    size_t first = str.find_first_not_of(" \t");
+    if (first == std::string::npos)
+        return "";
+    size_t last = str.find_last_not_of(" \t");
+    return str.substr(first, last - first + 1);
 }
 
 bool    HttpHeader::DivideIntoTokens(std::string& message, std::vector<std::string>& tokens, int mode)

@@ -47,6 +47,7 @@ class HttpHeader {
         static std::pair<std::string, std::string>  ParseOneLine(const std::string& line, int mode);
         static void                                 ToLower(std::string& str);
         static void                                 ToUpper(std::string& str);
+        static std::string                          TrimOWS(const std::string& str);
 
         bool    DivideIntoTokens(std::string& message, std::vector<std::string>& tokens, int ode);
         void    HandleTokens(std::vector<std::string>& tokens, int mode);
