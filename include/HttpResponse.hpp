@@ -59,7 +59,7 @@ class HttpResponse {
         bool                        IsHandledExternaly();
         void                        DeleteResource();
         void                        MovedPermanentely(const std::string& new_target);
-        void                        AddHeaderLocation(const std::string& location);
+        void                        AddHeaderLocation();
         void                        AddHeaderCloseConnection();
         void                        RedirectToEmptyTarget(int code);
         std::string                 BuildPath();
@@ -83,6 +83,7 @@ class HttpResponse {
         HttpBody                    body_;
         std::string                 response_;
         int                         redirect_count_;
+        std::string                 moved_permanentely_path_;
 };
 
 #endif
