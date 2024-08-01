@@ -32,7 +32,7 @@ void    Stream::Send(std::string& data)
 #endif
     ssize_t bytes_sent = send(sfd_, data.c_str(), data.size(), send_flags);
     if (bytes_sent == -1)
-        throw std::runtime_error("recv() failed:" + std::string(strerror(errno)));
+        throw std::runtime_error("send() failed:" + std::string(strerror(errno)));
     data.erase(0, bytes_sent);
 }
 
