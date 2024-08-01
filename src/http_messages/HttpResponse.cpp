@@ -192,8 +192,6 @@ void HttpResponse::SetComplete()
 
 void HttpResponse::AddHeaderContentLength()
 {
-    if (body_.Size() == 0)
-        return;
     std::ostringstream oss;
     oss << body_.Size();
     std::string body_size_str = oss.str();
