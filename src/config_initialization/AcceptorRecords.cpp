@@ -30,8 +30,8 @@ void    AcceptorRecords::InitAcceptors(ServerList& server_list)
 
 const struct addrinfo*  AcceptorRecords::AddAcceptorRecord(const char* ip, const std::string& port)
 {
-    struct addrinfo *addr;
-    int             err;
+    struct addrinfo*    addr = NULL;
+    int                 err;
 
     if ((err = getaddrinfo(ip, port.c_str(), &hints_, &addr)) != 0)
         throw std::runtime_error("getaddrinfo(): " + std::string(gai_strerror(err)));
