@@ -6,6 +6,7 @@
 
 #include "ConnectionAcceptor.hpp"
 #include "InitiationDispatcher.hpp"
+#include "ServerList.hpp"
 
 AcceptorRecords::AcceptorRecords()
 {
@@ -72,7 +73,7 @@ bool    AcceptorRecords::IsValidUniqAddr(const struct addrinfo& addr) const
     if (addr.ai_family != PF_INET6 && addr.ai_family != PF_INET)
         return false;
     for (std::vector<struct addrinfo*>::const_iterator it = acceptor_records_uniq_.begin(); it != acceptor_records_uniq_.end(); ++it)
-        if (addr.ai_family == (*it)->ai_family && addr.ai_addrlen == (*it)->ai_addrlen && memcmp(addr.ai_addr, (*it)->ai_addr, addr.ai_addrlen) == 0)
+        if (ServerList::CmpAddr(addr, **it))
             return false;
     return true;
 }
