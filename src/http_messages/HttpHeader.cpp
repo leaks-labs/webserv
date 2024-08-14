@@ -156,7 +156,7 @@ std::pair<std::string, std::string>  HttpHeader::ParseOneLine(const std::string&
     std::string key = line.substr(0, sep_pos);
     std::string value = line.substr(sep_pos + 1);
     for (std::string::iterator it = key.begin(); mode == kParseRequest && it != key.end(); ++it) {
-        if (std::isspace(*it))
+        if (std::isspace(*it) != 0)
             throw HttpCodeExceptions::BadRequestException();
     }
     if (mode == kParseResponse && !key.empty())
