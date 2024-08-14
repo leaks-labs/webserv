@@ -9,7 +9,7 @@ const std::map<std::string, void (Server::*)(const std::string&)>   Server::set_
 Server::Server()
     : host_("0.0.0.0"),
       port_("8080"),
-      server_names_(1, "webserv"),
+      server_names_(1, ""),
       addr_(NULL)
 {
     AddLocation("/");

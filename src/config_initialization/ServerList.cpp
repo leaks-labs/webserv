@@ -91,6 +91,9 @@ const Server& ServerList::FindServer(const int acceptor_sfd, const std::string& 
     for (std::vector<const Server*>::const_iterator it = matched.begin(); it != matched.end(); ++it)
         if ((*it)->HasServerName(name))
             return **it;
+    for (std::vector<const Server*>::const_iterator it = matched.begin(); it != matched.end(); ++it)
+        if ((*it)->get_server_names()[0].empty())
+            return **it;
     return *matched[0];
 }
 
