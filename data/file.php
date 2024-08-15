@@ -1,38 +1,37 @@
 <?php
-$title = isset($_POST['title']) ? htmlspecialchars($_POST['title']) : '';
-$content = isset($_POST['content']) ? htmlspecialchars($_POST['content']) : '';
-$file_content = '';
-$file_type = '';
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $title = htmlspecialchars($_POST["title"]);
+    $content = htmlspecialchars($_POST["content"]);
 
-if (isset($_FILES['file']) && $_FILES['file']['error'] == UPLOAD_ERR_OK) {
-    $file_type = $_FILES['file']['type'];
-    $file_content = file_get_contents($_FILES['file']['tmp_name']);
-}
+    echo "<h1>$title</h1>";
+    echo "<p>$content</p>";
+    
+    if (isset($_FILES["file"]) && $_FILES["file"]["error"] == UPLOAD_ERR_OK) {
+        $file = $_FILES["file"];
 
-echo "<!DOCTYPE html>\n";
-echo "<html>\n<body>\n";
-echo "<h1>$title</h1>\n";
-echo "<h2>$content</h2>\n";
+        $target_directory = "uploads/";
+        $file_path = $target_directory . basename($file["name"]);
+        $upload_ok = move_uploaded_file($file["tmp_name"], $file_path);
 
-if (!empty($file_content)) {
-    if (strpos($file_type, 'text') !== false) {
-        echo "<pre>\n";
-        echo htmlspecialchars($file_content);
-        echo "</pre>\n";
-    } elseif (strpos($file_type, 'image') !== false) {
-        echo "<img src='data:$file_type;base64," . base64_encode($file_content) . "' alt='Uploaded image'>\n";
-    } else {
-        echo "<p>Le type de fichier n'est pas pris en charge pour l'affichage direct.</p>\n";
+        if ($upload_ok) {
+            echo "<p>Fichier téléchargé : " . htmlspecialchars($file["name"]) . "</p>";
+            echo "<p>Type de fichier : " . $file["type"] . "</p>";
+            
+            $file_type = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
+            if (in_array($file_type, ["jpg", "jpeg", "png", "gif"])) {
+                echo "<img src='$file_path' alt='Image téléchargée'>";
+            } elseif ($file_type == "txt") {
+                echo "<pre>" . htmlspecialchars(file_get_contents($file_path)) . "</pre>";
+            } else {
+                echo "<p>Le fichier a été téléchargé avec succès. <a href='$file_path'>Cliquez ici pour le télécharger</a>.</p>";
+            }
+        } else {
+            echo "<p>Erreur lors du téléchargement du fichier.</p>";
+        }
     }
+
 } else {
-    echo "<p>Aucun fichier téléchargé ou fichier invalide.</p>\n";
+    header("Location: postAll.html");
+    exit();
 }
-
-#echo "<pre>\n";
-#print_r($_GET);
-#print_r($_POST);
-#print_r($_FILES);
-#echo "</pre>\n";
-
-echo "</body>\n</html>";
 ?>
