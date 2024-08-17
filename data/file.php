@@ -16,9 +16,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($upload_ok) {
             echo "<p>Fichier téléchargé : " . htmlspecialchars($file["name"]) . "</p>";
             echo "<p>Type de fichier : " . $file["type"] . "</p>";
-            
             $file_type = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
             if (in_array($file_type, ["jpg", "jpeg", "png", "gif"])) {
+                // $file_data = htmlspecialchars(base64_encode(file_get_contents($file_path)));
+                // $src = "data:image/$file_type;base64," . $file_data;
+                // echo "<img src=\"$src\" alt=\"Image téléchargée\">";
                 echo "<img src='$file_path' alt='Image téléchargée'>";
             } elseif ($file_type == "txt") {
                 echo "<pre>" . htmlspecialchars(file_get_contents($file_path)) . "</pre>";
