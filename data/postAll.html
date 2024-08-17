@@ -9,13 +9,11 @@
     <h1>Post</h1>
     <form action="file.php" method="post" enctype="multipart/form-data">
         <label for="title">Titre :</label>
-        <input type="text" name="title" id="title" required>
-        <br><br>
-        <label for="content">Contenu :</label>
-        <textarea name="content" id="content" rows="10" cols="30" required></textarea>
-        <br><br>
+        <input type="text" id="title" name="title" required><br><br>
+        <label for="content">Contenu :</label><br>
+        <textarea id="content" name="content" rows="4" cols="50" required></textarea><br><br>
         <label for="file">Choisir un fichier :</label>
-        <input type="file" name="file" id="file" accept="*">
+        <input type="file" id="file" name="file" required><br><br>
         <input type="submit" value="Envoyer">
     </form>
 </body>

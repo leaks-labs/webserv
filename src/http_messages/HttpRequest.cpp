@@ -154,10 +154,12 @@ void    HttpRequest::AppendToRequest(std::string& message)
     catch (const HttpCodeException& e) {
         status_code_ = e.Code();
         is_complete_ = true;
+        message.clear();
     }
     catch (const std::exception &e) {
         status_code_ = 500;
         is_complete_ = true;
+        message.clear();
     }
 }
 

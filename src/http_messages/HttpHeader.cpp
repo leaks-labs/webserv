@@ -194,16 +194,18 @@ bool    HttpHeader::DivideIntoTokens(std::string& message, std::vector<std::stri
         throw HttpCodeExceptions::InternalServerErrorException();
     size_t initial_buffer_size = buffer_.length();
     buffer_ += message;
-    if (mode == kParseRequest && buffer_.size() > kMaxHeaderSize)
-        throw HttpCodeExceptions::RequestHeaderFieldsTooLargeException();
     size_t pos = buffer_.find("\r\n\r\n");
     if (pos == std::string::npos) {
         message.clear();
+        if (mode == kParseRequest && buffer_.size() > kMaxHeaderSize)
+            throw HttpCodeExceptions::RequestHeaderFieldsTooLargeException();
         return kHeaderNotParsed;
     }
     buffer_.erase(pos);
     size_t  bytes_to_trim_in_message = buffer_.length() - initial_buffer_size + 4;
     message.erase(0, bytes_to_trim_in_message);
+    if (mode == kParseRequest && buffer_.size() > kMaxHeaderSize)
+        throw HttpCodeExceptions::RequestHeaderFieldsTooLargeException();
     is_complete_ = true;
     int err = HttpRequest::Split(buffer_, "\r\n", tokens);
     if (err == -1)
