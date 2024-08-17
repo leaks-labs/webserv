@@ -122,9 +122,9 @@ void    HttpBody::ParseContentLength(std::string& message)
         size_t  initial_body_length = body_.length();
         size_t  missing_bytes = required_length_ - initial_body_length;
         body_ += message.substr(0, missing_bytes);
+        message.erase(0, missing_bytes);
         if (max_body_size_ > 0 && body_.length() > max_body_size_)
             throw HttpCodeExceptions::ContentTooLargeException();
-        message.erase(0, missing_bytes);
         is_complete_ = (body_.length() == required_length_);
 }
 
@@ -168,6 +168,8 @@ void    HttpBody::ParseChunkSize(int mode, std::string& message)
         if (chunk_size_ == 0 && buffer_.find_first_not_of('0') != std::string::npos)
             mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
         buffer_.clear();
+        if (max_body_size_ > 0 && body_.length() + chunk_size_ > max_body_size_)
+            throw HttpCodeExceptions::ContentTooLargeException();
     }
 }
 
