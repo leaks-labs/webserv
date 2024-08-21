@@ -16,6 +16,9 @@ class ServerList {
         typedef std::vector<Server>::const_reverse_iterator ConstReverseIterator;
 
         static ServerList&  Instance();
+        static int          IsSameAddr(const int listener_sfd, const struct addrinfo* addr_list);
+        static bool         CmpAddr(const struct addrinfo& addr1, const struct addrinfo& addr2);
+        static bool         CmpSockAddr(const struct sockaddr& sa1, const struct sockaddr& sa2);
 
         Server& operator[](size_t index);
 
@@ -30,7 +33,6 @@ class ServerList {
 
         size_t          Size() const;
         void            InitServerList(const std::string& path);
-        int             IsSameAddr(const int listener_sfd, const struct addrinfo* addr_list) const;
         const Server&   FindServer(const int acceptor_sfd, const std::string& name) const;
         void            Print() const;
 

@@ -6,6 +6,44 @@ ServerList& ServerList::Instance()
     return instance;
 }
 
+int ServerList::IsSameAddr(const int acceptor_sfd, const struct addrinfo* addr_list)
+{
+    struct sockaddr_storage addr_buf;
+    socklen_t               len_buf = sizeof(addr_buf);
+    if (getsockname(acceptor_sfd, reinterpret_cast<struct sockaddr*>(&addr_buf), &len_buf) == -1) {
+        perror("ERROR: getsockname()");
+        return -1;
+    }
+    for (const struct addrinfo *tmp = addr_list; tmp != NULL; tmp = tmp->ai_next)
+        if (CmpSockAddr(*tmp->ai_addr, reinterpret_cast<const struct sockaddr&>(addr_buf)))
+            return 1;
+    return 0;
+}
+
+bool    ServerList::CmpAddr(const struct addrinfo& addr1, const struct addrinfo& addr2)
+{
+    if (addr1.ai_family != addr2.ai_family || addr1.ai_socktype != addr2.ai_socktype || addr1.ai_protocol != addr2.ai_protocol)
+        return false;
+    return CmpSockAddr(*addr1.ai_addr, *addr2.ai_addr);
+}
+
+bool    ServerList::CmpSockAddr(const struct sockaddr& sa1, const struct sockaddr& sa2)
+{
+    if (sa1.sa_family != sa2.sa_family) {
+        return false;
+    } else if (sa1.sa_family == AF_INET) {
+        const struct sockaddr_in& sin1 = reinterpret_cast<const struct sockaddr_in&>(sa1);
+        const struct sockaddr_in& sin2 = reinterpret_cast<const struct sockaddr_in&>(sa2);
+        return (sin1.sin_port == sin2.sin_port && sin1.sin_addr.s_addr == sin2.sin_addr.s_addr);
+    } else if (sa1.sa_family == AF_INET6) {
+        const struct sockaddr_in6& sin61 = reinterpret_cast<const struct sockaddr_in6&>(sa1);
+        const struct sockaddr_in6& sin62 = reinterpret_cast<const struct sockaddr_in6&>(sa2);
+        return (sin61.sin6_port == sin62.sin6_port && sin61.sin6_scope_id == sin62.sin6_scope_id
+                && std::memcmp(&sin61.sin6_addr, &sin62.sin6_addr, sizeof(struct in6_addr)) == 0);
+    }
+    return (std::memcmp(&sa1, &sa2, sizeof(struct sockaddr)) == 0);
+}
+
 Server& ServerList::operator[](size_t index)
 {
     return servers_[index];
@@ -62,20 +100,6 @@ void    ServerList::InitServerList(const std::string& path)
     if (!file.good())
         throw std::runtime_error("opening config_file failed");
     ParseConfigFile(file);
-}
-
-int ServerList::IsSameAddr(const int acceptor_sfd, const struct addrinfo* addr_list) const
-{
-    struct sockaddr_storage addr_buf;
-    socklen_t               len_buf = sizeof(addr_buf);
-    if (getsockname(acceptor_sfd, reinterpret_cast<struct sockaddr*>(&addr_buf), &len_buf) == -1) {
-        perror("ERROR: getsockname()");
-        return -1;
-    }
-    for (const struct addrinfo *tmp = addr_list; tmp != NULL; tmp = tmp->ai_next)
-        if (tmp->ai_addrlen == len_buf && memcmp(tmp->ai_addr, &addr_buf, len_buf) == 0)
-            return 1;
-    return 0;
 }
 
 const Server& ServerList::FindServer(const int acceptor_sfd, const std::string& name) const

@@ -71,18 +71,20 @@ void HttpRequestLine::Parse(std::string& message)
 {
     size_t initial_buffer_size = buffer_.length();
     buffer_ += message;
-    if (buffer_.size() > kMaxRequestLineSize)
-        throw HttpCodeExceptions::UrlTooLongException();
     size_t pos = buffer_.find("\r\n");
     if (pos == 0)
         pos = buffer_.find("\r\n", 2);
     if (pos == std::string::npos) {
         message.clear();
+        if (buffer_.size() > kMaxRequestLineSize)
+            throw HttpCodeExceptions::UrlTooLongException();
         return;
     }
     buffer_.erase(pos);
     size_t  bytes_to_trim_in_message = buffer_.length() - initial_buffer_size + 2;
     message.erase(0, bytes_to_trim_in_message);
+    if (buffer_.size() > kMaxRequestLineSize)
+        throw HttpCodeExceptions::UrlTooLongException();
     is_complete_ = true;
     if (buffer_.substr(0, 2) == "\r\n")
         buffer_.erase(0, 2);

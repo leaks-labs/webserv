@@ -30,8 +30,8 @@ class StreamHandler : public EventHandler {
         void    ConvertRequestToResponse();
         
     private:
-        static const bool   kKeepConnection = 0;
-        static const bool   kCloseConnection = 1;
+        static const bool   kKeepConnection = false;
+        static const bool   kCloseConnection = true;
 
         StreamHandler();
         StreamHandler(const StreamHandler& src);

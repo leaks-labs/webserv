@@ -27,10 +27,8 @@ Acceptor::Acceptor(const struct addrinfo& address)
     try
     {
         int yes = 1;
-        if (setsockopt(sfd_, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1
-            || setsockopt(sfd_, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes)) == -1) {
+        if (setsockopt(sfd_, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1)
             throw std::runtime_error("setsockopt() failed: " + std::string(strerror(errno)));
-        }
         if (bind(sfd_, address.ai_addr, address.ai_addrlen) == -1)
             throw std::runtime_error("bind() failed: " + std::string(strerror(errno)));
         if (listen(sfd_, SOMAXCONN) == -1)
