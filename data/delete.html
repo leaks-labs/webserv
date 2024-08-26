@@ -1,47 +1,122 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Requête HTTP DELETE</title>
+    <title>HTTP DELETE Request</title>
+    <style>
+        body {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            margin: 0;
+            padding-top: 40px;
+        }
+        header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 1.2rem;
+            color: #bdc3c7;
+            margin: 0;
+        }
+        form {
+            background-color: #34495e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+        label {
+            font-size: 1rem;
+            margin-bottom: 0.5em;
+            display: block;
+            text-align: left;
+        }
+        input[type="text"], button {
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid #7f8c8d;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        input[type="text"] {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ecf0f1;
+            margin-bottom: 1em;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #2980b9;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #c0392b;
+        }
+        button:focus {
+            outline: none;
+        }
+    </style>
 </head>
 <body>
-    <h1>Envoyer une requête HTTP DELETE</h1>
-    <form>
-    <label for="target">File to delete :</label>
-    <input type="text" name="target" id="target" required>
+<header>
+    <h1>HTTP DELETE Request</h1>
+    <p>Enter the URL of the resource you want to delete</p>
+</header>
+<main>
+    <form id="deleteForm">
+        <label for="target"></label><input type="text" name="target" id="target" placeholder="Ressource URL" required>
+        <button type="submit">Delete Resource</button>
     </form>
-    <br>
-    <button id="deleteButton">Supprimer</button>
+</main>
+<script>
+    document.getElementById('deleteForm').addEventListener('submit', function(event) {
+        event.preventDefault();
 
-    <script>
-        document.getElementById('deleteButton').addEventListener('click', function() {
-            // Envoi de la requête DELETE
-            fetch(document.getElementById('target').value, {
-                method: 'DELETE'
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Si le serveur ne renvoie pas de JSON, nous lisons le texte ou gérons les cas sans corps
-                    return response.text();  // Utilisation de response.text() pour gérer les réponses qui ne sont pas JSON
-                }
-                throw new Error('Une erreur est survenue lors de la suppression.');
-            })
-            .then(text => {
-                // Gérer les cas où le corps de la réponse peut être vide
-                if (text) {
-                    console.log('Réponse du serveur:', text);
-                    alert('Ressource supprimée avec succès : ' + text);
-                } else {
-                    console.log('Aucun contenu retourné par le serveur.');
-                    alert('Ressource supprimée avec succès (aucun contenu retourné).');
-                }
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-                alert('Une erreur est survenue.');
-            });
-        });
-    </script>
+        const target = document.getElementById('target').value;
+
+        fetch(target, { method: 'DELETE' })
+            .then(handleResponse)
+            .then(handleSuccess)
+            .catch(handleError);
+    });
+
+    function handleResponse(response) {
+        if (!response.ok) {
+            throw new Error('An error occurred during deletion.');
+        }
+        return response.text();
+    }
+
+    function handleSuccess(text) {
+        const message = text ? `Resource deleted successfully: ${text}` : 'Resource deleted successfully (no content returned).';
+        console.log('Server response:', text);
+        alert(message);
+    }
+
+    function handleError(error) {
+        console.error('Error:', error);
+        alert('An error occurred.');
+    }
+</script>
 </body>
 </html>

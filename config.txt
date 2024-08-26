@@ -1,8 +1,10 @@
-# 0.0.0.0
-port 8000
+# 127.0.0.1
+port 8080
 server_names abc.com xyz.fr
-bodymax 0
+bodymax 10000
 cgi php-cgi
 listing true
-root /
+root /var/home/martin/CLionProjects/webserv/data
+path_info /var/home/martin/CLionProjects/webserv/data/upload
 > /
+methods GET POST DELETE
