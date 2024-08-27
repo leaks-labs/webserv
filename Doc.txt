@@ -1,0 +1,31 @@
+######## Congig File Usage ########
+
+If no location is define in a server block a default location is created with the default settings.
+In a Server block, all location's settings defined before creating a location overides the default location's settings.
+Empty lines are authorised in the config file.
+If a setting is redefined, overide occurs.
+
+### Server Block settings ###
+
+#               ->      create a new server block, must be followed by the server block's address (default 0.0.0.0)
+port            ->      set the server block's port (default 8080)
+server_name     ->      set a list of server names (separated with spaces)
+
+
+### Location settings ###
+
+>               ->      create a new location 
+>=              ->      create a new absolute location
+    when a location is create, the folder's path aimed by the location must be specified, separated with a space
+root            ->      set the root of the location (default /)
+alias           ->      set the alias of the location (default /)
+    root and alias overide each other
+default_file    ->      set the default file (default index.html)
+redirect        ->      set the redirection of a location, the keyword false means no redirection (default false)
+errors          ->      set the error pages, first argument is the page and following argument are the errors separated with spaces (default is an empty list)
+    error pages can be defined on multiple lines. 
+cgi             ->      set the cgi, argument must be none or php-cgi (default php-cgi)
+methods         ->      set the allowed methods, arguments is a list of method separated with spaces. Valid arguments are GET, POST, DELETE or none (default is all methods)
+bodymax         ->      set the bodymax send by the user to the server, 0 means infinite (default 0)
+listing         ->      set the listing, argument is true or false (default false)
+path_info       ->      set the destination folder for the upload files, the keyword none means the upload is not available (default none)
