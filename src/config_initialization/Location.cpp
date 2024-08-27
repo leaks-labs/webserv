@@ -227,7 +227,7 @@ void    Location::set_listing(const std::string& value)
 {
     if (value == "true")
         listing_ = true;
-    else if (value =="false")
+    else if (value == "false")
         listing_ = false;
     else
         throw std::runtime_error("listing value should be true or false");
