@@ -1,41 +1,30 @@
+
 #include "HTMLPage.hpp"
 
 #include <iostream>
 #include <sstream>
-#include <fstream>
-#include <string>
 
 #include "HttpStatusLine.hpp"
 
 std::string HTMLPage::GetErrorPage(int code)
 {
-     HTMLPage page;
-    const std::map<int, std::string>::const_iterator it = HttpStatusLine::get_status_code_map().find(code);
+    HTMLPage page;
 
-    const std::string error_message = (it == HttpStatusLine::get_status_code_map().end())
-    ? "Sorry, something went wrong."
-    : it->second;
-
-    const std::string place_holders[2] = {
-        "{{ERROR_CODE}}",
-        "{{ERROR_MESSAGE}}"
-    };
-    const std::ifstream ifs("data/error.html");
-    if (!ifs.good())
-        std::cout << "Failled to open the file" << std::endl;
-    std::ostringstream oss, to_str;
-    oss << ifs.rdbuf();
-    to_str << code;
-    const std::string logs[2] = {
-        to_str.str(),
-        error_message
-    };
-    std::string error_html = oss.str();
-    for (size_t i = 0; i < 2; ++i) {
-        size_t pos = error_html.find(place_holders[i]);
-        error_html.replace(pos, place_holders[i].length(), logs[i]);
-    }
-    page.Write(error_html);
+    page.AddHeader();
+    page.OpenTag("h1");
+    std::map<int, std::string>::const_iterator it = HttpStatusLine::get_status_code_map().find(code);
+    std::ostringstream iss;
+    iss << code;
+    std::string code_str = iss.str();
+    std::string str;
+    if (it == HttpStatusLine::get_status_code_map().end())
+        str = "Error " + code_str + " : unkown problem";
+    else
+        str = "Error " + code_str + " : " + it->second;
+    page.Write(str);
+    page.CloseTag("h1");
+    page.NewLine();
+    page.AddButtom();
     return (page.get_page());
 }
 
