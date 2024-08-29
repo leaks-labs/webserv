@@ -1,4 +1,3 @@
-
 #include "HTMLPage.hpp"
 
 #include <iostream>
