@@ -16,7 +16,7 @@ cgi php-cgi
 methods GET POST DELETE
 bodymax 0
 listing true
-path_info /home/upload/
+path_info /home/uploads/
 
 > /test
 
