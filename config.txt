@@ -3,7 +3,7 @@ port 8080
 server_names abc.com xyz.fr
 bodymax 10000
 cgi php-cgi
-listing true
+listing false
 root /var/home/martin/CLionProjects/webserv
 path_info /var/home/martin/CLionProjects/webserv/data/upload
 > /
