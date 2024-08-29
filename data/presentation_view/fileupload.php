@@ -7,8 +7,13 @@ if (!isset($_SERVER['PATH_INFO'])){
     echo 'upload unavalaible: path_info is not defined in the server config';
     exit;
 }
-if (!isset($_FILES['file']) || $_FILES['file']['error'] != UPLOAD_ERR_OK) {
+if (!isset($_FILES['file'])) {
     echo 'erreur lors de l\'upload du fichier';
+    exit;
+}
+
+if ($_FILES['file']['error'] != UPLOAD_ERR_OK) {
+    echo 'erreur lors de l\'upload du fichier2';
     exit;
 }
 

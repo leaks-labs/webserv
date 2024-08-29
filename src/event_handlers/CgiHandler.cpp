@@ -13,6 +13,8 @@
 
 #include "HttpCodeException.hpp"
 
+#include <iostream>
+
 CgiHandler::CgiHandler(StreamHandler& stream_handler, HttpResponse& response)
     : error_occured_while_handle_event_(false),
       stream_handler_(stream_handler),
@@ -58,7 +60,9 @@ EventHandler::Handle    CgiHandler::get_handle(void) const
 
 int CgiHandler::ReadFromCGI()
 {
+    std::cout << "before std::string Read()" << std::endl;
     std::string res = stream_main_.Read();
+    std::cout << "after std::string Read()" << std::endl;
     if (res.empty())
         return kReturnToStreamHandler;
     cgi_buffer += res;
@@ -67,10 +71,16 @@ int CgiHandler::ReadFromCGI()
 
 void    CgiHandler::WriteToCGI()
 {
-    if (!data_to_send_to_cgi_.empty())
+    if (!data_to_send_to_cgi_.empty()) {
+        std::cout << "before std::string Send()" << std::endl;
         stream_main_.Send(data_to_send_to_cgi_);
-    if (data_to_send_to_cgi_.empty() && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1)
+        std::cout << "after std::string Send()" << std::endl;
+    }
+
+    if (data_to_send_to_cgi_.empty() && InitiationDispatcher::Instance().DelWriteFilter(*this) == -1) {
+        std::cout << "Runtime error" << std::endl;
         throw std::runtime_error("Failed to update Cgi Handler filters");
+    }
 }
 
 void    CgiHandler::HandleEvent(EventTypes::Type event_type)
@@ -81,14 +91,22 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
     } else {
         try
         {
-            if (EventTypes::IsWriteEvent(event_type))
+            if (EventTypes::IsWriteEvent(event_type)) {
+                std::cout << "Before writing" << std::endl;
                 WriteToCGI();
-            else if (EventTypes::IsReadEvent(event_type))
+                std::cout << "After writing" << std::endl;
+            }
+            else if (EventTypes::IsReadEvent(event_type)) {
+                std::cout << "Before reading" << std::endl;
                 should_return_to_stream_handler_ = ReadFromCGI();
+                std::cout << "After reading" << std::endl;
+            }
+
         }
         catch(const std::exception& e)
         {
             error_occured_while_handle_event_ = true;
+            std::cout << "Error Catched" << std::endl;
             ReturnToStreamHandler();
             return; // Do NOT remove this return. It is important to be sure to return here.
         }
@@ -97,6 +115,7 @@ void    CgiHandler::HandleEvent(EventTypes::Type event_type)
         ReturnToStreamHandler();
         return; // Do NOT remove this return. It is important to be sure to return here.
     }
+    std::cout << "END of HandleEvent" << std::endl;
 }
 
 void CgiHandler::HandleTimeout()
@@ -117,7 +136,7 @@ std::pair<int, int> CgiHandler::InitSocketPair()
 #ifdef __APPLE__
     if (socketpair(PF_UNIX, SOCK_STREAM, 0, pfd.data()) == -1)
         throw std::runtime_error("socketpair() failed");
-    if (fcntl(pfd[0], F_SETFL, O_NONBLOCK) == -1 
+    if (fcntl(pfd[0], F_SETFL, O_NONBLOCK) == -1
         || fcntl(pfd[0], F_SETFD, FD_CLOEXEC) == -1
         // || fcntl(pfd[1], F_SETFD, FD_CLOEXEC) == -1
         || fcntl(pfd[1], F_SETFL, O_NONBLOCK) == -1)
@@ -167,7 +186,7 @@ void CgiHandler::ExecCGI()
         std::exit(errno);
     }
 }
- 
+
 void    CgiHandler::KillChild()
 {
     int status;
@@ -181,17 +200,20 @@ void    CgiHandler::ReturnToStreamHandler()
     int err = 0;
     int status_err = 200;
     typedef std::map<std::string, std::string>::const_iterator iterator;
-    
+
     try
     {
-        if (error_occured_while_handle_event_)
+        if (error_occured_while_handle_event_) {
+            std::cout << "Catch again and throw 500" << std::endl;
             throw HttpCodeExceptions::InternalServerErrorException();
+        }
+
         response_.ClearHeader();
         response_.ParseHeader(cgi_buffer);
         if (!response_.HeaderIsComplete())
             throw HttpCodeExceptions::BadGatewayException();
         iterator it = response_.get_header().get_header_map().find("STATUS");
-        if (it != response_.get_header().get_header_map().end() 
+        if (it != response_.get_header().get_header_map().end()
             && (status_err = ExtractStatusError(it->second)) >= 400) {
             response_.RedirectToNewTarget(status_err);
         } else {

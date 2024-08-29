@@ -7,6 +7,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <iostream>
+
 Stream::Stream(int sfd)
     : sfd_(sfd),
       buffer_(kBufSize)
@@ -44,8 +46,10 @@ std::string Stream::Read()
 #elif __linux__
     int recv_flags = MSG_DONTWAIT;
 #endif
-    if ((bytes_read = recv(sfd_, buffer_.data(), buffer_.size(), recv_flags)) == -1)
+    if ((bytes_read = recv(sfd_, buffer_.data(), buffer_.size(), recv_flags)) == -1) {
+        std::cout << "recv failed" << std::endl;
         throw std::runtime_error("recv() failed: " + std::string(strerror(errno)));
+    }
     else if (bytes_read == 0)
         return std::string();
     return std::string(buffer_.data(), bytes_read);
