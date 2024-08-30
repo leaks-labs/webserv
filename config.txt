@@ -17,9 +17,7 @@ methods GET POST DELETE
 bodymax 0
 listing true
 path_info /home/uploads/
-
 > /test
-
 > /anothertest
 default_file anotherfile.html
 errors /errors/fodler/error404.html 404
@@ -28,7 +26,6 @@ methods GET
 bodymax 1000
 listing false
 path_info none
-
 >= /absolute
 default_file afile.html
 listing false
