@@ -2,7 +2,7 @@
 port 8080
 server_names leakslab.com
 root /
-default_file file.html
+default_file index.html
 
 # 0.0.0.0
 port 8000
