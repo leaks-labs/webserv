@@ -2,7 +2,7 @@
 port 8080
 server_names leakslab.com
 root /
-default_file file.html
+default_file index.html
 
 # 0.0.0.0
 port 8000
@@ -16,10 +16,8 @@ cgi php-cgi
 methods GET POST DELETE
 bodymax 0
 listing true
-path_info /home/upload/
-
+path_info /home/uploads/
 > /test
-
 > /anothertest
 default_file anotherfile.html
 errors /errors/fodler/error404.html 404
@@ -28,7 +26,6 @@ methods GET
 bodymax 1000
 listing false
 path_info none
-
 >= /absolute
 default_file afile.html
 listing false
