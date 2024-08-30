@@ -1,4 +1,4 @@
-Congig File Usage
+Config File Usage
 =================
 
 If no location is defined in a server block, a default location is created with the default settings.
