@@ -31,6 +31,6 @@ All location settings can be defined in Server Block level too.
 | **`errors`**          | **`error.html 404 500 502`**                                      |                       | set the error pages, first argument is the page and following argument are the errors separated with spaces (errors pages can be defined on multiple lines) |
 | **`cgi`**             | **`none`** OR **`php-cgi`**                                       | **`php-cgi`**         | set the cgi |
 | **`methods`**         | **`GET`** OR **`POST`** OR **`DELETE`** OR **`none`**             | **`GET POST DELETE`** | set the allowed methods, arguments is a list of method separated with spaces |
-| **`bodymax`**         | **`0`** OR **`a positive number`**                                | **`1024`**            | set the max body size allowed send by the user to the server, 0 means infinite |
+| **`bodymax`**         | **`0`** OR **`a positive number`**                                | **`1048576`**         | set the max body size allowed send by the user to the server, 0 means infinite |
 | **`listing`**         | **`true`** OR **`false`**                                         | **`false`**           | set the listing feature for directory targets |
 | **`path_info`**       | **`none`** OR **`/path/to/upload/dir/`**                          | **`none`**            | set the destination folder for the upload files, the keyword none means the upload is not available |
