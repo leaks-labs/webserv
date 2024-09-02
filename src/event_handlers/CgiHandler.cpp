@@ -123,7 +123,7 @@ std::pair<int, int> CgiHandler::InitSocketPair()
         || fcntl(pfd[1], F_SETFL, O_NONBLOCK) == -1)
         throw std::runtime_error("fcntl() failed");
 #elif __linux__
-    if (socketpair(PF_UNIX, SOCK_STREAM | SOCK_NONBLOCK /* | SOCK_CLOEXEC */, 0, pfd.data()) == -1)
+    if (socketpair(PF_UNIX, SOCK_STREAM, 0, pfd.data()) == -1)
         throw std::runtime_error("socketpair() failed");
 #endif
     return std::pair<int, int>(pfd[0], pfd[1]);
