@@ -1,4 +1,0 @@
-- retirer les print et iostream
-- retirer fichiers de test dans default_view
-- test avec siege
-- mettre les bon path dans config.txt
