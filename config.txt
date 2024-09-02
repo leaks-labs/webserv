@@ -28,7 +28,7 @@ path_info [TO MODIFY]
 
 
 # 0.0.0.0
-port 8080
+port 8082
 server_names abc.com xyz.fr
 root /
 bodymax 0
