@@ -1,30 +1,30 @@
 # 127.0.0.1
 port 8080
 server_names leakslab.com
-root /====================
+root [TO MODIFY]
 default_file index.html
 listing true
 bodymax 0
-path_info /============================
+path_info [TO MODIFY]
 > /
 errors /error/error404.html 404
 errors /error/error403.html 403
 > /error
-root /=========================
+root [TO MODIFY]
 > /redirection
 redirect http://wikipedia.org
 > /get
 methods GET
-alias /=================
+alias [TO MODIFY]
 
 
 # 127.0.0.1
 port 8081
 server_names leakslab.com
-root /=========================
+root [TO MODIFY]
 bodymax 50
 > /
-path_info /============================
+path_info [TO MODIFY]
 
 
 # 0.0.0.0
