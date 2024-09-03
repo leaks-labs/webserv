@@ -28,7 +28,6 @@ class HttpResponse {
 
         void        Execute();
         std::string GetCompleteRequet() const;
-        // void        AppendToResponse(std::string& message);
         void        ParseHeader(std::string& str);
         bool        HeaderIsComplete() const;
         void        ClearHeader();
@@ -55,7 +54,6 @@ class HttpResponse {
         void                        Apply();
         void                        ApplyGeneratedPage();
         void                        LaunchCgiHandler();
-        // void                        LaunchProxyHandler();
         bool                        IsHandledExternaly();
         void                        DeleteResource();
         void                        MovedPermanentely(const std::string& new_target);

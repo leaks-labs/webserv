@@ -119,7 +119,6 @@ std::pair<int, int> CgiHandler::InitSocketPair()
         throw std::runtime_error("socketpair() failed");
     if (fcntl(pfd[0], F_SETFL, O_NONBLOCK) == -1 
         || fcntl(pfd[0], F_SETFD, FD_CLOEXEC) == -1
-        // || fcntl(pfd[1], F_SETFD, FD_CLOEXEC) == -1
         || fcntl(pfd[1], F_SETFL, O_NONBLOCK) == -1)
         throw std::runtime_error("fcntl() failed");
 #elif __linux__
