@@ -168,22 +168,21 @@ void    HttpBody::ParseChunkSize(int mode, std::string& message)
         if (chunk_size_ == 0 && buffer_.find_first_not_of('0') != std::string::npos)
             mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
         buffer_.clear();
-        if (max_body_size_ > 0 && body_.length() + chunk_size_ > max_body_size_)
+        if (max_body_size_ > 0 && body_.length() + static_cast<size_t>(chunk_size_) > max_body_size_)
             throw HttpCodeExceptions::ContentTooLargeException();
     }
 }
 
 void    HttpBody::ParseChunk(int mode, std::string& message)
 {
-
-    size_t  bytes_to_add = chunk_size_ - buffer_.length() + 2;
+    size_t  bytes_to_add = static_cast<size_t>(chunk_size_) - buffer_.length() + 2;
     buffer_ += message.substr(0, bytes_to_add);
     message.erase(0, bytes_to_add);
     if (buffer_.length() == static_cast<size_t>(chunk_size_ + 2)) {
         size_t  pos = buffer_.rfind("\r\n");
         if (pos == std::string::npos || pos != static_cast<size_t>(chunk_size_))
             mode == kParseRequest ? throw HttpCodeExceptions::BadRequestException() : throw HttpCodeExceptions::BadGatewayException();
-        body_ += buffer_.substr(0, chunk_size_);
+        body_ += buffer_.substr(0, static_cast<size_t>(chunk_size_));
         buffer_.clear();
         if (max_body_size_ > 0 && body_.length() > max_body_size_)
             throw HttpCodeExceptions::ContentTooLargeException();

@@ -17,7 +17,7 @@ LIB_DIRS=
 CC:=	cc
 CXX:=	c++
 
-CXXFLAGS= -Wall -Wextra -Werror -std=c++98
+CXXFLAGS= -Wall -Wextra -Werror -Weffc++ -Wconversion -Wsign-conversion -std=c++98
 
 CFLAGS=	-Wall -Wextra -Werror
 

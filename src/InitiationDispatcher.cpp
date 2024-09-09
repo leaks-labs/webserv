@@ -212,7 +212,7 @@ void    InitiationDispatcher::SignalHandler(int signal)
 EventHandler::Handle    InitiationDispatcher::GetHandleFromEvent(const Event& event)
 {
 #ifdef __APPLE__
-    return event.ident;
+    return static_cast<EventHandler::Handle>(event.ident);
 #elif __linux__
     return event.data.fd;
 #endif

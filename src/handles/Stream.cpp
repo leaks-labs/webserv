@@ -33,7 +33,7 @@ void    Stream::Send(std::string& data)
     ssize_t bytes_sent = send(sfd_, data.c_str(), data.size(), send_flags);
     if (bytes_sent == -1)
         throw std::runtime_error("send() failed:" + std::string(strerror(errno)));
-    data.erase(0, bytes_sent);
+    data.erase(0, static_cast<size_t>(bytes_sent));
 }
 
 std::string Stream::Read()
@@ -48,7 +48,7 @@ std::string Stream::Read()
         throw std::runtime_error("recv() failed: " + std::string(strerror(errno)));
     else if (bytes_read == 0)
         return std::string();
-    return std::string(buffer_.data(), bytes_read);
+    return std::string(buffer_.data(), static_cast<size_t>(bytes_read));
 }
 
 void    Stream::Close()
